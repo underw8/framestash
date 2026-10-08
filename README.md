@@ -16,7 +16,7 @@ This folder is our own replacement for *a reference extension* v4.12.16, written
 ## Using v0.3
 
 1. Go to `chrome://extensions`, turn on Developer mode, click **Load unpacked**, and choose `igd/extension/`. The old extension can stay installed; the two don't share storage or buttons.
-2. Open a profile, for example `https://www.instagram.com/<user>/`, and a **⬇ Download @user** button appears in the bottom-left corner. On a post or reel page (`/p/…`, `/reel/…`, `/reels/…`) the button is **⬇ Save post** instead, and saves every slide into `<root>/<owner>/`.
+2. Open a profile, for example `https://www.instagram.com/<user>/`, and a **⬇ Download @user** button appears in the bottom-right corner, above Instagram's Messages button. On a post or reel page (`/p/…`, `/reel/…`, `/reels/…`) the button is **⬇ Save post** instead, and saves every slide into `<root>/<owner>/`.
    Grid tiles (profile, tagged, explore, saved) and home-feed posts get a round **⬇** button when you hover them. It saves that post, exactly like **Save post**, without opening it.
 3. On the first click in a tab, pick the **root** folder of your collection (the one that contains the account folders, e.g. `IG`). The folder is remembered for that tab: moving between profiles and posts inside Instagram needs no new pick, but a new tab or a reload does. The 📁 button changes it.
 4. The status line shows progress: page, new, already had, failed. Failed items are listed in the DevTools console. Running it again only fetches what's missing.
