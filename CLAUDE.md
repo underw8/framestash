@@ -4,10 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-`igd/` is a **clean-room rebuild** of the *a reference extension* browser extension. The original sits at the repository root (`../`) and is unlicensed. v0.1 lives in `extension/` (plain MV3, no build step). It does profile download only. See `README.md` for the requirements and status, and `docs/README.md` for the study notes.
+`igd/` is a **clean-room rebuild** of the *a reference extension* browser extension. The original sits at the repository root (`../`) and is unlicensed. v0.2 lives in `extension/` (plain MV3, no build step). It does profile download and single-post download. See `README.md` for the requirements and status, and `docs/README.md` for the study notes.
 
 - `extension/naming.js`: file names and dedup keys. It must stay compatible with the old collections, so run `node test/naming.test.js` after any change.
-- `extension/page.js`: page-world GraphQL calls. Each request gets exactly one reply on its port.
+- `extension/page.js`: page-world GraphQL calls (`PolarisProfilePostsQuery`, `PolarisPostRootQuery`). Each request gets exactly one reply on its port.
+- Security invariants: never store the folder handle in instagram.com storage (page scripts could use it). Treat page-bridge replies as untrusted, so `itemsFromNode` validates usernames, IDs and CDN URLs.
 - `extension/content.js`: UI, folder handle, download loop.
 
 ## Clean-room rules

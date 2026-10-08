@@ -36,17 +36,25 @@ function keyFromFileName(name) {
   return m ? mediaKey(m[1], m[3]) : null;
 }
 
-// One feed node (v1 shape) -> one item per media file.
+// Records arrive over window messages, which any page script can forge, so only
+// Instagram-shaped values and Instagram CDN URLs are accepted.
+const USERNAME_RE = /^[A-Za-z0-9._]{1,30}$/;
+const MEDIA_ID_RE = /^\d+(?:_\d+)?$/;
+const CDN_URL_RE = /^https:\/\/[a-z0-9.-]+\.(?:cdninstagram\.com|fbcdn\.net)\//i;
+
+// One feed node (v1 shape) -> one item per media file. Invalid parts are dropped.
 function itemsFromNode(node) {
-  const owner = node.user && node.user.username;
+  const owner = node && node.user && node.user.username;
+  if (typeof owner !== "string" || !USERNAME_RE.test(owner)) return [];
   const parts = node.carousel_media && node.carousel_media.length ? node.carousel_media : [node];
   const items = [];
   for (const m of parts) {
     const best = bestMedia(m);
-    if (!owner || !best) continue;
+    if (!best || typeof best.url !== "string" || !CDN_URL_RE.test(best.url)) continue;
     const id = String(m.id || m.pk);
     const pk = String(m.pk || id.split("_")[0]);
     const takenAt = m.taken_at != null ? m.taken_at : node.taken_at;
+    if (!MEDIA_ID_RE.test(id) || !/^\d+$/.test(pk) || !Number.isInteger(takenAt)) continue;
     items.push({
       url: best.url,
       key: mediaKey(owner, pk),
@@ -57,5 +65,5 @@ function itemsFromNode(node) {
 }
 
 if (typeof module !== "undefined") {
-  module.exports = { bestMedia, extensionOf, fileName, keyFromFileName, itemsFromNode, mediaKey };
+  module.exports = { bestMedia, extensionOf, fileName, keyFromFileName, itemsFromNode, mediaKey, USERNAME_RE };
 }

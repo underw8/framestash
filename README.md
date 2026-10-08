@@ -2,16 +2,17 @@
 
 This folder is our own replacement for *a reference extension* v4.12.16, written from scratch. The original extension sits at the repository root (`../`) **as a reference only**. Nothing from it is copied into this folder.
 
-**Status:** v0.1: profile download into an existing collection (`extension/`). Live-tested on 8 October 2026:
+**Status:** v0.2: profile and single-post download into an existing collection (`extension/`). Live-tested on 8 October 2026:
   - A profile the old tool had already downloaded: **new 0 · already had 25 · failed 0**. Nothing was written to disk.
   - A new 49-post profile, 5 pages: **new 167 · failed 0** (138 JPG + 29 MP4, 155 MB). Every file is non-empty, has real JPEG/MP4 header bytes, and parses back to a unique key.
-  - The same profile run again: **new 0 · already had 167**. Study notes: `docs/`.
+  - The same profile run again: **new 0 · already had 167**.
+  - v0.2, single post (8-slide carousel already saved by the profile run): **new 0 · already had 8**. Then two profiles reached inside the app in the same tab, with one folder pick: **already had 167** and **already had 25**. Study notes: `docs/`.
 
-## Using v0.1
+## Using v0.2
 
 1. Go to `chrome://extensions`, turn on Developer mode, click **Load unpacked**, and choose `igd/extension/`. The old extension can stay installed; the two don't share storage or buttons.
-2. Open a profile, for example `https://www.instagram.com/<user>/`. A **⬇ Download @user** button appears in the bottom-left corner.
-3. On the first click, pick the **root** folder of your collection (the one that contains the account folders, e.g. `IG`). The 📁 button changes it later.
+2. Open a profile, for example `https://www.instagram.com/<user>/`, and a **⬇ Download @user** button appears in the bottom-left corner. On a post or reel page (`/p/…`, `/reel/…`, `/reels/…`) the button is **⬇ Save post** instead, and saves every slide into `<root>/<owner>/`.
+3. On the first click in a tab, pick the **root** folder of your collection (the one that contains the account folders, e.g. `IG`). The folder is remembered for that tab: moving between profiles and posts inside Instagram needs no new pick, but a new tab or a reload does. The 📁 button changes it.
 4. The status line shows progress: page, new, already had, failed. Failed items are listed in the DevTools console. Running it again only fetches what's missing.
 
 What it does, and which doc each rule comes from:
@@ -19,10 +20,11 @@ What it does, and which doc each rule comes from:
 - Names files exactly like the old tool [4] and skips any media already present, matched on **username + pk** [4].
 - Never overwrites a non-empty file. Creates a file only after a successful, status-checked download, so failures leave nothing behind [6].
 - Writes each page as it arrives, waits 1.5 s between pages, and backs off 60 / 120 / 300 s on HTTP 429 [3, 6].
-- Re-asks for the folder if the saved one was moved or deleted [6].
+- Keeps the folder only in the extension's isolated memory. Anything stored on instagram.com could be read, and used to write into your collection, by any script on the page [6]. Re-asks if the folder was moved or deleted.
+- Treats replies from the page as untrusted, because any page script can answer them. Only Instagram-shaped usernames and IDs and Instagram CDN URLs are accepted.
 - No telemetry, no host permissions, no web-accessible resources [5].
 
-Not in v0.1: single posts, carousels, reels, stories, highlights, tagged posts of other users, DASH video quality.
+Not yet: download buttons on feed or grid items (use the post page), current-slide-only saving, stories, highlights, a multi-profile queue, DASH video quality. A future version could hold the folder in an extension page, so one pick is shared across tabs.
 
 ## Checks
 
