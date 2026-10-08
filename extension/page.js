@@ -29,10 +29,11 @@
     const text = (await res.text()).replace(/^for \(;;\);/, "");
     let json;
     try { json = JSON.parse(text); } catch { return { error: "response is not JSON (Instagram may have changed the query)" }; }
-    if (json.errors && json.errors.length) return { error: json.errors[0].message || "GraphQL error" };
+    // Some queries return usable data next to field-level errors, so data wins.
     const data = json.data && json.data[rootField];
-    if (!data) return { error: "unexpected response shape (Instagram may have changed the query)" };
-    return { data };
+    if (data) return { data };
+    if (json.errors && json.errors.length) return { error: json.errors[0].message || "GraphQL error" };
+    return { error: "unexpected response shape (Instagram may have changed the query)" };
   }
 
   async function profilePosts(username, after) {
@@ -63,9 +64,68 @@
     return r.data.items && r.data.items.length ? { nodes: r.data.items } : { error: "post not found" };
   }
 
+  // Works for any account, including ones with no visible posts.
+  async function userId(username) {
+    const r = await graphql("PolarisAPITopsearchQuery", {
+      data: {
+        context: "blended", include_reel: "true", query: username, rank_token: "",
+        search_session_id: "", search_surface: "web_top_search",
+      },
+      hasQuery: true,
+    }, "xdt_api__v1__fbsearch__topsearch_connection");
+    if (r.error) return r;
+    const hit = (r.data.users || []).find((u) => u.user && u.user.username.toLowerCase() === username.toLowerCase());
+    return hit ? { pk: String(hit.user.pk) } : { error: `account @${username} not found` };
+  }
+
+  // Reads reels without marking anything as seen (that is a separate mutation we never call).
+  async function reels(ids, isHighlight) {
+    const R = window.require;
+    const provided = Object.keys(R("PolarisStoriesV3ReelPageStandaloneQuery.graphql").params.providedVariables || {});
+    const nodes = [];
+    for (let i = 0; i < ids.length; i += 20) {
+      const r = await graphql("PolarisStoriesV3ReelPageStandaloneQuery", {
+        reel_ids_arr: ids.slice(i, i + 20), is_highlight: isHighlight, media_id: null,
+        ...Object.fromEntries(provided.map((k) => [k, false])),
+      }, "xdt_api__v1__feed__reels_media");
+      if (r.error) return r;
+      // Story items carry no owner of their own; the reel does.
+      for (const reel of r.data.reels_media || []) for (const item of reel.items || []) nodes.push({ ...item, user: reel.user });
+    }
+    return { nodes };
+  }
+
+  async function highlightIds(pk) {
+    const ids = [];
+    let after = null;
+    do {
+      const r = await graphql("PolarisProfileStoryHighlightsTrayContentQuery", {
+        user_id: pk, first: 50, after, before: null, last: null, max_highlights_to_fetch_on_pagination: 50,
+      }, "highlights");
+      if (r.error) return r;
+      for (const e of r.data.edges || []) ids.push(e.node.id);
+      after = r.data.page_info && r.data.page_info.has_next_page ? r.data.page_info.end_cursor : null;
+    } while (after);
+    return { ids };
+  }
+
+  async function stories(username, withHighlights) {
+    const user = await userId(username);
+    if (user.error) return user;
+    const active = await reels([user.pk], false);
+    if (active.error || !withHighlights) return active;
+    const hl = await highlightIds(user.pk);
+    if (hl.error) return hl;
+    const saved = hl.ids.length ? await reels(hl.ids, true) : { nodes: [] };
+    if (saved.error) return saved;
+    return { nodes: [...active.nodes, ...saved.nodes], highlights: hl.ids.length };
+  }
+
   const OPS = {
     profilePosts: (d) => profilePosts(d.username, d.after),
     post: (d) => post(d.shortcode),
+    stories: (d) => stories(d.username, !!d.withHighlights),
+    highlight: (d) => reels([`highlight:${d.id}`], true),
   };
 
   window.addEventListener("message", async (e) => {

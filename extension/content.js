@@ -1,21 +1,6 @@
 // Isolated content script: buttons, folder handling, download loop.
 // Functions from naming.js are in scope (listed first in the manifest).
 
-const RESERVED = new Set([
-  "explore", "reels", "direct", "accounts", "stories", "p", "reel", "tv", "about", "legal",
-  "developer", "web", "challenge", "emails", "session", "archive", "your_activity", "create",
-  "api", "graphql", "ajax", "static", "privacy", "terms", "nametag", "directory", "lite",
-]);
-
-// -> { kind: "profile", username } | { kind: "post", shortcode } | null
-function routeFromPath(path) {
-  const shortcode = shortcodeFromPath(path);
-  if (shortcode) return { kind: "post", shortcode };
-  const profile = path.match(/^\/([A-Za-z0-9._]{1,30})\/(?:(?:reels|tagged)\/)?$/);
-  if (profile && !RESERVED.has(profile[1].toLowerCase())) return { kind: "profile", username: profile[1].toLowerCase() };
-  return null;
-}
-
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ---- folder ----
@@ -152,21 +137,26 @@ async function downloadProfile(username, job) {
   } while (after);
 }
 
-async function downloadPost(shortcode, job) {
+// Fetches records through the page bridge and saves them under <root>/<owner>[/<sub>].
+async function downloadRecords(op, args, what, sub, job) {
   const top = await rootFolder(false);
+  setStatus(`Loading ${what}…`);
   const r = await withBackoff(
-    () => pageCall("post", { shortcode }),
+    () => pageCall(op, args),
     (s) => setStatus(`Instagram is rate-limiting; waiting ${s} s…`, "warn"),
   );
-  if (r.error) throw new Error(`Could not load the post: ${r.error}`);
+  if (r.error) throw new Error(`Could not load ${what}: ${r.error}`);
   const items = Array.isArray(r.nodes) ? r.nodes.flatMap(itemsFromNode) : [];
-  if (!items.length) throw new Error("No downloadable media found in this post.");
+  if (!items.length) throw new Error(`Nothing to download: no ${what} found.`);
   const owner = items[0].key.split(":")[0]; // validated Instagram username
-  const dir = await top.getDirectoryHandle(owner, { create: true });
-  job.where = `${top.name}/${owner}`;
+  let dir = await top.getDirectoryHandle(owner, { create: true });
+  if (sub) dir = await dir.getDirectoryHandle(sub, { create: true });
+  job.where = [top.name, owner, sub].filter(Boolean).join("/");
   job.progress = () => setStatus(job.summary());
   await saveItems(dir, await indexFolder(dir), items, job);
 }
+
+const downloadPost = (shortcode, job) => downloadRecords("post", { shortcode }, "the post", "", job);
 
 // ---- UI ----
 
@@ -175,11 +165,13 @@ panel.className = "igd-panel";
 panel.innerHTML = `
   <div class="igd-row">
     <button class="igd-go" type="button"></button>
+    <button class="igd-stories" type="button" title="Active stories and all highlights" hidden>⬇ Stories</button>
     <button class="igd-folder" type="button" title="Choose download folder">📁</button>
   </div>
   <div class="igd-status" aria-live="polite"></div>`;
 const goButton = panel.querySelector(".igd-go");
 const folderButton = panel.querySelector(".igd-folder");
+const storiesButton = panel.querySelector(".igd-stories");
 const statusLine = panel.querySelector(".igd-status");
 let running = false;
 
@@ -190,14 +182,17 @@ function setStatus(text, kind = "") {
 
 async function runJob(route) {
   running = true;
-  goButton.disabled = folderButton.disabled = true;
+  goButton.disabled = folderButton.disabled = storiesButton.disabled = true;
   const job = {
     saved: 0, skipped: 0, failed: 0, failures: [], where: "", progress() {},
     summary() { return `new ${this.saved} · already had ${this.skipped} · failed ${this.failed}`; },
   };
   try {
     if (route.kind === "profile") await downloadProfile(route.username, job);
-    else await downloadPost(route.shortcode, job);
+    else if (route.kind === "post") await downloadPost(route.shortcode, job);
+    // Stories and highlights share one folder: a highlighted story keeps its pk, so it is saved once.
+    else if (route.kind === "stories") await downloadRecords("stories", { username: route.username, withHighlights: route.withHighlights }, route.withHighlights ? "stories or highlights" : "active stories", "stories", job);
+    else if (route.kind === "highlight") await downloadRecords("highlight", { id: route.id }, "this highlight", "stories", job);
     setStatus(`Done: ${job.where} · ${job.summary()}`, job.failed ? "warn" : "ok");
   } catch (e) {
     const partial = job.saved + job.skipped ? ` (${job.summary()} before stopping)` : "";
@@ -208,13 +203,18 @@ async function runJob(route) {
   } finally {
     if (job.failures.length) console.warn("[igd] failed downloads:\n" + job.failures.join("\n"));
     running = false;
-    goButton.disabled = folderButton.disabled = false;
+    goButton.disabled = folderButton.disabled = storiesButton.disabled = false;
   }
 }
 
 goButton.addEventListener("click", () => {
   const route = routeFromPath(location.pathname);
   if (route && !running) runJob(route);
+});
+
+storiesButton.addEventListener("click", () => {
+  const route = routeFromPath(location.pathname);
+  if (route && route.kind === "profile" && !running) runJob({ kind: "stories", username: route.username, withHighlights: true });
 });
 
 // ---- per-item buttons on grid tiles and feed posts ----
@@ -293,5 +293,12 @@ setInterval(() => {
   const route = routeFromPath(location.pathname);
   setStatus("");
   goButton.hidden = !route;
-  if (route) goButton.textContent = route.kind === "profile" ? `⬇ Download @${route.username}` : "⬇ Save post";
+  storiesButton.hidden = !route || route.kind !== "profile";
+  const labels = {
+    profile: () => `⬇ Download @${route.username}`,
+    post: () => "⬇ Save post",
+    stories: () => `⬇ Save @${route.username}'s stories`,
+    highlight: () => "⬇ Save highlight",
+  };
+  if (route) goButton.textContent = labels[route.kind]();
 }, 500);

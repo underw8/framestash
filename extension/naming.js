@@ -70,6 +70,25 @@ function shortcodeFromPath(path) {
   return m ? m[1] : null;
 }
 
+const RESERVED = new Set([
+  "explore", "reels", "direct", "accounts", "stories", "p", "reel", "tv", "about", "legal",
+  "developer", "web", "challenge", "emails", "session", "archive", "your_activity", "create",
+  "api", "graphql", "ajax", "static", "privacy", "terms", "nametag", "directory", "lite",
+]);
+
+// -> { kind: "profile" | "stories", username } | { kind: "post", shortcode } | { kind: "highlight", id } | null
+function routeFromPath(path) {
+  const shortcode = shortcodeFromPath(path);
+  if (shortcode) return { kind: "post", shortcode };
+  const highlight = path.match(/^\/stories\/highlights\/(\d+)\/?/);
+  if (highlight) return { kind: "highlight", id: highlight[1] };
+  const story = path.match(/^\/stories\/([A-Za-z0-9._]{1,30})\/(?:\d+\/?)?$/);
+  if (story && story[1] !== "highlights") return { kind: "stories", username: story[1].toLowerCase() };
+  const profile = path.match(/^\/([A-Za-z0-9._]{1,30})\/(?:(?:reels|tagged)\/)?$/);
+  if (profile && !RESERVED.has(profile[1].toLowerCase())) return { kind: "profile", username: profile[1].toLowerCase() };
+  return null;
+}
+
 if (typeof module !== "undefined") {
-  module.exports = { bestMedia, extensionOf, fileName, keyFromFileName, itemsFromNode, mediaKey, shortcodeFromPath, USERNAME_RE };
+  module.exports = { bestMedia, extensionOf, fileName, keyFromFileName, itemsFromNode, mediaKey, shortcodeFromPath, routeFromPath, USERNAME_RE };
 }

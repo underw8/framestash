@@ -63,4 +63,15 @@ for (const [path, code] of [
   ["/a/b/p/X/", null],
 ]) assert.equal(n.shortcodeFromPath(path), code, path);
 
+// Page routes decide which button shows and what it downloads.
+for (const [path, route] of [
+  ["/demo_account/", { kind: "profile", username: "demo_account" }],
+  ["/Sample.User/tagged/", { kind: "profile", username: "sample.user" }],
+  ["/demo_account/p/AbC-12dEfGh/", { kind: "post", shortcode: "AbC-12dEfGh" }],
+  ["/stories/minhhi_taplon/", { kind: "stories", username: "minhhi_taplon" }],
+  ["/stories/minhhi_taplon/4000000000000000091/", { kind: "stories", username: "minhhi_taplon" }],
+  ["/stories/highlights/18000000000000040/", { kind: "highlight", id: "18000000000000040" }],
+  ["/", null], ["/explore/", null], ["/direct/inbox/", null], ["/reels/", null], ["/stories/", null], ["/stories/highlights/", null],
+]) assert.deepEqual(n.routeFromPath(path), route, path);
+
 console.log("naming: all checks passed");
