@@ -9,8 +9,8 @@ const RESERVED = new Set([
 
 // -> { kind: "profile", username } | { kind: "post", shortcode } | null
 function routeFromPath(path) {
-  const post = path.match(/^\/(?:[A-Za-z0-9._]{1,30}\/)?(?:p|reel|reels)\/([A-Za-z0-9_-]+)\/?$/);
-  if (post) return { kind: "post", shortcode: post[1] };
+  const shortcode = shortcodeFromPath(path);
+  if (shortcode) return { kind: "post", shortcode };
   const profile = path.match(/^\/([A-Za-z0-9._]{1,30})\/(?:(?:reels|tagged)\/)?$/);
   if (profile && !RESERVED.has(profile[1].toLowerCase())) return { kind: "profile", username: profile[1].toLowerCase() };
   return null;
@@ -217,6 +217,63 @@ goButton.addEventListener("click", () => {
   if (route && !running) runJob(route);
 });
 
+// ---- per-item buttons on grid tiles and feed posts ----
+// The shortcode comes from the post link inside each tile or article, so no
+// Instagram class names or React internals are involved.
+
+const POST_LINK = 'a[href*="/p/"], a[href*="/reel/"]';
+
+function addItemButton(host, shortcode, top) {
+  if (host.querySelector(":scope > .igd-item")) return;
+  if (getComputedStyle(host).position === "static") host.classList.add("igd-host");
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "igd-item";
+  button.title = "Save this post (igd)";
+  button.textContent = "⬇";
+  button.dataset.shortcode = shortcode;
+  if (top) button.style.top = `${top}px`;
+  host.append(button);
+}
+
+function scanItems() {
+  // Grid tiles: the link itself wraps the thumbnail.
+  for (const a of document.querySelectorAll(POST_LINK)) {
+    const shortcode = shortcodeFromPath(new URL(a.href, location.origin).pathname);
+    if (shortcode && a.querySelector("img, video")) addItemButton(a, shortcode);
+  }
+  // Feed posts: an <article> whose links include the post's permalink.
+  for (const article of document.querySelectorAll("article")) {
+    const link = [...article.querySelectorAll(POST_LINK)]
+      .map((a) => shortcodeFromPath(new URL(a.href, location.origin).pathname))
+      .find(Boolean);
+    if (!link) continue;
+    // Sit on the media's top-right corner, below the post header and its "…" menu.
+    const media = [...article.querySelectorAll("img, video")].find((m) => m.getBoundingClientRect().width >= 200);
+    const top = media ? Math.round(media.getBoundingClientRect().top - article.getBoundingClientRect().top) + 8 : 64;
+    addItemButton(article, link, top);
+  }
+}
+
+// Capture phase, so the tile's link never navigates and Instagram's handlers never see the click.
+document.addEventListener("click", (e) => {
+  const button = e.target instanceof Element && e.target.closest(".igd-item");
+  if (!button) return;
+  e.preventDefault();
+  e.stopPropagation();
+  if (running) { setStatus("A download is already running.", "warn"); return; }
+  runJob({ kind: "post", shortcode: button.dataset.shortcode });
+}, true);
+
+let scanTimer = 0;
+new MutationObserver((records) => {
+  // Ignore our own insertions so adding buttons doesn't retrigger the scan.
+  if (records.every((r) => [...r.addedNodes].every((n) => n.classList && n.classList.contains("igd-item")))) return;
+  clearTimeout(scanTimer);
+  scanTimer = setTimeout(scanItems, 300);
+}).observe(document.body, { childList: true, subtree: true });
+scanItems();
+
 folderButton.addEventListener("click", async () => {
   try {
     setStatus(`Folder: ${(await rootFolder(true)).name}`, "ok");
@@ -226,19 +283,15 @@ folderButton.addEventListener("click", async () => {
 });
 
 // ponytail: polling the URL is simpler than hooking history; 500 ms is plenty for a button.
+// The panel stays on every page so jobs started from tiles can report; the main
+// button only shows on profile and post pages.
 let shownPath = null;
 setInterval(() => {
-  if (running) return;
-  const route = routeFromPath(location.pathname);
-  if (!route) {
-    if (panel.isConnected) { panel.remove(); setStatus(""); }
-    shownPath = null;
-    return;
-  }
   if (!panel.isConnected) document.body.append(panel);
-  if (shownPath !== location.pathname) {
-    shownPath = location.pathname;
-    setStatus("");
-    goButton.textContent = route.kind === "profile" ? `⬇ Download @${route.username}` : "⬇ Save post";
-  }
+  if (running || shownPath === location.pathname) return;
+  shownPath = location.pathname;
+  const route = routeFromPath(location.pathname);
+  setStatus("");
+  goButton.hidden = !route;
+  if (route) goButton.textContent = route.kind === "profile" ? `⬇ Download @${route.username}` : "⬇ Save post";
 }, 500);

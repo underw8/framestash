@@ -54,4 +54,13 @@ assert.deepEqual(n.itemsFromNode(null), []);
 // Ties: first candidate wins.
 assert.equal(n.bestMedia({ image_versions2: { candidates: [{ url: "first", width: 10, height: 10 }, { url: "second", width: 10, height: 10 }] } }).url, "first");
 
+// Post links in every form Instagram uses; anything else is not a post.
+for (const [path, code] of [
+  ["/p/AbC-12dEfGh/", "AbC-12dEfGh"], ["/demo_account/p/AbC-12dEfGh/", "AbC-12dEfGh"],
+  ["/reel/XyZ12Ab_c_3/", "XyZ12Ab_c_3"], ["/demo_account/reel/XyZ12Ab_c_3/", "XyZ12Ab_c_3"],
+  ["/reels/XyZ12Ab_c_3/", "XyZ12Ab_c_3"], ["/p/AbC-12dEfGh/?img_index=2", "AbC-12dEfGh"], ["/p/AbC-12dEfGh", "AbC-12dEfGh"],
+  ["/demo_account/", null], ["/demo_account/reels/", null], ["/reels/", null], ["/explore/", null], ["/p/", null],
+  ["/a/b/p/X/", null],
+]) assert.equal(n.shortcodeFromPath(path), code, path);
+
 console.log("naming: all checks passed");

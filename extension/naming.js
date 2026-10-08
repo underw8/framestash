@@ -64,6 +64,12 @@ function itemsFromNode(node) {
   return items;
 }
 
+// "/p/CODE/", "/reel/CODE/", "/reels/CODE/", optionally after "/<user>"; query and hash ignored.
+function shortcodeFromPath(path) {
+  const m = String(path).match(/^\/(?:[A-Za-z0-9._]{1,30}\/)?(?:p|reel|reels)\/([A-Za-z0-9_-]+)\/?(?:[?#].*)?$/);
+  return m ? m[1] : null;
+}
+
 if (typeof module !== "undefined") {
-  module.exports = { bestMedia, extensionOf, fileName, keyFromFileName, itemsFromNode, mediaKey, USERNAME_RE };
+  module.exports = { bestMedia, extensionOf, fileName, keyFromFileName, itemsFromNode, mediaKey, shortcodeFromPath, USERNAME_RE };
 }
