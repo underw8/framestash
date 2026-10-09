@@ -69,7 +69,7 @@ Plan, Build and Review run on the session's model, because they carry the securi
 ## Look and feel
 
 - **In-page buttons and status card:** they read Instagram's own theme variables, so they follow its light and dark modes. They match its floating Messages button: raised surface, hairline edge, shadow, pill shape and the `--hover-overlay` hover.
-- **Native-spot buttons:** the profile's Download all copies Instagram's primary (Follow) button, and the post and reel icon copies its action icons (24 px stroke, text colour, same hover). Grid-tile buttons keep igd's own round style.
+- **Native-spot buttons:** the profile's Download @user button copies Instagram's primary (Follow) button, and the post and reel icon copies its action icons (24 px stroke, text colour, same hover). Grid-tile buttons keep igd's own round style.
 - **Side panel:** modelled on Instagram's Settings pages (measured live), following the system light or dark setting.
 - **Wordmark igd.:** heavy sans-serif with a warm-to-violet gradient dot.
   - The toolbar icon is a near-black rounded square, so it isn't mistaken for Instagram's app icon.
