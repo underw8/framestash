@@ -3,11 +3,11 @@ export const meta = {
   description: 'Take one task from igd/TASKS.md: plan, build, review, commit, and list the live checks left for the user',
   whenToUse: 'Run with no args for the first "todo" task, or args "T3" (or a title fragment) for a specific one. One task per run.',
   phases: [
-    { title: 'Pick', detail: 'clean tree check, choose the task, mark in-progress' },
+    { title: 'Pick', detail: 'clean tree check, choose the task, mark in-progress', model: 'haiku' },
     { title: 'Plan', detail: 'design against CLAUDE.md and docs/' },
     { title: 'Build', detail: 'implement and add tests' },
     { title: 'Review', detail: 'security, compatibility, correctness lenses; up to 2 reviewed fix rounds' },
-    { title: 'Finish', detail: 'tests, one commit, task status, live checks' },
+    { title: 'Finish', detail: 'tests, one commit, task status, live checks', model: 'sonnet' },
   ],
 }
 
@@ -99,6 +99,9 @@ const LENSES = [
   },
 ]
 
+// Plan, Build and Review inherit the session model: they carry the security and
+// compatibility invariants. Pick, mark-blocked and Finish are mechanical.
+
 // ---- Pick ----
 phase('Pick')
 const pickHint = typeof args === 'string' && args.trim() ? `The user asked for task "${args.trim()}" (an id like T3 or part of a title).` : 'No task was named: take the first task whose status is todo.'
@@ -108,7 +111,7 @@ const task = await agent(
 2. Read TASKS.md. ${pickHint} Only tasks with status todo (or needs-check if the user named it explicitly) can be picked.
 3. If a task is picked, change only its status line to "in-progress" in TASKS.md (do not commit).
 Return the task's id, title, why, and its "done when" items.`,
-  { label: 'pick task', schema: TASK },
+  { label: 'pick task', schema: TASK, model: 'haiku', effort: 'low' },
 )
 if (!task || !task.found) {
   log(`Nothing to do: ${task ? task.reason : 'pick agent failed'}`)
@@ -134,7 +137,7 @@ if (plan.blocked) {
   await agent(`In ${REPO}, set task ${task.id}'s status in TASKS.md to "blocked" and add a bullet "- notes: ${plan.blocked.replace(/"/g, "'")}". Commit only TASKS.md with the subject "chore: ${task.id} blocked on a decision", ending the message with these two lines exactly:
 Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01PEGtRT8fAMDQtihDDzxb6t
-Do not push.`, { label: 'mark blocked' })
+Do not push.`, { label: 'mark blocked', model: 'haiku', effort: 'low' })
   return { picked: task.id, status: 'blocked', question: plan.blocked }
 }
 const planText = `Summary: ${plan.summary}\nSteps:\n- ${plan.steps.join('\n- ')}\nFiles: ${plan.files.join(', ')}\nTests: ${plan.tests.join('; ')}\nRisks: ${(plan.risks || []).join('; ')}`
@@ -189,7 +192,7 @@ const finish = await agent(
 Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01PEGtRT8fAMDQtihDDzxb6t
 Do not push.${blocking.length ? `\nAlso add a "- open review findings:" bullet to the task with: ${blocking.map((f) => f.issue).join('; ')}` : ''}`,
-  { label: 'finish', schema: FINISH },
+  { label: 'finish', schema: FINISH, model: 'sonnet', effort: 'low' },
 )
 
 return {
