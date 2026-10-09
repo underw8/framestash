@@ -188,24 +188,22 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - [ ] On a profile grid, tiles show only the main button and do not navigate when it is clicked.
   - [ ] Click the slide button on a video slide inside a carousel. Note whether the video is saved or the 'couldn't tell which slide' warning appears.
 
-## T12 · Native-style buttons on profiles, posts and reels
+## T12 · Native-style download icon on posts and reels
 - status: needs-check
 - why: buttons that look like part of Instagram read better than floating pills. The user wants a native look for profile and post actions; the round grid-tile buttons stay as they are.
 - done when:
-  - **Profile header:** a "Download @user" button beside the profile's username, styled like Instagram's own primary button (its primary-button colour from the theme variables, 32 px tall, radius 8, 14 px semibold). It starts the same profile job as Download @user today.
   - **Post action bar:** in each feed post and on post pages, a download icon in the like / comment / share / save row, placed right after the save (bookmark) icon. It matches Instagram's icons: 24 px, stroke, current text colour, and the same spacing and hover. It saves the whole post.
   - **Reel side bar:** on reels, a download icon in the vertical like / comment / share / save column, styled the same way. It saves that reel.
   - placement uses page structure and post links (`shortcodeFromPath`), never Instagram class names. The icons may rely on the order of the action icons, but not on English aria-labels as the only signal. When a spot can't be found, that button simply doesn't appear, and the bottom-right panel still works.
-  - the bottom-right panel keeps Stories, the panel toggle and the status card. Its Download @user / Save post button is hidden while the matching native button is on screen, and comes back as the fallback when it isn't.
+  - the bottom-right panel (Download @user / Save post, Stories, the panel toggle and the status card) is unchanged and always shown.
   - the round grid-tile buttons and the one-slide carousel button are unchanged.
   - every new button requires event.isTrusted, has a title and aria-label, is keyboard-reachable, and follows Instagram's light and dark themes.
   - no flicker or duplicate buttons as Instagram re-renders or the user scrolls the feed; the existing 500 ms scan handles placement.
   - README describes the new buttons; the existing test suites pass, and any new pure logic is unit-tested.
 - live checks:
-  - [ ] Reload igd and the Instagram tab. On a profile, a blue "Download @user" button sits beside the username, in Instagram's button style; clicking it queues the profile, and the bottom-right Download @user is hidden while the header button is on screen.
-  - [ ] Scroll the profile down until the header is off screen: the bottom-right Download @user comes back.
+  - [ ] Reload igd and the Instagram tab. On a profile, the bottom-right Download @user, Stories and panel buttons look and work as before, and nothing is added beside the username.
   - [ ] Home feed: each post's like / comment / share / save row has a download icon right after the bookmark, matching Instagram's icons. Clicking it saves that post. Scroll a long way: no duplicate icons and no flicker.
-  - [ ] Post page (/p/…): the action row has the icon and the bottom-right Save post is hidden.
+  - [ ] Post page (/p/…): the action row has the icon and the bottom-right Save post is still shown.
   - [ ] Reels (/reels/…): the side column has the icon; clicking it saves the reel shown.
   - [ ] Grid tiles and the one-slide carousel button look and work as before.
   - [ ] Tab to each new button: it is reachable, has a focus ring, and VoiceOver reads its label. Check light and dark mode.

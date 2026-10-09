@@ -229,49 +229,13 @@ function scanNative() {
   if (route && route.kind === "post" && main && !main.querySelector("article")) scanActionBars(main, "");
 }
 
-// "Download @user" beside the username in the profile header, matched by its visible text.
-function placeProfileButton() {
-  const route = routeFromPath(location.pathname);
-  const username = route && route.kind === "profile" ? route.username : null;
-  for (const b of document.querySelectorAll(".igd-profile")) if (b.dataset.username !== username) b.remove();
-  const header = username && document.querySelector("main header");
-  if (!header || header.querySelector(".igd-profile")) return;
-  const isName = (e) => e.textContent.trim().toLowerCase() === username;
-  let el = [...header.querySelectorAll("*")].find(isName);
-  if (!el) return;
-  for (let c; (c = [...el.children].find(isName)); ) el = c;
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = "igd-profile";
-  button.textContent = `Download @${username}`;
-  button.title = `Download all posts by @${username} (igd)`;
-  button.setAttribute("aria-label", button.title);
-  button.dataset.username = username;
-  (el.closest("h1, h2, a") || el).insertAdjacentElement("afterend", button);
-}
-
-const onScreen = (el) => {
-  const r = el.getBoundingClientRect();
-  return r.width > 0 && r.bottom > 0 && r.top < innerHeight;
-};
-
-// The bottom-right go button is the fallback while the page's native button isn't visible.
-function syncFallback() {
-  const route = routeFromPath(location.pathname);
-  goButton.hidden = !route || (route.kind === "profile"
-    ? [...document.querySelectorAll(".igd-profile")].some(onScreen)
-    : route.kind === "post" && [...document.querySelectorAll(".igd-act")]
-      .some((b) => (b.dataset.shortcode || route.shortcode) === route.shortcode && onScreen(b)));
-}
-
 // Capture phase, so the tile's link never navigates and Instagram's handlers never see the click.
 document.addEventListener("click", (e) => {
-  const button = e.target instanceof Element && e.target.closest(".igd-item, .igd-act, .igd-profile");
+  const button = e.target instanceof Element && e.target.closest(".igd-item, .igd-act");
   if (!button) return;
   e.preventDefault();
   e.stopPropagation();
   if (!e.isTrusted) return;
-  if (button.classList.contains("igd-profile")) return send({ kind: "profile", username: button.dataset.username });
   const route = routeFromPath(location.pathname);
   const shortcode = button.dataset.shortcode || (route && route.kind === "post" ? route.shortcode : "");
   if (!shortcode) return setStatus("igd couldn't tell which post this is. Open the post and try again.", "warn");
@@ -331,7 +295,7 @@ function updateForPage() {
 // Each step is isolated: a failure in one (e.g. an unexpected page structure while
 // scanning) must not stop the page's buttons from updating.
 setInterval(() => {
-  for (const step of [() => { if (!panel.isConnected) document.body.append(panel); }, updateForPage, placePanel, scanItems, scanNative, placeProfileButton, syncFallback]) {
+  for (const step of [() => { if (!panel.isConnected) document.body.append(panel); }, updateForPage, placePanel, scanItems, scanNative]) {
     try { step(); } catch (e) { console.warn("[igd]", e); }
   }
 }, 500);
