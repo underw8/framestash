@@ -71,7 +71,8 @@
 .igd-item {
   position: absolute; top: 8px; left: 8px; z-index: 2;
   display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 50%; cursor: pointer;
-  background: rgba(0, 0, 0, .55); color: #fff; backdrop-filter: blur(6px);
+  /* No backdrop-filter: one blurred layer per tile stalled Chrome's painting of long grids. */
+  background: rgba(0, 0, 0, .6); color: #fff;
   opacity: 0; transition: opacity .15s, transform .15s;
 }
 .igd-item svg { width: 18px; height: 18px; }
