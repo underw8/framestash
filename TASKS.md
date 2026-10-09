@@ -187,3 +187,17 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - [ ] In the home feed, check that a single-image post and a single-video post show only the main button, and that a carousel post shows both. Clicking the slide button on a carousel post that is not the one you last swiped saves that post's visible slide.
   - [ ] On a profile grid, tiles show only the main button and do not navigate when it is clicked.
   - [ ] Click the slide button on a video slide inside a carousel. Note whether the video is saved or the 'couldn't tell which slide' warning appears.
+
+## T12 · Native-style buttons on profiles, posts and reels
+- status: todo
+- why: buttons that look like part of Instagram read better than floating pills. The user wants a native look for profile and post actions; the round grid-tile buttons stay as they are.
+- done when:
+  - **Profile header:** a "Download all" button beside the profile's username, styled like Instagram's own primary button (its primary-button colour from the theme variables, 32 px tall, radius 8, 14 px semibold). It starts the same profile job as Download @user today.
+  - **Post action bar:** in each feed post and on post pages, a download icon in the like / comment / share / save row, placed right after the save (bookmark) icon. It matches Instagram's icons: 24 px, stroke, current text colour, and the same spacing and hover. It saves the whole post.
+  - **Reel side bar:** on reels, a download icon in the vertical like / comment / share / save column, styled the same way. It saves that reel.
+  - placement uses page structure and post links (`shortcodeFromPath`), never Instagram class names. The icons may rely on the order of the action icons, but not on English aria-labels as the only signal. When a spot can't be found, that button simply doesn't appear, and the bottom-right panel still works.
+  - the bottom-right panel keeps Stories, the panel toggle and the status card. Its Download @user / Save post button is hidden while the matching native button is on screen, and comes back as the fallback when it isn't.
+  - the round grid-tile buttons and the one-slide carousel button are unchanged.
+  - every new button requires event.isTrusted, has a title and aria-label, is keyboard-reachable, and follows Instagram's light and dark themes.
+  - no flicker or duplicate buttons as Instagram re-renders or the user scrolls the feed; the existing 500 ms scan handles placement.
+  - README describes the new buttons; the existing test suites pass, and any new pure logic is unit-tested.

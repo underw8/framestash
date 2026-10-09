@@ -12,7 +12,7 @@ export const meta = {
 }
 
 // Paths are relative to the igd repo root (the folder holding TASKS.md and CLAUDE.md).
-const REPO = 'the igd git repository (the folder that contains TASKS.md, CLAUDE.md and extension/)'
+const REPO = 'the igd git repository at /Users/underw8/testSpace/igd (it contains TASKS.md, CLAUDE.md and extension/)'
 const TESTS = 'node test/naming.test.js && node test/collection.test.js, plus `node --check` on every changed extension/*.js'
 
 const TASK = {
