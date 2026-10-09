@@ -32,17 +32,27 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
 // ---- UI ----
 
+// Stroke icons drawn for igd (24-unit grid, 2-unit stroke, round caps).
+const ICONS = {
+  download: '<path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/>',
+  check: '<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/>',
+  panel: '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M15 4v16"/>',
+};
+const icon = (name) =>
+  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name]}</svg>`;
+
 const panel = document.createElement("div");
 panel.className = "igd-panel";
 panel.innerHTML = `
   <div class="igd-row">
-    <button class="igd-go" type="button"></button>
-    <button class="igd-stories" type="button" title="Active stories and all highlights" hidden>⬇ Stories</button>
-    <button class="igd-check" type="button" title="Check collection (read-only)">🔍</button>
-    <button class="igd-open" type="button" title="Open the igd panel">📁</button>
+    <button class="igd-go" type="button">${icon("download")}<span></span></button>
+    <button class="igd-stories" type="button" title="Active stories and all highlights" hidden>${icon("download")}Stories</button>
+    <button class="igd-check igd-icon" type="button" title="Check collection (read-only)" aria-label="Check collection">${icon("check")}</button>
+    <button class="igd-open igd-icon" type="button" title="Open the igd panel" aria-label="Open the igd panel">${icon("panel")}</button>
   </div>
-  <div class="igd-status" aria-live="polite"></div>`;
+  <div class="igd-card"><span class="igd-wordmark">igd<i></i></span><span class="igd-status" aria-live="polite"></span></div>`;
 const goButton = panel.querySelector(".igd-go");
+const goLabel = goButton.querySelector("span");
 const storiesButton = panel.querySelector(".igd-stories");
 const statusLine = panel.querySelector(".igd-status");
 
@@ -108,7 +118,7 @@ function addItemButton(host, shortcode, top) {
   button.type = "button";
   button.className = "igd-item";
   button.title = "Save this post (igd)";
-  button.textContent = "⬇";
+  button.innerHTML = icon("download");
   button.dataset.shortcode = shortcode;
   if (top) button.style.top = `${top}px`;
   host.append(button);
@@ -164,10 +174,10 @@ setInterval(() => {
   goButton.hidden = !route;
   storiesButton.hidden = !route || route.kind !== "profile";
   const labels = {
-    profile: () => `⬇ Download @${route.username}`,
-    post: () => "⬇ Save post",
-    stories: () => `⬇ Save @${route.username}'s stories`,
-    highlight: () => "⬇ Save highlight",
+    profile: () => `Download @${route.username}`,
+    post: () => "Save post",
+    stories: () => `Save @${route.username}'s stories`,
+    highlight: () => "Save highlight",
   };
-  if (route) goButton.textContent = labels[route.kind]();
+  if (route) goLabel.textContent = labels[route.kind]();
 }, 500);

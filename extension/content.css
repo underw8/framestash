@@ -1,30 +1,65 @@
+/* igd in-page UI. Colours come from Instagram's own theme variables ("r, g, b"
+   triplets on <html>), so light and dark mode follow Instagram; fallbacks are its light theme. */
+.igd-panel, .igd-item {
+  --igd-bg: rgb(var(--ig-elevated-background, 255, 255, 255));
+  --igd-text: rgb(var(--ig-primary-text, 0, 0, 0));
+  --igd-muted: rgb(var(--ig-secondary-text, 115, 115, 115));
+  --igd-line: rgb(var(--ig-elevated-separator, 219, 219, 219));
+  --igd-primary: rgb(var(--ig-primary-button, 74, 93, 249));
+  --igd-primary-hover: rgb(var(--ig-primary-button-hover, 65, 80, 247));
+  --igd-secondary: rgb(var(--ig-secondary-button-background, 239, 239, 239));
+  --igd-secondary-hover: rgb(var(--ig-secondary-button-hover, 219, 219, 219));
+  --igd-error: rgb(var(--ig-error-or-destructive, 237, 73, 86));
+  --igd-warn: #f5a623;
+  --igd-dot: linear-gradient(45deg, #ff9a3c, #ff3d7f 50%, #7a5cff);
+  font: 14px/18px -apple-system, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
 /* Above Instagram's Messages button; the left edge is its sidebar. */
 .igd-panel {
   position: fixed; right: 24px; bottom: 100px; z-index: 2147483000;
-  display: flex; flex-direction: column-reverse; align-items: flex-end; gap: 6px; max-width: 420px;
-  font: 13px/1.4 system-ui, sans-serif;
+  display: flex; flex-direction: column-reverse; align-items: flex-end; gap: 8px; max-width: 420px;
 }
-.igd-row { display: flex; gap: 6px; }
+.igd-row { display: flex; gap: 8px; }
 .igd-panel button {
-  border: 0; border-radius: 8px; padding: 8px 12px; cursor: pointer;
-  background: #0095f6; color: #fff; font: inherit; font-weight: 600;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  height: 36px; padding: 0 16px; border: 0; border-radius: 12px; cursor: pointer;
+  background: var(--igd-secondary); color: var(--igd-text); font: inherit; font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .15); transition: background-color .15s;
 }
-.igd-panel button.igd-folder { background: #363636; }
-.igd-panel button:disabled { opacity: .5; cursor: progress; }
-.igd-status:empty { display: none; }
-.igd-status {
-  padding: 6px 10px; border-radius: 8px; background: rgba(0,0,0,.8); color: #fff;
+.igd-panel button:hover { background: var(--igd-secondary-hover); }
+.igd-panel button.igd-go { background: var(--igd-primary); color: #fff; }
+.igd-panel button.igd-go:hover { background: var(--igd-primary-hover); }
+.igd-panel button.igd-icon { width: 36px; padding: 0; }
+.igd-panel button[hidden] { display: none; }
+.igd-panel svg { width: 18px; height: 18px; flex: none; }
+
+.igd-card {
+  display: flex; align-items: center; gap: 10px; max-width: 420px; padding: 10px 14px;
+  background: var(--igd-bg); color: var(--igd-text); border: 1px solid var(--igd-line); border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, .18);
 }
-.igd-status[data-kind="ok"] { border-left: 4px solid #2ecc71; }
-.igd-status[data-kind="warn"] { border-left: 4px solid #f39c12; }
-.igd-status[data-kind="error"] { border-left: 4px solid #e74c3c; }
+.igd-card:has(.igd-status:empty) { display: none; }
+.igd-status { font-size: 13px; line-height: 17px; }
+.igd-status[data-kind="ok"] { color: var(--igd-text); }
+.igd-card:has(.igd-status[data-kind="warn"]) { border-color: var(--igd-warn); }
+.igd-card:has(.igd-status[data-kind="error"]) { border-color: var(--igd-error); }
+
+/* "igd." wordmark: heavy sans-serif with a gradient dot on the baseline. */
+.igd-wordmark { font-weight: 800; letter-spacing: -.04em; white-space: nowrap; }
+.igd-wordmark i {
+  display: inline-block; width: .3em; height: .3em; margin-left: .06em; border-radius: 50%;
+  background: var(--igd-dot); vertical-align: baseline;
+}
+
+/* Per-item buttons. Instagram's tile icons and slide counter sit top-right. */
 .igd-host { position: relative; }
 .igd-item {
-  /* Instagram's tile icons and slide counter sit top-right. */
   position: absolute; top: 8px; left: 8px; z-index: 2;
-  width: 32px; height: 32px; border: 0; border-radius: 50%; cursor: pointer;
-  background: rgba(0,0,0,.65); color: #fff; font: 600 16px/32px system-ui, sans-serif; text-align: center;
-  opacity: 0; transition: opacity .15s;
+  display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 50%; cursor: pointer;
+  background: rgba(0, 0, 0, .55); color: #fff; backdrop-filter: blur(6px);
+  opacity: 0; transition: opacity .15s, transform .15s;
 }
+.igd-item svg { width: 18px; height: 18px; }
+.igd-item:hover { transform: scale(1.08); background: rgba(0, 0, 0, .7); }
 :hover > .igd-item, .igd-item:focus-visible { opacity: 1; }
-.igd-panel button[hidden] { display: none; }

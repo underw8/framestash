@@ -31,7 +31,9 @@ let root = null;
 
 async function renderFolder() {
   const state = root ? await root.queryPermission({ mode: "readwrite" }) : null;
-  $("folder").textContent = root ? `📁 ${root.name}` : "No folder chosen";
+  $("folder").textContent = root ? root.name : "No folder chosen";
+  $("folder").classList.toggle("unset", !root);
+  $("pick").textContent = root ? "Change" : "Choose";
   $("grant").hidden = !root || state === "granted";
 }
 
@@ -82,13 +84,20 @@ function alertLine(text) {
 }
 
 function renderJobs() {
-  $("jobs").replaceChildren(...jobs.slice(-50).map((j) => {
+  $("empty").hidden = jobs.length > 0;
+  $("jobs").replaceChildren(...jobs.slice(-50).reverse().map((j) => {
     const li = document.createElement("li");
     li.dataset.state = j.state;
-    li.textContent = `${j.label} — ${j.state}`;
+    const label = document.createElement("span");
+    label.className = "job-label";
+    label.textContent = j.label;
+    const chip = document.createElement("span");
+    chip.className = "chip";
+    chip.textContent = j.state;
+    li.append(label, chip);
     if (j.detail) {
       const d = document.createElement("span");
-      d.className = "detail";
+      d.className = "job-detail";
       d.textContent = j.detail;
       li.append(d);
     }

@@ -1,16 +1,77 @@
-body { font: 13px/1.45 system-ui, sans-serif; margin: 12px; color: #111; background: #fafafa; }
-h1 { font-size: 18px; margin: 0 0 8px; }
-h2 { font-size: 14px; margin: 16px 0 6px; }
-.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 6px 0; }
-#folder { flex: 1; font-weight: 600; }
-button { border: 0; border-radius: 6px; padding: 6px 10px; background: #0095f6; color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+/* igd panel: Instagram's palette and type, following the system light/dark setting. */
+:root {
+  --bg: #fafafa; --card: #fff; --text: #000; --muted: #737373; --line: #dbdbdb;
+  --primary: #4a5df9; --primary-hover: #4150f7; --secondary: #efefef; --secondary-hover: #dbdbdb;
+  --field: #fafafa; --ok: #58c322; --error: #ed4956; --warn: #f5a623;
+  --dot: linear-gradient(45deg, #ff9a3c, #ff3d7f 50%, #7a5cff);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0c1014; --card: #212328; --text: #f5f5f5; --muted: #a8a8a8; --line: #363636;
+    --secondary: #363636; --secondary-hover: #262626; --field: #121212;
+  }
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0; padding: 16px 14px 24px; background: var(--bg); color: var(--text);
+  font: 14px/18px -apple-system, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+header { display: flex; align-items: baseline; gap: 10px; margin: 0 2px 16px; }
+.wordmark { font-size: 30px; line-height: 1; font-weight: 800; letter-spacing: -.045em; }
+.wordmark i {
+  display: inline-block; width: .3em; height: .3em; margin-left: .06em; border-radius: 50%;
+  background: var(--dot); vertical-align: baseline;
+}
+.tagline { color: var(--muted); font-size: 12px; }
+
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px; margin: 0 0 12px; }
+h2 { margin: 0 0 10px; font-size: 14px; font-weight: 600; }
+.muted { color: var(--muted); margin: 0; font-size: 13px; }
+
+button {
+  height: 32px; padding: 0 14px; border: 0; border-radius: 8px; cursor: pointer;
+  background: var(--secondary); color: var(--text); font: inherit; font-weight: 600; transition: background-color .15s;
+}
+button:hover { background: var(--secondary-hover); }
+button.primary { background: var(--primary); color: #fff; }
+button.primary:hover { background: var(--primary-hover); }
 button:disabled { opacity: .5; cursor: default; }
-#grant { background: #f39c12; }
-textarea { width: 100%; box-sizing: border-box; font: 12px ui-monospace, monospace; }
-#jobs { padding-left: 20px; margin: 0; }
-#jobs li { margin: 4px 0; }
-#jobs li[data-state="running"] { font-weight: 600; }
-#jobs li[data-state="error"] { color: #c0392b; }
-#jobs li[data-state="done"] { color: #1e8449; }
-.detail { display: block; color: #555; font-weight: 400; }
-pre { white-space: pre-wrap; font: 11px/1.4 ui-monospace, monospace; max-height: 50vh; overflow: auto; }
+button:focus-visible, textarea:focus-visible, input:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+.folder { display: flex; align-items: center; gap: 8px; }
+.folder-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.folder-name.unset { color: var(--muted); font-weight: 400; }
+
+textarea {
+  display: block; width: 100%; padding: 10px 12px; resize: vertical;
+  background: var(--field); color: var(--text); border: 1px solid var(--line); border-radius: 8px;
+  font: 13px/18px ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+textarea::placeholder { color: var(--muted); font-family: -apple-system, system-ui, sans-serif; }
+
+.options { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+.toggle { position: relative; cursor: pointer; }
+.toggle input { position: absolute; opacity: 0; pointer-events: none; }
+.toggle span {
+  display: inline-block; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line);
+  color: var(--muted); font-size: 13px; font-weight: 600; transition: all .15s;
+}
+.toggle input:checked + span { background: var(--text); border-color: var(--text); color: var(--bg); }
+.toggle input:focus-visible + span { outline: 2px solid var(--primary); outline-offset: 2px; }
+.actions { display: flex; gap: 8px; }
+
+#jobs { list-style: none; margin: 0; padding: 0; }
+#jobs li { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; padding: 10px 0; border-top: 1px solid var(--line); }
+#jobs li:first-child { border-top: 0; padding-top: 0; }
+.job-label { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.job-detail { grid-column: 1 / -1; color: var(--muted); font-size: 12px; line-height: 16px; }
+.chip { align-self: start; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; background: var(--secondary); color: var(--muted); }
+li[data-state="running"] .chip { background: var(--primary); color: #fff; }
+li[data-state="done"] .chip { background: color-mix(in srgb, var(--ok) 18%, transparent); color: var(--ok); }
+li[data-state="error"] .chip { background: color-mix(in srgb, var(--error) 18%, transparent); color: var(--error); }
+li[data-state="error"] .job-detail { color: var(--error); }
+
+details summary { cursor: pointer; font-weight: 600; }
+pre { margin: 10px 0 0; max-height: 50vh; overflow: auto; white-space: pre-wrap; font: 11px/16px ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--muted); }

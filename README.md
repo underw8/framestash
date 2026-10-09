@@ -60,6 +60,12 @@ What it does, and which doc each rule comes from:
 
 Not yet: current-slide-only saving, DASH video quality, per-highlight subfolders, a queue that survives closing the panel.
 
+## Look and feel
+
+- The in-page buttons and status card read Instagram's own theme variables (`--ig-primary-button`, `--ig-elevated-background`, …), so they follow its light and dark modes. They use its system font, 12 px rounding and blue primary button.
+- The side panel uses the same palette and follows the system's light or dark setting.
+- Wordmark **igd.**: heavy sans-serif with a warm-to-violet gradient dot. The toolbar icon is a near-black rounded square, deliberately not a gradient square, so it isn't mistaken for Instagram's own app icon. Icons are drawn for igd as stroke SVGs, not taken from Instagram.
+
 ## Checks
 
 ```bash
@@ -73,7 +79,8 @@ node igd/test/collection.test.js   # folder resolution (renames, reused username
 tdi/                    original extension (reference, unlicensed, not ours)
 ├── js/ css/ icons/     shipped bundles, plus a local patch and *.bak originals
 └── igd/                ← our rebuild
-    ├── extension/      v0.1 MV3 extension (load unpacked)
+    ├── extension/      the MV3 extension (load unpacked)
+    ├── design/         logo sources (wordmark.svg, icon.svg) + render-icons.sh
     ├── test/           node checks
     ├── docs/           how the original works, what broke, how to probe Instagram
     │   └── verification/   evidence behind the docs

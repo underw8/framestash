@@ -2,35 +2,46 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>igd</title>
+  <meta name="color-scheme" content="light dark">
+  <title>igd.</title>
   <link rel="stylesheet" href="manager.css">
 </head>
 <body>
-  <section>
-    <h1>igd</h1>
-    <div class="row">
-      <span id="folder">No folder chosen</span>
-      <button id="pick" type="button">Choose folder</button>
-      <button id="grant" type="button" hidden>Allow access</button>
+  <header>
+    <span class="wordmark">igd<i></i></span>
+    <span class="tagline">Instagram downloader</span>
+  </header>
+
+  <section class="card">
+    <h2>Collection folder</h2>
+    <div class="folder">
+      <span id="folder" class="folder-name">No folder chosen</span>
+      <button id="grant" class="primary" type="button" hidden>Allow access</button>
+      <button id="pick" type="button">Choose</button>
     </div>
   </section>
-  <section>
+
+  <section class="card">
     <h2>Queue profiles</h2>
-    <textarea id="usernames" rows="4" placeholder="One username or profile URL per line"></textarea>
-    <div class="row">
-      <label><input type="checkbox" id="withPosts" checked> Posts</label>
-      <label><input type="checkbox" id="withStories"> Stories &amp; highlights</label>
-      <button id="add" type="button">Add to queue</button>
+    <textarea id="usernames" rows="4" placeholder="Usernames or profile links, one per line" spellcheck="false"></textarea>
+    <div class="options">
+      <label class="toggle"><input type="checkbox" id="withPosts" checked><span>Posts</span></label>
+      <label class="toggle"><input type="checkbox" id="withStories"><span>Stories &amp; highlights</span></label>
     </div>
-    <div class="row">
+    <div class="actions">
+      <button id="add" class="primary" type="button">Add to queue</button>
       <button id="check" type="button">Check collection</button>
     </div>
   </section>
-  <section>
+
+  <section class="card">
     <h2>Jobs</h2>
+    <p id="empty" class="muted">Nothing yet. Use the buttons on Instagram, or queue profiles above.</p>
     <ol id="jobs"></ol>
   </section>
-  <details id="reportBox" hidden><summary>Collection report</summary><pre id="report"></pre></details>
+
+  <details id="reportBox" class="card" hidden><summary>Collection report</summary><pre id="report"></pre></details>
+
   <script src="naming.js"></script>
   <script src="collection.js"></script>
   <script src="manager.js"></script>
