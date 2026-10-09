@@ -136,6 +136,7 @@ async function saveItems(dir, index, items, job) {
     if (await alreadyHave(index, item.key)) {
       job.skipped++;
     } else {
+      if (job.pace) await job.pace(); // outside the try, like halt
       try {
         job[await save(dir, item)]++;
         index.set(item.key, true);

@@ -118,5 +118,22 @@ const marker = async (dir) => JSON.parse(await (await (await dir.getFileHandle("
   assert.equal(c.failed, 0);
   assert.equal(stopDir.children.size, 1);
 
+  // Pacing: once per item that is downloaded, never for items already had.
+  const paceDir = new FakeDir("p");
+  const had = { url: "https://x", key: "100000000000000051", name: media("p", "100000000000000051", "9") };
+  const fresh = ["100000000000000052", "100000000000000053"].map((pk) => ({ url: "https://x", key: pk, name: media("p", pk, "9") }));
+  let paced = 0;
+  const pc = { saved: 0, skipped: 0, failed: 0, failures: [], progress() {}, async pace() { paced++; } };
+  await ctx.saveItems(paceDir, new Map([[had.key, true]]), [had, ...fresh], pc);
+  assert.equal(paced, 2);
+  assert.equal(pc.skipped, 1);
+  assert.equal(pc.saved, 2);
+
+  // A stop during the pace wait is not a failed file.
+  const pcStop = { saved: 0, skipped: 0, failed: 0, failures: [], progress() {}, async pace() { throw halted; } };
+  await assert.rejects(ctx.saveItems(new FakeDir("q"), new Map(), fresh, pcStop), (e) => e === halted);
+  assert.equal(pcStop.failed, 0);
+  assert.equal(pcStop.saved, 0);
+
   console.log("collection: all checks passed");
 })().catch((e) => { console.error(e); process.exit(1); });

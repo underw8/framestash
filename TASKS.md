@@ -76,7 +76,7 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - [ ] Keyboard only: Tab to the Stop or Remove button while a job is making progress. Focus should stay on it as the progress text updates, Enter/Space should activate it, and a screen reader (VoiceOver) should read 'Stop @user posts' or 'Remove @user posts'. Check the look in both light and dark mode.
 
 ## T7 · Rate-limit guard
-- status: todo
+- status: needs-check
 - why: Instagram blocks accounts ("action blocked", checkpoint or login challenges) that make sustained, regular, high-volume requests. Today igd waits a fixed 1.5 s between profile pages, doesn't pause between downloads or jobs, and keeps retrying after a 429.
 - done when:
   - one shared pacer in the panel paces every Instagram request (bridge calls) and every CDN download, with random jitter: API calls 3–6 s apart, CDN downloads 0.3–1 s apart, 30–90 s between jobs, and a 5–10 min break about every 150 API calls.
@@ -86,6 +86,17 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - the pacing numbers and budgets are settings in the panel, with these defaults.
   - Stop still takes effect within a second during any wait.
   - the pure logic (jittered delays, budget windows, error classification, cool-down growth) is unit-tested; the existing test suites pass.
+- live checks:
+  - [ ] Reload igd at chrome://extensions. Queue a large profile and watch the job detail: page requests should be 3–6 s apart, and the file count should climb about one file per 0.3–1 s.
+  - [ ] Queue two profiles. After the first finishes, the second should show a 30–90 s wait before its first request.
+  - [ ] Open the Pacing settings, set the hourly budget to 3 and run a profile. After 3 requests, the panel should say the queue is holding until a time about an hour after the first request. Close and reopen the panel (or restart Chrome): the hold and its time should still be shown. Reset to defaults afterwards.
+  - [ ] Click Stop during each kind of wait (API gap, job gap, budget hold, breaker hold). The job should end as 'Stopped' within a second.
+  - [ ] Breaker, timed: if a real 429 or 'please wait' happens (or simulate one by temporarily returning {error:'HTTP 429',status:429} from page.js), the panel should show the reason and a resume time 30 min out. No retry should happen before then, and a second trip should show 60 min.
+  - [ ] Breaker, manual: log out of Instagram in the tab and run a job. The panel should explain it's a login problem and show a Resume button, with no automatic resume. Log back in and click Resume: the job should continue from the same call.
+  - [ ] Check the hold card and Pacing settings in light and dark mode, and with keyboard only: the Resume button and the inputs are reachable and labelled, and VoiceOver reads the hold text.
+- open review findings:
+  - In graphql(), `if (!res.ok) return { error: `HTTP ${res.status}`, status }` runs before the body is parsed. Instagram usually sends feedback_required, checkpoint_required and login_required with HTTP 400, not 200. Those replies reach classify() as a plain "HTTP 400" with no block, checkpoint or login flag. They then fall through to `if (err) return null`, so the job just errors and the next queued job sends another request. The breaker never trips. That breaks the circuit-breaker done-when item (feedback_required, checkpoint and challenge replies must hold the queue).
+  - classify() trips only on 401, 403 and 429. Any other non-OK HTTP reply (400 with no JSON block body, 5xx, and so on) returns null. The job fails and the queue moves straight on to the next job's request. Done-when says "a reply that isn't the expected data holds the whole queue", and an HTTP error reply is not the expected data.
 
 ## T8 · Incremental re-runs
 - status: todo

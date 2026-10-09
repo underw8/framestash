@@ -15,10 +15,16 @@
 
   // Calls one of Instagram's own persisted GraphQL queries the way its web app does.
   // Query IDs and tokens are read at call time, never hardcoded.
+  let requests = 0; // per bridge message, so the panel's budget counts real requests
+  // The panel's breaker holds the queue on this text; a TypeError would only fail one job.
+  const SHAPE = { error: "unexpected response shape (Instagram may have changed the query)" };
+  const hasNodes = (edges) => Array.isArray(edges) && edges.every((e) => e && e.node);
+
   async function graphql(operation, variables, rootField) {
     const R = window.require;
     if (typeof R !== "function") throw new Error("Instagram's module loader is not available on this page");
     const lsd = R("LSD").token;
+    requests++;
     const res = await fetch("/api/graphql", {
       method: "POST",
       credentials: "include",
@@ -43,8 +49,12 @@
     // Some queries return usable data next to field-level errors, so data wins.
     const data = json.data && json.data[rootField];
     if (data) return { data };
+    // Instagram's block replies (docs/03, "Block signals"); the panel's breaker tells them apart.
+    if (json.message || json.require_login || json.checkpoint_url) {
+      return { error: String(json.message || "login required"), block: true, login: !!json.require_login, checkpoint: !!json.checkpoint_url, spam: !!json.spam };
+    }
     if (json.errors && json.errors.length) return { error: json.errors[0].message || "GraphQL error" };
-    return { error: "unexpected response shape (Instagram may have changed the query)" };
+    return SHAPE;
   }
 
   async function profilePosts(username, after) {
@@ -56,6 +66,7 @@
       },
     }, "xdt_api__v1__feed__user_timeline_graphql_connection");
     if (r.error) return r;
+    if (!hasNodes(r.data.edges) || !r.data.page_info) return SHAPE;
     return {
       nodes: r.data.edges.map((e) => e.node),
       next: r.data.page_info.has_next_page ? r.data.page_info.end_cursor : null,
@@ -65,7 +76,8 @@
   async function post(shortcode) {
     const r = await graphql("PolarisPostRootQuery", { shortcode }, "xdt_api__v1__media__shortcode__web_info");
     if (r.error) return r;
-    return r.data.items && r.data.items.length ? { nodes: r.data.items } : { error: "post not found" };
+    if (!Array.isArray(r.data.items)) return SHAPE;
+    return r.data.items.length ? { nodes: r.data.items } : { error: "post not found" };
   }
 
   // Works for any account, including ones with no visible posts.
@@ -78,7 +90,9 @@
       hasQuery: true,
     }, "xdt_api__v1__fbsearch__topsearch_connection");
     if (r.error) return r;
-    const hit = (r.data.users || []).find((u) => u.user && u.user.username.toLowerCase() === username.toLowerCase());
+    const users = r.data.users;
+    if (!Array.isArray(users) || !users.every((u) => u && u.user && typeof u.user.username === "string")) return SHAPE;
+    const hit = users.find((u) => u.user.username.toLowerCase() === username.toLowerCase());
     return hit ? { pk: String(hit.user.pk) } : { error: `account @${username} not found` };
   }
 
@@ -90,8 +104,9 @@
         reel_ids_arr: ids.slice(i, i + 20), is_highlight: isHighlight, media_id: null,
       }, "xdt_api__v1__feed__reels_media");
       if (r.error) return r;
+      if (!Array.isArray(r.data.reels_media)) return SHAPE;
       // Story items carry no owner of their own; the reel does.
-      for (const reel of r.data.reels_media || []) for (const item of reel.items || []) nodes.push({ ...item, user: reel.user });
+      for (const reel of r.data.reels_media) for (const item of (reel && reel.items) || []) nodes.push({ ...item, user: reel.user });
     }
     return { nodes };
   }
@@ -104,7 +119,8 @@
         user_id: pk, first: 50, after, before: null, last: null, max_highlights_to_fetch_on_pagination: 50,
       }, "highlights");
       if (r.error) return r;
-      for (const e of r.data.edges || []) ids.push(e.node.id);
+      if (!hasNodes(r.data.edges)) return SHAPE;
+      for (const e of r.data.edges) ids.push(e.node.id);
       after = r.data.page_info && r.data.page_info.has_next_page ? r.data.page_info.end_cursor : null;
     } while (after);
     return { ids };
@@ -133,11 +149,12 @@
   window.addEventListener("message", async (e) => {
     const port = e.ports && e.ports[0];
     if (e.origin !== location.origin || !port || !e.data || e.data.igd !== 1) return;
+    requests = 0;
     try {
       if (!OPS[e.data.op]) throw new Error(`unknown op ${e.data.op}`);
-      port.postMessage(await OPS[e.data.op](e.data));
+      port.postMessage({ ...(await OPS[e.data.op](e.data)), requests });
     } catch (err) {
-      port.postMessage({ error: String((err && err.message) || err) });
+      port.postMessage({ error: String((err && err.message) || err), requests });
     }
   });
 })();

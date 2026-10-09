@@ -34,7 +34,8 @@ The numbers in brackets point to the study notes in `docs/`.
   - Old folders without the file are recognised from the `_<ownerId>` in their file names.
   - A folder is never shared by two accounts. If a username now belongs to someone else, that account gets `<username>_<userId>/`.
 - **Writing:** never overwrites a non-empty file. A file is created only after a successful, status-checked download, so failures leave nothing behind. The 0-byte, `.error.txt` and corrupt files the old tool left are reported by the check, never deleted [6].
-- **Pacing:** each page of posts is written as it arrives, with 1.5 s between pages. On HTTP 429 igd backs off for 60, then 120, then 300 s [3, 6].
+- **Pacing:** each page of posts is written as it arrives. One pacer in the panel spaces every Instagram request 3–6 s apart, CDN downloads 0.3–1 s apart and jobs 30–90 s apart (all jittered), takes a 5–10 min break about every 150 requests, and keeps to a budget of 200 requests per hour and 1,500 per day that survives restarts. All of these are settings in the panel [3].
+- **Circuit breaker:** a 429, a "please wait" / feedback_required reply, or a reply that isn't the expected data holds the whole queue for 30 min, doubling on each repeated trip (capped at 24 h). A login or checkpoint/challenge reply holds it until you click Resume [3, 6].
 - **Security:**
   - The folder handle is stored only in the panel's own extension storage, which pages on instagram.com can't reach [6].
   - Instagram tabs only list posts and stories. The panel validates every record and does all fetching and writing.
@@ -76,6 +77,7 @@ Start it in Claude Code by asking it to run the `igd-task` workflow, optionally 
 ```bash
 node igd/test/naming.test.js       # naming, dedup keys, routing, owner inference, file sniffing, queue entries
 node igd/test/collection.test.js   # folder resolution (renames, reused usernames, conflicts) and the collection check
+node igd/test/pacer.test.js        # pacing, budgets, block-signal classification and cool-downs
 ```
 
 ## Layout

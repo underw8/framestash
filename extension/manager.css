@@ -106,5 +106,17 @@ li[data-state="stopped"] .job-icon, li[data-state="stopping"] .job-icon { color:
 
 #check { margin-top: 16px; }
 #reportBox { margin-top: 12px; }
+#pacingBox { margin-top: 12px; }
+.pacing { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; margin: 10px 0 12px; }
+.pacing label { display: flex; flex-direction: column; gap: 4px; color: var(--muted); font-size: 12px; line-height: 16px; }
+.pacing input {
+  height: 32px; padding: 0 10px; background: transparent; color: var(--text);
+  border: .8px solid var(--field-line); border-radius: 8px; font: inherit; font-size: 14px;
+}
+.pacing input:focus { border-color: var(--muted); outline: none; }
+
+/* Breaker or budget hold: the whole queue waits. */
+.hold { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.hold-text { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 details summary { cursor: pointer; font-weight: 600; }
 pre { margin: 10px 0 0; max-height: 50vh; overflow: auto; white-space: pre-wrap; font: 11px/16px ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--muted); }

@@ -199,6 +199,7 @@ async function pump() {
       update(job, "Starting…");
       stopper = new AbortController();
       counts = null;
+      apiThisJob = false;
       try {
         await run(job);
         job.state = "done";
@@ -214,6 +215,8 @@ async function pump() {
         update(job, e.message, "error");
         // A folder problem stops the queue until the user fixes it here.
         if (/igd panel/.test(e.message)) { job.state = "queued"; saveQueue(); renderJobs(); break; }
+      } finally {
+        if (apiThisJob) { pace.lastJobEnd = Date.now(); savePace(); }
       }
       saveQueue();
     }
@@ -239,10 +242,137 @@ async function instagramTab(preferred) {
     : "Open instagram.com in a tab (logged in), then retry.");
 }
 
-async function bridge(job, op, args) {
-  const waits = [60, 120, 300];
-  for (let attempt = 0; ; attempt++) {
+// ---- pacing and circuit breaker (rules in pacer.js) ----
+
+let pacing = pacingSettings();
+// Persisted so closing the panel or restarting Chrome keeps budgets and holds.
+// hold: null or { until (null = until Resume), reason, manual }.
+let pace = { stamps: [], sinceBreak: 0, breakAt: nextBreakAt(pacing), lastApi: 0, lastJobEnd: 0, trips: 0, lastTrip: 0, hold: null };
+let lastCdn = 0;
+let apiThisJob = false;
+let resumeNow = () => {};
+const paceInputs = document.querySelectorAll("[data-pace]");
+
+const pacingLoaded = kv("pacing").then((s) => { pacing = pacingSettings(s); }).catch(() => {}).then(() => renderPacing());
+// Only the queue owner reads and writes the record, so a standby panel can't overwrite it.
+const paceLoaded = Promise.all([owned, pacingLoaded]).then(() => kv("pace")).then((p) => {
+  if (p && Array.isArray(p.stamps)) pace = { ...pace, ...p };
+}).catch(() => {}).then(() => renderHold());
+let paceSaving = paceLoaded;
+const savePace = () => { paceSaving = paceSaving.then(() => kv("pace", pace)).catch(() => {}); };
+
+const clock = (t) => new Date(t).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+function holdText(h) {
+  if (!h || (!h.manual && h.until <= Date.now())) return "";
+  return h.manual ? `${h.reason} Then click Resume.` : `${h.reason} The queue resumes at ${clock(h.until)}.`;
+}
+
+function renderHold(text = holdText(pace.hold)) {
+  $("hold").hidden = !text;
+  $("holdText").textContent = text;
+  $("resume").hidden = !(pace.hold && pace.hold.manual);
+}
+
+function renderPacing() {
+  for (const i of paceInputs) i.value = pacing[i.dataset.pace];
+}
+
+function setPacing(raw) {
+  pacing = pacingSettings(raw);
+  pace.breakAt = nextBreakAt(pacing);
+  renderPacing();
+  kv("pacing", pacing).catch(() => {});
+  savePace();
+}
+
+$("pacingBox").addEventListener("change", () => setPacing(Object.fromEntries([...paceInputs].map((i) => [i.dataset.pace, i.value]))));
+$("pacingReset").addEventListener("click", () => setPacing({}));
+
+$("resume").addEventListener("click", () => {
+  pace.hold = null; // trips are kept, so the next trip still doubles
+  savePace();
+  renderHold();
+  resumeNow();
+  pump();
+});
+
+function untilResume(signal) {
+  return new Promise((resolve, reject) => {
+    resumeNow = resolve;
+    signal.addEventListener("abort", () => reject(signal.reason), { once: true });
+  });
+}
+
+// Long waits go in steps of a minute, so a sleeping computer or a settings change is noticed.
+async function waitUntil(t) {
+  await wait(Math.min(Math.max(0, t - Date.now()), 60e3), stopper.signal);
+}
+
+// Every Instagram request waits here first. Order: holds, budget, long break, spacing.
+async function paceApi(job) {
+  await paceLoaded;
+  for (;;) {
     stopper.signal.throwIfAborted();
+    const now = Date.now();
+    const h = pace.hold;
+    if (h && h.manual) {
+      update(job, holdText(h), "warn");
+      renderHold();
+      await untilResume(stopper.signal);
+      continue;
+    }
+    if (h && h.until > now) {
+      update(job, holdText(h), "warn");
+      renderHold();
+      await waitUntil(h.until);
+      continue;
+    }
+    if (h) { pace.hold = null; savePace(); }
+    const budget = budgetWait(pace.stamps, now, pacing);
+    pace.stamps = budget.stamps;
+    if (budget.resumeAt) {
+      const text = `igd used its request budget (${pacing.perHour} per hour, ${pacing.perDay} per day). The queue resumes at ${clock(budget.resumeAt)}.`;
+      update(job, text, "warn");
+      renderHold(text);
+      await waitUntil(budget.resumeAt);
+      continue;
+    }
+    renderHold();
+    if (pace.sinceBreak >= pace.breakAt) {
+      const ms = jitter(pacing.breakMin * 60, pacing.breakMax * 60);
+      update(job, `Taking a break from Instagram until ${clock(now + ms)}…`);
+      await wait(ms, stopper.signal);
+      pace.sinceBreak = 0;
+      pace.breakAt = nextBreakAt(pacing);
+      savePace();
+      continue;
+    }
+    // The job gap applies only to the first call after a job ended.
+    const gap = pace.lastJobEnd >= pace.lastApi ? pace.lastJobEnd + jitter(pacing.jobMin, pacing.jobMax) : 0;
+    const at = Math.max(pace.lastApi + jitter(pacing.apiMin, pacing.apiMax), gap);
+    if (gap > now) update(job, `Waiting until ${clock(gap)} between jobs…`);
+    await wait(Math.max(0, at - now), stopper.signal);
+    return;
+  }
+}
+
+async function paceCdn() {
+  await wait(Math.max(0, lastCdn + jitter(pacing.cdnMin, pacing.cdnMax) - Date.now()), stopper.signal);
+  lastCdn = Date.now();
+}
+
+const TRIP_TEXT = {
+  rate: "Instagram is limiting requests",
+  shape: "Instagram sent an unexpected reply; Instagram may have changed the query, and igd may need an update",
+  login: "Instagram wants you to log in again. Log in on instagram.com.",
+  challenge: "Instagram wants you to confirm your account. Clear the check on instagram.com.",
+};
+
+// A block signal holds the whole queue; the same call is retried only after the hold clears.
+async function bridge(job, op, args) {
+  for (;;) {
+    await paceApi(job);
     const tabId = await instagramTab(job.tabId);
     let r;
     try {
@@ -251,9 +381,20 @@ async function bridge(job, op, args) {
       throw new Error("The Instagram tab didn't answer. Reload it and retry.");
     }
     r = r && typeof r === "object" ? r : { error: "malformed reply" };
-    if (r.status !== 429 || attempt >= waits.length) return r;
-    update(job, `Instagram is rate-limiting; waiting ${waits[attempt]} s…`, "warn");
-    await wait(waits[attempt] * 1000, stopper.signal);
+    const now = Date.now();
+    const n = Math.min(100, Math.max(1, Math.floor(Number(r.requests)) || 1)); // page-reported, so bounded
+    for (let i = 0; i < n; i++) pace.stamps.push(now);
+    pace.sinceBreak += n;
+    pace.lastApi = now;
+    apiThisJob = true;
+    const trip = classify(op, r);
+    if (!trip) { savePace(); return r; }
+    pace.trips = nextTrips(pace.trips, pace.lastTrip, now);
+    pace.lastTrip = now;
+    const why = trip.manual ? TRIP_TEXT[trip.reason] : `${TRIP_TEXT[trip.reason]} (${String(r.error || "missing data").slice(0, 120)}).`;
+    pace.hold = { until: trip.manual ? null : now + cooldownMs(pace.trips), reason: why, manual: trip.manual };
+    savePace();
+    renderHold();
   }
 }
 
@@ -264,6 +405,7 @@ const summary = (c) => `new ${c.saved} · already had ${c.skipped} · failed ${c
 function counters(job, prefix) {
   const c = { saved: 0, skipped: 0, failed: 0, failures: [], progress: () => update(job, `${prefix()}${summary(c)}`) };
   c.halt = () => stopper.signal.throwIfAborted();
+  c.pace = () => paceCdn();
   counts = c;
   return c;
 }
@@ -292,11 +434,9 @@ async function run(job) {
     do {
       const r = await bridge(job, "profilePosts", { username: job.username, after });
       if (r.error) throw new Error(`Stopped listing after ${page} page(s): ${r.error} (${summary(c)})`);
-      if (!Array.isArray(r.nodes)) throw new Error("malformed reply from the Instagram tab");
       page++;
       for (const node of r.nodes) await saveItems(account.dir, index, itemsFromNode(node), c);
       after = typeof r.next === "string" ? r.next : null;
-      if (after) await wait(1500, stopper.signal);
     } while (after);
     return finish(job, c, `${top.name}/${account.name}${account.note}`);
   }
