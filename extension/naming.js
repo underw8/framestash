@@ -120,9 +120,10 @@ function routeFromPath(path) {
   if (shortcode) return { kind: "post", shortcode };
   const highlight = path.match(/^\/stories\/highlights\/(\d+)\/?/);
   if (highlight) return { kind: "highlight", id: highlight[1] };
-  const story = path.match(/^\/stories\/([A-Za-z0-9._]{1,30})\/(?:\d+\/?)?$/);
+  const story = path.match(/^\/stories\/([A-Za-z0-9._]{1,30})(?:\/\d+)?\/?$/);
   if (story && story[1] !== "highlights") return { kind: "stories", username: story[1].toLowerCase() };
-  const profile = path.match(/^\/([A-Za-z0-9._]{1,30})\/(?:(?:reels|tagged)\/)?$/);
+  // Trailing slash optional: Instagram and typed URLs use both forms.
+  const profile = path.match(/^\/([A-Za-z0-9._]{1,30})(?:\/(?:reels|tagged))?\/?$/);
   if (profile && !RESERVED.has(profile[1].toLowerCase())) return { kind: "profile", username: profile[1].toLowerCase() };
   return null;
 }

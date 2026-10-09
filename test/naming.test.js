@@ -76,6 +76,12 @@ for (const [path, route] of [
   ["/stories/minhhi_taplon/", { kind: "stories", username: "minhhi_taplon" }],
   ["/stories/minhhi_taplon/4000000000000000091/", { kind: "stories", username: "minhhi_taplon" }],
   ["/stories/highlights/18000000000000040/", { kind: "highlight", id: "18000000000000040" }],
+  ["/nike", { kind: "profile", username: "nike" }],
+  ["/nike/tagged", { kind: "profile", username: "nike" }],
+  ["/stories/minhhi_taplon", { kind: "stories", username: "minhhi_taplon" }],
+  ["/stories/minhhi_taplon/4000000000000000091", { kind: "stories", username: "minhhi_taplon" }],
+  ["/stories/highlights/18000000000000040", { kind: "highlight", id: "18000000000000040" }],
+  ["/explore", null], ["/stories", null], ["/stories/highlights", null], ["/nike/saved", null],
   ["/", null], ["/explore/", null], ["/direct/inbox/", null], ["/reels/", null], ["/stories/", null], ["/stories/highlights/", null],
 ]) assert.deepEqual(n.routeFromPath(path), route, path);
 
