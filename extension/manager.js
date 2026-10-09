@@ -259,11 +259,17 @@ function finish(job, c, where) {
 
 // ---- inputs ----
 
+// Jobs reach the panel only through background.js, which adds the sending tab's
+// id and URL as reported by Chrome (not by the page).
+function acceptDelivery(d) {
+  if (!d || d.type !== "job" || !String(d.url).startsWith("https://www.instagram.com/")) return { queued: false, reason: "igd: invalid request" };
+  if (!validJob(d.job)) return { queued: false, reason: "igd: invalid request" };
+  return { queued: true, position: enqueue({ ...d.job, tabId: d.tabId }) };
+}
+
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  if (msg.type !== "enqueue" || !sender.tab || !(sender.url || "").startsWith("https://www.instagram.com/")) return false;
-  if (!validJob(msg.job)) { sendResponse({ queued: false, reason: "igd: invalid request" }); return false; }
-  const position = enqueue({ ...msg.job, tabId: sender.tab.id });
-  sendResponse({ queued: true, position });
+  if (msg.type !== "job" || sender.tab || sender.id !== chrome.runtime.id) return false;
+  sendResponse(acceptDelivery(msg));
   return false;
 });
 
@@ -296,4 +302,7 @@ $("check").addEventListener("click", () => enqueue({ kind: "check" }));
 (async () => {
   root = (await kv("root")) || null;
   await renderFolder();
+  // Pick up jobs that were sent while this panel was opening.
+  const waiting = await chrome.runtime.sendMessage({ type: "managerReady" }).catch(() => []);
+  for (const d of waiting || []) acceptDelivery(d);
 })();

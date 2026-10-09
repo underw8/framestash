@@ -51,7 +51,7 @@ function setStatus(text, kind = "") {
   statusLine.dataset.kind = kind;
 }
 
-const panelHint = "Open the igd panel (toolbar icon or 📁), then try again.";
+const panelHint = "igd couldn't open its panel. Click the igd icon in the toolbar, then try again.";
 
 // Page scripts can call .click() on our buttons; only real user clicks may start
 // downloads, or any script on instagram.com could fill the collection.
@@ -64,6 +64,7 @@ async function send(job) {
   try {
     const r = await chrome.runtime.sendMessage({ type: "enqueue", job });
     if (!r || !r.queued) return setStatus((r && r.reason) || panelHint, "warn");
+    if (r.opening) return setStatus("Opening the igd panel…");
     setStatus(r.position > 1 ? `Queued in igd (${r.position - 1} ahead)` : "Starting…");
   } catch {
     setStatus(panelHint, "warn");

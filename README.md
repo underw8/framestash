@@ -29,7 +29,7 @@ This folder is our own replacement for *a reference extension* v4.12.16, written
 2. Click the igd icon to open the **side panel**, then **Choose folder** and pick the **root** folder of your collection (the one that contains the account folders, e.g. `IG`). It's remembered across tabs and restarts. After a browser restart, the panel may show **Allow access**; one click restores it.
    - **Queue profiles:** paste usernames or profile URLs, one per line. Choose Posts and/or Stories & highlights, then **Add to queue**. Jobs run one after another, using any open, logged-in Instagram tab.
    - **Check collection:** the read-only report, shown in the panel.
-   - Keep the panel open while jobs run. Closing it ends the queue.
+   - Keep the panel open while jobs run. Closing it ends the queue; a button in Instagram reopens it.
 3. In Instagram, open a profile, for example `https://www.instagram.com/<user>/`, and a **⬇ Download @user** button appears in the bottom-right corner, above Instagram's Messages button. On a post or reel page (`/p/…`, `/reel/…`, `/reels/…`) the button is **⬇ Save post** instead, and saves every slide into `<root>/<owner>/`.
    Grid tiles (profile, tagged, explore, saved) and home-feed posts get a round **⬇** button when you hover them. It saves that post, exactly like **Save post**, without opening it.
    Stories:
@@ -39,7 +39,7 @@ This folder is our own replacement for *a reference extension* v4.12.16, written
    - All of these go to `<root>/<user>/stories/`. Each story keeps its own ID in the file name, so a story that is also in a highlight is saved once.
    - Downloading never marks stories as seen.
    **🔍** checks the whole collection **without changing anything**. It reports duplicates, empty files, saved error pages, unrecognised names, and accounts split across folders.
-   Every button sends a job to the panel's queue. The tab's status line shows that job's progress (new, already had, failed). **📁** opens the panel.
+   Every button sends a job to the panel's queue, **opening the panel first if it's closed**. The tab's status line shows that job's progress (new, already had, failed). **📁** just opens the panel.
 4. Running a job again only fetches what's missing. Failed items are listed in the panel's DevTools console.
 5. After igd is updated or reloaded, reload open Instagram tabs. Chrome only adds the new scripts to pages loaded after the update, and igd tells you when this is needed.
 
