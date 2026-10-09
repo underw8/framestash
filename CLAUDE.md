@@ -27,6 +27,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - The panel accepts jobs only from the background, with the tab URL as Chrome reports it, and checks them with `validJob`.
 - Every igd button handler requires `event.isTrusted`: page scripts can click our buttons, and the panel's folder is already granted. Live tests therefore can't start jobs with a script `.click()`.
 
+## Task workflow
+
+`TASKS.md` lists open work. The `igd-task` workflow (`.claude/workflows/igd-task.js`) handles one task per run: pick, plan, build, review, then one commit, with the status set to `needs-check` plus the user's live checks. Keep the task format: a `## T<n> · title` heading, then `status` / `why` / `done when` bullets.
+
 ## Clean-room rules
 
 - **Never copy** code, CSS, icons, UI strings or minified fragments from `../js`, `../css`, `../icons` or `docs/verification/`. Write everything from the behaviour described in `docs/`.

@@ -51,6 +51,18 @@ The numbers in brackets point to the study notes in `docs/`.
 
 **When Instagram changes something,** re-run playbook steps 5–6 (`docs/11`) and update `docs/03` before changing code.
 
+## Working on tasks
+
+Open work lives in `TASKS.md`. The saved workflow `igd-task` (`.claude/workflows/igd-task.js`) takes **one task per run**:
+
+1. **Pick:** it needs a clean working tree. It takes the task you name (e.g. `T2`), or the first one with status `todo`.
+2. **Plan:** a short design against `CLAUDE.md` and `docs/`.
+3. **Build:** the change, plus tests.
+4. **Review:** security, collection-compatibility and correctness reviews, with up to two reviewed fix rounds.
+5. **Finish:** one commit. The task is set to `needs-check`, with the live checks only you can do (reloads, real clicks, folder picks).
+
+Start it in Claude Code by asking it to run the `igd-task` workflow, optionally naming the task.
+
 ## Look and feel
 
 - **In-page buttons and status card:** they read Instagram's own theme variables, so they follow its light and dark modes. They match its floating Messages button: raised surface, hairline edge, shadow, pill shape and the `--hover-overlay` hover.
@@ -78,6 +90,8 @@ tdi/                    original extension (reference, unlicensed, not ours)
     ├── test/           node checks
     ├── docs/           how the original works, what broke, how to probe Instagram
     │   └── verification/   evidence behind the docs
+    ├── TASKS.md        open work, consumed by the igd-task workflow
+    ├── .claude/workflows/igd-task.js
     ├── README.md       this file
     └── CLAUDE.md       ground rules for working here
 ```
