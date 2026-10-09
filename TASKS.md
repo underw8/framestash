@@ -49,7 +49,7 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - the whole-post behaviour stays the default.
 - live checks:
   - [ ] Pass T11's live checks. They replace the Alt-click checks, since T11 removed Alt-click.
-  - [ ] In DevTools on a carousel, confirm that the last path segment of the shown `<img>` `currentSrc` equals the last path segment of one of that slide's `image_versions2.candidates[].url` in the PolarisPostRootQuery reply (playbook step 3). Then the docs/03 'to verify' note can be cleared.
+  - [ ] In DevTools on a carousel, confirm that the last path segment of the shown `<img>` `currentSrc` equals the last path segment of one of that slide's `image_versions2.candidates[].url` in the PolarisPostRootQuery reply (playbook step 2). Then the docs/instagram-api.md 'to verify' note can be cleared.
 
 ## T4 · Per-highlight subfolders
 - status: needs-check
@@ -62,20 +62,20 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - [ ] Reload igd at chrome://extensions and reload the Instagram tab. With "Highlights in their own folders" off, queue a profile's Stories & highlights. Everything should land in `<user>/stories/` with no subfolders, as before.
   - [ ] Turn the switch on, close and reopen the panel: it should still be on. Queue the same profile again. Nothing new should be downloaded (every item counts as 'already had'), and no files should be written into highlight subfolders.
   - [ ] With the switch on, download a highlight not saved before (from its `/stories/highlights/<id>/` page). Its items should go to `<user>/stories/<highlight title>/`. Active stories from the same run stay in `<user>/stories/`.
-  - [ ] In DevTools, check that `PolarisStoriesV3ReelPageStandaloneQuery` → `reels_media[].title` holds the highlight's display name (playbook steps 3–6). Then clear the 'to confirm' note in docs/03. If `title` is missing, folders are named by the highlight id.
+  - [ ] In DevTools, check that `PolarisStoriesV3ReelPageStandaloneQuery` → `reels_media[].title` holds the highlight's display name (playbook steps 2–5). Then clear the 'to confirm' note in docs/instagram-api.md. If `title` is missing, folders are named by the highlight id.
   - [ ] Move a file from `stories/<title>/` up into `stories/` and re-run. It should count as 'already had' and not be downloaded into the highlight folder again.
 
 ## T5 · DASH video quality
 - status: needs-check
-- why: Instagram's GraphQL nodes carry `video_dash_manifest` with higher qualities than the progressive MP4 igd saves today (`docs/03`).
+- why: Instagram's GraphQL nodes carry `video_dash_manifest` with higher qualities than the progressive MP4 igd saves today (`docs/instagram-api.md`).
 - done when:
   - there's a design note in `docs/` covering manifest parsing and how to combine the video and audio tracks in the browser, with what it costs;
   - there's a go/no-go decision. If go, it's an opt-in setting, and files stay named the same so dedup still holds.
-- notes: design note is `docs/12-dash-video.md`; decision is no-go until the probe shows a real gain. No code changes.
+- notes: design note is `docs/dash-video.md`; decision is no-go until the probe shows a real gain. No code changes.
 - live checks:
-  - [ ] On a logged-in instagram.com tab, run the probe in docs/12 ("Probe: how much higher is DASH?") on a few profiles, including one that posts reels. Record `videos`, `withManifest`, `dashTaller` and `dashUnknown` in docs/12.
-  - [ ] If `withManifest` is 0, retry with `PolarisPostRootQuery` on a single reel and note in docs/12 which query carries the manifest. Clear the 'to verify' points in docs/12 from `firstRep`.
-  - [ ] Only when `dashUnknown` is 0: confirm no-go if `dashTaller` is under about a quarter of the videos sampled; otherwise reopen T5 as a 'go' per the docs/12 decision section.
+  - [ ] On a logged-in instagram.com tab, run the probe in docs/dash-video.md ("Probe: how much higher is DASH?") on a few profiles, including one that posts reels. Record `videos`, `withManifest`, `dashTaller` and `dashUnknown` in docs/dash-video.md.
+  - [ ] If `withManifest` is 0, retry with `PolarisPostRootQuery` on a single reel and note in docs/dash-video.md which query carries the manifest. Clear the 'to verify' points in docs/dash-video.md from `firstRep`.
+  - [ ] Only when `dashUnknown` is 0: confirm no-go if `dashTaller` is under about a quarter of the videos sampled; otherwise reopen T5 as a 'go' per the docs/dash-video.md decision section.
 
 ## T6 · Stop a running job, remove queued ones
 - status: needs-check
@@ -128,7 +128,7 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
 - live checks:
   - [ ] Reload igd at chrome://extensions and reload the Instagram tab. Queue a profile you have never fully run: it lists to the last page.
   - [ ] Queue the same profile again: it stops after the first page or two with 'stopped early', and the request count in the panel is small.
-  - [ ] On a profile with pinned posts that are already saved, run it twice and confirm the second run doesn't stop because of the pinned posts. If you can, also confirm in DevTools that pinned nodes come first with older `taken_at`, as docs/03 now says.
+  - [ ] On a profile with pinned posts that are already saved, run it twice and confirm the second run doesn't stop because of the pinned posts. If you can, also confirm in DevTools that pinned nodes come first with older `taken_at`, as docs/instagram-api.md now says.
   - [ ] Stop a profile run mid-way, then queue it again: it lists to the end.
   - [ ] Turn on 'List every post' and queue a fully listed profile: it lists every page and the row reads '@x posts (full)'.
   - [ ] Save a single post and a story: both behave as before.

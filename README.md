@@ -1,12 +1,10 @@
-# igd: our Instagram downloader (clean-room rebuild)
+# igd: an Instagram downloader
 
-This folder is our own replacement for *a reference extension* v4.12.16, written from scratch. The original extension sits at the repository root (`../`) **as a reference only**. Nothing from it is copied into this folder.
-
-**Status:** igd downloads profiles, single posts, grid and feed items, stories and highlights into an existing collection. All saving happens in an **igd side panel**, which holds the folder once for every tab and runs a **download queue**. The extension is in `extension/`; history and test results are in the git log. Study notes are in `docs/`.
+**Status:** igd downloads profiles, single posts, grid and feed items, stories and highlights into an existing collection. All saving happens in an **igd side panel**, which holds the folder once for every tab and runs a **download queue**. The extension is in `extension/`; history and test results are in the git log. Specs are in `docs/`.
 
 ## Using igd
 
-1. **Install.** Go to `chrome://extensions`, turn on Developer mode, click **Load unpacked**, and choose `igd/extension/`. Pin igd to the toolbar. The old extension can stay installed; the two don't share storage or buttons.
+1. **Install.** Go to `chrome://extensions`, turn on Developer mode, click **Load unpacked**, and choose the `extension/` folder. Pin igd to the toolbar.
 2. **Choose the folder.** Click the igd icon to open the **side panel**, then **Choose** and pick the **root** folder of your collection: the one that contains the account folders, e.g. `IG`. It's remembered across tabs and restarts. After a browser restart, one click on **Allow access** restores it.
    - **Queue profiles:** paste usernames or profile URLs, one per line. Choose Posts and/or Stories & highlights, then **Add to queue**. A re-run of a profile that was fully listed before stops after 12 posts in a row you already have; turn on **List every post** to force a full pass. An interrupted profile run, full or not, continues from the page where it stopped. A queued profile with a saved position also shows **Start over**, which lists it from the newest post instead. Jobs run one after another, using any open, logged-in Instagram tab. The running job has a **Stop** button and queued jobs a **Remove** button; **Clear queue** removes every queued job and the finished rows, leaving the running one; files already saved are kept.
    - **Check collection:** a read-only report, shown in the panel. It lists duplicates, empty files, saved error pages, unrecognised names, and accounts split across folders.
@@ -24,32 +22,27 @@ This folder is our own replacement for *a reference extension* v4.12.16, written
 
 ## What it does
 
-The numbers in brackets point to the study notes in `docs/`.
-
-- **Data:** lists posts and stories with Instagram's own GraphQL queries, from the page world. Query IDs, tokens and query flags are read at runtime, never hardcoded [3].
-- **Naming:** files are named exactly like the old tool's: `<root>/<username>/<username>_<taken_at>_<id>.<ext>` [4].
-- **Duplicates:** media already present is skipped, matched on the media **pk** alone. A pk is unique across Instagram, so this survives renames and every old name format.
+- **Data:** lists posts and stories with Instagram's own GraphQL queries, from the page world. Query IDs, tokens and query flags are read at runtime, never hardcoded ([instagram-api.md](docs/instagram-api.md)).
+- **Naming:** `<root>/<username>/<username>_<taken_at>_<id>.<ext>`, the format existing collections already use ([collection-format.md](docs/collection-format.md)).
+- **Duplicates:** media already present is skipped, matched on the media **pk** alone. A pk is unique across Instagram, so this survives renames and every name variant.
 - **Account folders** are tied to their owner's **user ID** through a hidden `.igd.json`, written the first time igd saves there.
   - A renamed account keeps its old folder. Folders are never renamed, and new usernames are recorded as aliases.
   - Old folders without the file are recognised from the `_<ownerId>` in their file names.
   - A folder is never shared by two accounts. If a username now belongs to someone else, that account gets `<username>_<userId>/`.
-- **Writing:** never overwrites a non-empty file. A file is created only after a successful, status-checked download, so failures leave nothing behind. The 0-byte, `.error.txt` and corrupt files the old tool left are reported by the check, never deleted [6].
-- **Pacing:** each page of posts is written as it arrives. One pacer in the panel spaces every Instagram request 3–6 s apart, CDN downloads 0.3–1 s apart and rests up to 30–90 s after a job, in proportion to the requests it made, so a job of a request or two adds only a few seconds (all jittered), takes a 5–10 min break about every 150 requests, and keeps to a budget of 200 requests per hour and 1,500 per day that survives restarts. All of these are settings in the panel [3].
-- **Circuit breaker:** a 429, a "please wait" / feedback_required reply, or a reply that isn't the expected data holds the whole queue for 30 min, doubling on each repeated trip (capped at 24 h). A login or checkpoint/challenge reply holds it until you click Resume [3, 6].
+- **Writing:** never overwrites a non-empty file. A file is created only after a successful, status-checked download, so failures leave nothing behind. 0-byte, `.error.txt` and corrupt files already in a collection are reported by the check, never deleted.
+- **Pacing:** each page of posts is written as it arrives. One pacer in the panel spaces every Instagram request 3–6 s apart, CDN downloads 0.3–1 s apart and rests up to 30–90 s after a job, in proportion to the requests it made, so a job of a request or two adds only a few seconds (all jittered), takes a 5–10 min break about every 150 requests, and keeps to a budget of 200 requests per hour and 1,500 per day that survives restarts. All of these are settings in the panel.
+- **Circuit breaker:** a 429, a "please wait" / feedback_required reply, or a reply that isn't the expected data holds the whole queue for 30 min, doubling on each repeated trip (capped at 24 h). A login or checkpoint/challenge reply holds it until you click Resume.
 - **Pause:** Pause queue halts the running job at its next request or download and starts nothing new until you click Resume. The pause survives closing the panel and restarting Chrome; a profile job then continues from its saved listing position.
 - **Security:**
-  - The folder handle is stored only in the panel's own extension storage, which pages on instagram.com can't reach [6].
+  - The folder handle is stored only in the panel's own extension storage, which pages on instagram.com can't reach.
   - Instagram tabs only list posts and stories. The panel validates every record and does all fetching and writing.
   - Replies from the page are untrusted: only Instagram-shaped usernames and IDs, and Instagram CDN URLs, are accepted.
   - igd buttons respond only to real user clicks (`isTrusted`), so page scripts can't trigger downloads.
-- **Privacy:** no telemetry and no web-accessible resources [5]. Permissions are `sidePanel`, plus host access to instagram.com and Instagram's CDN so the panel can fetch media.
+- **Privacy:** no telemetry and no web-accessible resources. Permissions are `sidePanel`, plus host access to instagram.com and Instagram's CDN so the panel can fetch media.
 
-**Not yet:**
-- resuming an interrupted profile run from where it stopped
-- DASH video quality
-- per-highlight subfolders
+**Not yet:** DASH video quality ([dash-video.md](docs/dash-video.md)).
 
-**When Instagram changes something,** re-run playbook steps 5–6 (`docs/11`) and update `docs/03` before changing code.
+**When Instagram changes something,** re-run playbook steps 4–5 ([playbook.md](docs/playbook.md)) and update [instagram-api.md](docs/instagram-api.md) before changing code.
 
 ## Working on tasks
 
@@ -74,25 +67,24 @@ Start it in Claude Code by asking it to run the `igd-task` workflow, optionally 
 
 ## Checks
 
+Run from the repo root:
+
 ```bash
-node igd/test/naming.test.js       # naming, dedup keys, routing, owner inference, file sniffing, queue entries
-node igd/test/collection.test.js   # folder resolution (renames, reused usernames, conflicts) and the collection check
-node igd/test/pacer.test.js        # pacing, budgets, block-signal classification and cool-downs
+node test/naming.test.js       # naming, dedup keys, routing, owner inference, file sniffing, queue entries
+node test/collection.test.js   # folder resolution (renames, reused usernames, conflicts) and the collection check
+node test/pacer.test.js        # pacing, budgets, block-signal classification and cool-downs
 ```
 
 ## Layout
 
 ```text
-tdi/                    original extension (reference, unlicensed, not ours)
-├── js/ css/ icons/     shipped bundles, plus a local patch and *.bak originals
-└── igd/                ← our rebuild
-    ├── extension/      the MV3 extension (load unpacked)
-    ├── design/         logo sources + render-icons.sh
-    ├── test/           node checks
-    ├── docs/           how the original works, what broke, how to probe Instagram
-    │   └── verification/   evidence behind the docs
-    ├── TASKS.md        open work, consumed by the igd-task workflow
-    ├── .claude/workflows/igd-task.js
-    ├── README.md       this file
-    └── CLAUDE.md       ground rules for working here
+igd/
+├── extension/      the MV3 extension (load unpacked)
+├── design/         logo sources + render-icons.sh
+├── test/           node checks
+├── docs/           collection format, Instagram API, probes, design notes
+├── TASKS.md        open work, consumed by the igd-task workflow
+├── .claude/workflows/igd-task.js
+├── README.md       this file
+└── CLAUDE.md       ground rules for working here
 ```

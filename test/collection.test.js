@@ -1,4 +1,4 @@
-// Run: node igd/test/collection.test.js
+// Run from the repo root: node test/collection.test.js
 // Exercises folder resolution and the collection check against an in-memory folder tree.
 const assert = require("node:assert/strict");
 const fs = require("node:fs");

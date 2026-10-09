@@ -1,4 +1,4 @@
-// Run: node igd/test/pacer.test.js
+// Run from the repo root: node test/pacer.test.js
 const assert = require("node:assert/strict");
 const p = require("../extension/pacer.js");
 

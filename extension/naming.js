@@ -1,5 +1,5 @@
-// File naming and dedup keys. Must stay compatible with collections written by
-// the old extension: docs/04-download-and-storage.md, "File naming".
+// File naming and dedup keys. Must stay compatible with existing collections:
+// docs/collection-format.md.
 
 function largest(list) {
   // Strictly greater, so the first candidate wins ties.

@@ -123,8 +123,8 @@ const taskText = `${task.id} · ${task.title}\nWhy: ${task.why}\nDone when:\n- $
 // ---- Plan ----
 phase('Plan')
 const plan = await agent(
-  `Plan this igd task in ${REPO}. Read CLAUDE.md, README.md, the relevant extension/ files and docs/ before deciding. Follow the clean-room rules: build from docs/, never copy from ../js, ../css or ../icons.
-If Instagram data is involved, say which query/fields you rely on and whether docs/03 already documents them.
+  `Plan this igd task in ${REPO}. Read CLAUDE.md, README.md, the relevant extension/ files and docs/ before deciding.
+If Instagram data is involved, say which query/fields you rely on and whether docs/instagram-api.md already documents them.
 Prefer the smallest change that meets every "done when" item; reuse existing helpers (naming.js, collection.js) instead of adding new layers.
 If the task cannot be done without a product decision from the user, set "blocked" to the question and keep the rest of the plan minimal.
 

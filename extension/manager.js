@@ -1,6 +1,6 @@
 // The igd panel: owns the collection folder and runs every download.
 // The folder handle lives in the extension's own IndexedDB, which pages on
-// instagram.com cannot read. Instagram tabs only list records (doc 3); saving
+// instagram.com cannot read. Instagram tabs only list records (docs/instagram-api.md); saving
 // happens here. Helpers come from naming.js and collection.js.
 
 const $ = (id) => document.getElementById(id);

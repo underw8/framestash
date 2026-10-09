@@ -1,17 +1,17 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this folder.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## What this is
 
-`igd/` is a **clean-room rebuild** of the *a reference extension* browser extension. The original sits at the repository root (`../`) and is unlicensed. The extension lives in `extension/` (plain MV3, no build step; the version is in `manifest.json`). See `README.md` for features and `docs/README.md` for the study notes.
+igd is a Chrome extension that downloads Instagram profiles, posts, stories and highlights into a local collection. The extension lives in `extension/` (plain MV3, no build step; the version is in `manifest.json`). See `README.md` for features and `docs/README.md` for the specs.
 
 - `extension/naming.js`: pure helpers shared by the content script and panel, unit-tested in `test/naming.test.js`:
   - file names, dedup keys, `parseFileName`, `inferOwner`, `sniffMedia`
   - `itemsFromNode`, which validates records
   - `routeFromPath`, `shortcodeFromPath`, `queueEntry`
 
-  Naming must stay compatible with the old collections; run the test after any change.
+  Naming must stay compatible with existing collections; run the test after any change.
 - `extension/collection.js`: `.igd.json` markers, `resolveAccountDir`, saving, and the read-only `checkCollection`. Used by the panel; tested offline against an in-memory folder tree in `test/collection.test.js`.
 - `extension/pacer.js`: pure pacing and circuit-breaker rules (jitter, settings, hourly/daily budget, reply classification, cool-down growth), tested in `test/pacer.test.js`. `manager.js` sends every bridge call through `paceApi` and every download through `paceCdn`; a block signal holds the whole queue instead of retrying, and login/challenge holds wait for the user's Resume. Pause is one more manual hold (`pauseHold`/`resumeHold`) that keeps any running timed hold for after Resume.
 - `extension/page.js`: page-world GraphQL calls (`PolarisProfilePostsQuery`, `PolarisPostRootQuery`, `PolarisAPITopsearchQuery` for username → id, `PolarisProfileStoryHighlightsTrayContentQuery`, `PolarisStoriesV3ReelPageStandaloneQuery`).
@@ -33,13 +33,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 `TASKS.md` lists open work. The `igd-task` workflow (`.claude/workflows/igd-task.js`) handles one task per run: pick, plan, build, review, then one commit, with the status set to `needs-check` plus the user's live checks. Keep the task format: a `## T<n> · title` heading, then `status` / `why` / `done when` bullets.
 
-## Clean-room rules
-
-- **Never copy** code, CSS, icons, UI strings or minified fragments from `../js`, `../css`, `../icons` or `docs/verification/`. Write everything from the behaviour described in `docs/`.
-- Read the original bundles only to **correct or extend the docs**. Change the docs first, then build from the docs.
-- Instagram's own module, operation and endpoint names (`PolarisProfilePostsQuery`, `/api/graphql`, …) describe Instagram, not the extension, so using them is fine.
-- `docs/11-investigation-playbook.md` is our own code and may be reused.
-
 ## Compatibility with existing collections (do not break)
 
 - Layout: `<root>/<username>/<username>_<taken_at>_<id>.<ext>`. The only cleaning step strips `< > : " / \ | ? *`.
@@ -47,8 +40,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Account folders are tied to user IDs by `.igd.json` (`resolveAccountDir`). Never rename existing folders, and never let two user IDs share a folder.
 - Never overwrite. Open with `create: false` first, because creating and then writing truncates the file.
 - Migration rules: report first (the collection check is read-only). Never delete: anything removed goes to `<root>/.igd-trash/<date>/`. Steps that move files need the user's confirmation.
-- Full rules: `docs/04-download-and-storage.md`, section "Compatibility checklist".
+- Full rules: `docs/collection-format.md`.
 
 ## Instagram facts drift
 
-Endpoint and query details in `docs/03` are a snapshot from October 2026. Before relying on them, re-check with playbook steps 3–6, and update the docs when something has changed.
+Endpoint and query details in `docs/instagram-api.md` are a snapshot from October 2026. Before relying on them, re-check with `docs/playbook.md` steps 2–5, and update the docs when something has changed.

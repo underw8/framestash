@@ -1,8 +1,8 @@
-// Run: node igd/test/naming.test.js
+// Run from the repo root: node test/naming.test.js
 const assert = require("node:assert/strict");
 const n = require("../extension/naming.js");
 
-// Names the old tool wrote (docs/04): pk_owner id, and bare pk from its fallback lookup.
+// Names found in collections (docs/collection-format.md): pk_owner id, and bare pk.
 assert.equal(n.keyFromFileName("sample.user_1789389655_3900000000000000071_31600000058.jpg"), "3900000000000000071");
 assert.equal(n.keyFromFileName("sample.user_1789389000_3900000000000000071.JPG"), "3900000000000000071");
 // The key ignores the username, so files survive an account rename.

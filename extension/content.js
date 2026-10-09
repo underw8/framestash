@@ -3,8 +3,8 @@
 // holds the folder where pages can't reach it. naming.js is in scope.
 
 // ---- relay: panel -> page world -> panel ----
-// The field is "op", not "procedure": the old extension's page script answers any
-// message with a "procedure" field, and its reply would reach our port first.
+// The field is "op", not "procedure": other extensions' page scripts may answer messages
+// with a "procedure" field, and their reply would reach our port first.
 // Replies are untrusted (any page script can answer); the panel validates records.
 
 function pageCall(op, args, timeoutMs = 30000) {

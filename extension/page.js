@@ -52,7 +52,7 @@
     // Some queries return usable data next to field-level errors, so data wins.
     const data = res.ok && json.data && json.data[rootField];
     if (data) return { data };
-    // Instagram's block replies (docs/03, "Block signals"); the panel's breaker tells them apart.
+    // Instagram's block replies (docs/instagram-api.md, "Rate limiting and block signals"); the panel's breaker tells them apart.
     if (json.message || json.require_login || json.checkpoint_url) {
       return { error: String(json.message || "login required"), status, block: true, login: !!json.require_login, checkpoint: !!json.checkpoint_url, spam: !!json.spam };
     }
