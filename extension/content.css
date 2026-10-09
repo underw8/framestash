@@ -48,10 +48,10 @@
   box-shadow: var(--igd-shadow);
 }
 .igd-card:has(.igd-status:empty) { display: none; }
-/* Always-visible dismiss badge on the card's top-left corner. */
+/* Always-visible dismiss badge on the card's top-right corner, in the wordmark dot's gradient. */
 .igd-panel .igd-card button.igd-close {
-  position: absolute; top: -8px; left: -8px; width: 22px; height: 22px; padding: 0;
-  color: var(--igd-text); box-shadow: 0 2px 6px rgba(0, 0, 0, .2);
+  position: absolute; top: -8px; right: -8px; width: 22px; height: 22px; padding: 0;
+  background: var(--igd-dot); border-color: transparent; color: #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, .2);
 }
 .igd-panel .igd-card button.igd-close svg { width: 14px; height: 14px; }
 .igd-status { font-size: 13px; line-height: 17px; }
