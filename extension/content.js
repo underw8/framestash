@@ -135,7 +135,8 @@ function scanItems() {
   // Feed posts and opened posts: an <article> whose links include the post's permalink.
   // The button goes on each large, on-screen photo or video, inside its frame.
   // A carousel is an article whose large media sit in 2+ distinct frames (a video and
-  // its poster share one); its frames also get a one-slide button.
+  // its poster share one); its frames get only the one-slide button, since the action
+  // row's icon saves the whole post.
   for (const article of document.querySelectorAll("article")) {
     const link = articleCode(article);
     if (!link) continue;
@@ -147,8 +148,10 @@ function scanItems() {
     for (const [media, r] of large) {
       if (r.bottom < 0 || r.top > innerHeight) continue;
       const frame = mediaFrame(media, article);
-      if (!hasItemButton(frame)) addItemButton(frame, link);
-      if (carousel && !hasItemButton(frame, ".igd-slide")) addItemButton(frame, link, true);
+      if (carousel) {
+        hasItemButton(frame)?.remove(); // added on an earlier tick, before the other slides loaded
+        if (!hasItemButton(frame, ".igd-slide")) addItemButton(frame, link, true);
+      } else if (!hasItemButton(frame)) addItemButton(frame, link);
     }
   }
 }
