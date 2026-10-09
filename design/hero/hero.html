@@ -1,0 +1,21 @@
+<!doctype html>
+<!-- igd hero cover, 1280×800. Shots go in shots/; render with render.sh. -->
+<meta charset="utf-8">
+<style>
+  html, body { margin: 0; width: 1280px; height: 800px; overflow: hidden; background: #000; }
+  .bg { position: absolute; inset: -80px; background: url(shots/reel.png) center / cover; filter: blur(60px) brightness(.45) saturate(1.3); }
+  .vignette { position: absolute; inset: 0; background: radial-gradient(ellipse at center, transparent 30%, rgba(0, 0, 0, .75) 100%); }
+  .grid { position: absolute; left: 104px; top: 50px; display: grid; grid-template-columns: repeat(3, 316px); grid-template-rows: 316px 316px; gap: 56px 62px; }
+  .tile { overflow: hidden; background: #000 center / cover no-repeat; box-shadow: 0 24px 60px rgba(0, 0, 0, .55); }
+  .tall { grid-row: span 2; }
+  .wordmark { position: absolute; left: 104px; bottom: 26px; height: 36px; }
+</style>
+<div class="bg"></div><div class="vignette"></div>
+<div class="grid">
+  <div class="tile" style="background-image: url(shots/tile.png)"></div>
+  <div class="tile" style="background-image: url(shots/profile.png)"></div>
+  <div class="tile tall" style="background-image: url(shots/reel.png)"></div>
+  <div class="tile" style="background-image: url(shots/feed.png)"></div>
+  <div class="tile" style="background-image: url(shots/post.png)"></div>
+</div>
+<img class="wordmark" src="../wordmark-dark.png" alt="igd.">
