@@ -67,6 +67,7 @@ $("pick").addEventListener("click", async () => {
     if (e.name !== "AbortError") alertLine(e.message);
   }
   await renderFolder();
+  await loadCursors();
   pump();
 });
 
@@ -83,6 +84,10 @@ let busy = false;
 // One job runs at a time; its controller stays off the job, which is structured-cloned into IndexedDB.
 let stopper = null;
 let counts = null;
+// Copy of kv("cursors") for rendering Start over; a running job owns the stored map.
+let savedCursors = {};
+const loadCursors = () => kv("cursors").then((c) => { savedCursors = c || {}; renderJobs(); }).catch(() => {});
+loadCursors();
 
 // One panel per profile owns the saved queue; the others stand by until it closes.
 let ownsQueue; // undefined until the first lock request settles
@@ -133,10 +138,13 @@ function renderJobs() {
     let li = rows.get(j);
     if (!li) {
       li = $("jobRow").content.firstElementChild.cloneNode(true);
-      li.querySelector(".job-action").job = j;
+      li.querySelector(".job-main").job = li.querySelector(".job-restart").job = j;
       rows.set(j, li);
     }
-    const btn = li.querySelector(".job-action");
+    const btn = li.querySelector(".job-main");
+    const restart = li.querySelector(".job-restart");
+    restart.hidden = !startOverShown(j, savedCursors);
+    restart.setAttribute("aria-label", `Start over ${j.label}`);
     if (li.dataset.state !== j.state) {
       li.dataset.state = li.title = j.state;
       li.querySelector("svg").innerHTML = STATE_ICONS[j.state];
@@ -153,7 +161,23 @@ function renderJobs() {
 }
 
 $("jobs").addEventListener("click", (e) => {
-  const job = e.target.closest(".job-action")?.job;
+  const restart = e.target.closest(".job-restart");
+  if (restart) {
+    const job = restart.job;
+    if (job.state !== "queued") {
+      job.restarted = true;
+      enqueue({ kind: "profile", username: job.username, ...(job.full && { full: true }), fresh: true, tabId: job.tabId });
+      return;
+    }
+    // Flag the job rather than editing kv("cursors"): a running job rewrites that map whole.
+    job.fresh = true;
+    job.detail = "Starts from the newest post.";
+    saveQueue();
+    renderJobs();
+    restart.closest("li").querySelector(".job-main").focus();
+    return;
+  }
+  const job = e.target.closest(".job-main")?.job;
   if (!job) return;
   if (job.state === "running") {
     stopper.abort();
@@ -176,7 +200,8 @@ function update(job, detail, kind = "") {
 function validJob(j) {
   if (!j || typeof j !== "object") return false;
   const user = (u) => typeof u === "string" && USERNAME_RE.test(u);
-  return (j.kind === "profile" && user(j.username) && (j.full === undefined || typeof j.full === "boolean"))
+  return (j.kind === "profile" && user(j.username) && (j.full === undefined || typeof j.full === "boolean")
+      && (j.fresh === undefined || typeof j.fresh === "boolean"))
     || (j.kind === "stories" && user(j.username))
     || (j.kind === "post" && typeof j.shortcode === "string" && /^[A-Za-z0-9_-]{5,40}$/.test(j.shortcode)
       && (j.media === undefined || (typeof j.media === "string" && MEDIA_NAME_RE.test(j.media))))
@@ -222,6 +247,7 @@ async function pump() {
         if (/igd panel/.test(e.message)) { job.state = "queued"; saveQueue(); renderJobs(); break; }
       } finally {
         if (apiThisJob) { pace.lastJobEnd = Date.now(); savePace(); }
+        await loadCursors();
       }
       saveQueue();
     }
@@ -455,12 +481,13 @@ async function run(job) {
     const prevMark = listedKey && typeof listed[listedKey] === "number" ? listed[listedKey] : null;
     const incremental = !job.full && prevMark !== null;
     if (listedKey) { delete listed[listedKey]; await kv("listed", listed); }
-    // cursors[pk] is where an interrupted listing stopped; List every post starts over.
+    // cursors[pk] is where an interrupted listing stopped; Start over (job.fresh) drops it.
     const cursors = (await kv("cursors")) || {};
-    const res = listedKey && resumeFrom(cursors[listedKey], job.full);
     const dropCursor = async () => { if (listedKey && listedKey in cursors && root === top) { delete cursors[listedKey]; await kv("cursors", cursors); } };
-    // Start over once: a restored List every post job resumes like any other.
-    if (job.full) { await dropCursor(); delete job.full; saveQueue(); }
+    // Start over once: a restored job resumes from its new position.
+    if (job.fresh) { await dropCursor(); delete job.fresh; saveQueue(); }
+    const res = listedKey && resumeFrom(cursors[listedKey]);
+    if (res && root === top && backfillUsername(cursors, listedKey, job.username)) await kv("cursors", cursors);
     let after = res ? res.after : null;
     page = res ? res.page : 0;
     let streak = 0;
@@ -499,7 +526,7 @@ async function run(job) {
         early = " · stopped early: nothing older is new";
       }
       if (listedKey && after && root === top) {
-        cursors[listedKey] = cursorRecord(after, page, newest, priorFailed, c.failed);
+        cursors[listedKey] = cursorRecord(after, page, newest, priorFailed, c.failed, job.username);
         await kv("cursors", cursors);
       }
     } while (after);

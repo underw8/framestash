@@ -197,8 +197,8 @@ function stopListing(streak, incremental, hasNext) {
 }
 
 // Saved listing position of an interrupted profile run, or null to list from the top.
-function resumeFrom(rec, full) {
-  if (full || !rec || typeof rec.after !== "string" || !rec.after) return null;
+function resumeFrom(rec) {
+  if (!rec || typeof rec.after !== "string" || !rec.after) return null;
   if (!Number.isInteger(rec.page) || rec.page < 0) return null;
   const newest = Number.isFinite(rec.newest) ? rec.newest : -Infinity;
   const tries = Number.isInteger(rec.tries) && rec.tries > 0 ? rec.tries : 0;
@@ -213,8 +213,26 @@ function cursorOnFailure(res, page, empty) {
 }
 
 // Cursor saved after each listed page; a failure anywhere in the interrupted run sticks.
-function cursorRecord(after, page, newest, priorFailed, failed) {
-  return { after, page, newest, failed: priorFailed || failed > 0 };
+// `username` lets the panel match a queued row before the job resolves the pk.
+function cursorRecord(after, page, newest, priorFailed, failed, username) {
+  return { after, page, newest, failed: priorFailed || failed > 0, username };
+}
+
+// Names a cursor saved before usernames were stored, so the panel can offer Start over; true if it changed.
+function backfillUsername(cursors, key, username) {
+  const rec = cursors[key];
+  if (!rec || rec.username) return false;
+  rec.username = username;
+  return true;
+}
+
+// Whether a job row offers Start over: a queued or finished profile whose account has a saved position.
+// A cursor without a username may be any account's, so queued rows offer it; job.fresh drops only its own pk.
+function startOverShown(job, cursors) {
+  const queued = job.state === "queued";
+  const state = queued ? !job.fresh : ["stopped", "error", "done"].includes(job.state) && !job.restarted;
+  return job.kind === "profile" && state
+    && Object.values(cursors || {}).some((c) => c && (c.username === job.username || (queued && !c.username)));
 }
 
 // Jobs worth keeping when the panel closes; a running job restarts as queued.
@@ -243,6 +261,6 @@ if (typeof module !== "undefined") {
   module.exports = {
     bestMedia, extensionOf, fileName, keyFromFileName, parseFileName, inferOwner, sniffMedia,
     itemsFromNode, highlightFolder, mediaNameOf, slideOnly, MEDIA_NAME_RE, shortcodeFromPath, routeFromPath, queueEntry, unfinished, visibleJobs, wait, USERNAME_RE,
-    pinnedFlags, knownStreak, pageStreak, stopListing, resumeFrom, cursorOnFailure, cursorRecord, KNOWN_STOP,
+    pinnedFlags, knownStreak, pageStreak, stopListing, resumeFrom, cursorOnFailure, cursorRecord, backfillUsername, startOverShown, KNOWN_STOP,
   };
 }

@@ -214,16 +214,41 @@ assert.equal(slideJob.media, "two.jpg");
   assert.equal(n.pageStreak(0, [node(5)], [true], -Infinity), 0);
 }
 
-// resumeFrom: a saved listing cursor, ignored by a full listing or when malformed.
+// resumeFrom: a saved listing cursor, ignored only when malformed; a full listing resumes too.
 {
   const rec = { after: "QVFD", page: 4, newest: 1700000000, failed: true, tries: 1 };
-  assert.deepEqual(n.resumeFrom(rec, false), rec);
-  assert.equal(n.resumeFrom(rec, true), null);
-  assert.equal(n.resumeFrom(undefined, false), null);
-  for (const after of [42, "", null]) assert.equal(n.resumeFrom({ ...rec, after }, false), null);
-  for (const page of [-1, 1.5, "4"]) assert.equal(n.resumeFrom({ ...rec, page }, false), null);
-  assert.deepEqual(n.resumeFrom({ after: "x", page: 0 }, false), { after: "x", page: 0, newest: -Infinity, failed: false, tries: 0 });
-  for (const tries of [-1, 1.5, "1"]) assert.equal(n.resumeFrom({ ...rec, tries }, false).tries, 0);
+  assert.deepEqual(n.resumeFrom(rec), rec);
+  assert.deepEqual(n.resumeFrom(rec, true), rec);
+  assert.equal(n.resumeFrom(undefined), null);
+  for (const after of [42, "", null]) assert.equal(n.resumeFrom({ ...rec, after }), null);
+  for (const page of [-1, 1.5, "4"]) assert.equal(n.resumeFrom({ ...rec, page }), null);
+  assert.deepEqual(n.resumeFrom({ after: "x", page: 0 }), { after: "x", page: 0, newest: -Infinity, failed: false, tries: 0 });
+  for (const tries of [-1, 1.5, "1"]) assert.equal(n.resumeFrom({ ...rec, tries }).tries, 0);
+}
+
+// startOverShown: a queued, not yet reset or a finished profile job whose username has a saved cursor.
+{
+  const job = { kind: "profile", username: "alice", state: "queued" };
+  const cursors = { 111: { after: "a", page: 2, username: "bob" }, 222: { after: "b", page: 1, username: "alice" } };
+  assert.equal(n.startOverShown(job, cursors), true);
+  assert.equal(n.startOverShown({ ...job, fresh: true }, cursors), false);
+  for (const state of ["stopped", "done", "error"]) assert.equal(n.startOverShown({ ...job, state }, cursors), true);
+  for (const state of ["running", "stopping"]) assert.equal(n.startOverShown({ ...job, state }, cursors), false);
+  assert.equal(n.startOverShown({ ...job, kind: "stories" }, cursors), false);
+  assert.equal(n.startOverShown({ ...job, username: "carol" }, cursors), false);
+  assert.equal(n.startOverShown(job, {}), false);
+  assert.equal(n.startOverShown(job, undefined), false);
+  for (const state of ["stopped", "done", "error"]) assert.equal(n.startOverShown({ ...job, state, restarted: true }, cursors), false);
+  const old = { 1: { after: "a", page: 2 } }; // record saved before usernames were stored
+  assert.equal(n.startOverShown(job, old), true);
+  assert.equal(n.startOverShown({ ...job, username: "carol" }, old), true);
+  assert.equal(n.startOverShown({ ...job, state: "stopped" }, old), false);
+  assert.equal(n.backfillUsername(old, "1", "alice"), true);
+  assert.equal(n.startOverShown(job, old), true);
+  assert.equal(n.startOverShown({ ...job, username: "carol" }, old), false);
+  assert.equal(n.backfillUsername(old, "1", "bob"), false);
+  assert.equal(old[1].username, "alice");
+  assert.equal(n.backfillUsername(old, "2", "alice"), false);
 }
 
 // cursorOnFailure: retry the resume page once, drop it on the second failure or when empty.
@@ -235,7 +260,7 @@ assert.equal(slideJob.media, "two.jpg");
   assert.equal(n.cursorOnFailure(res, 5, false), "keep");
   assert.equal(n.cursorOnFailure(null, 0, false), "keep");
   // cursorRecord: a failure before the interruption keeps the record failed, which blocks the listed mark.
-  assert.deepEqual(n.cursorRecord("a", 2, 9, false, 0), { after: "a", page: 2, newest: 9, failed: false });
+  assert.deepEqual(n.cursorRecord("a", 2, 9, false, 0, "alice"), { after: "a", page: 2, newest: 9, failed: false, username: "alice" });
   assert.equal(n.cursorRecord("a", 2, 9, true, 0).failed, true);
   assert.equal(n.cursorRecord("a", 2, 9, false, 3).failed, true);
 }
