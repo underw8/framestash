@@ -161,12 +161,32 @@ new MutationObserver((records) => {
 }).observe(document.body, { childList: true, subtree: true });
 scanItems();
 
+// Instagram's floating Messages button opens into a 360 px panel in the same corner.
+// Find whichever is there (the fixed element under a point near the corner) and sit
+// above the button or to the left of the panel. Instagram's class names are never used.
+function placePanel() {
+  const target = document.elementsFromPoint(innerWidth - 60, innerHeight - 60).find((e) => !panel.contains(e));
+  let fixed = target;
+  while (fixed && fixed !== document.body && getComputedStyle(fixed).position !== "fixed") fixed = fixed.parentElement;
+  const r = fixed && fixed !== document.body ? fixed.getBoundingClientRect() : null;
+  if (!r || r.width > innerWidth / 2) {
+    panel.style.right = panel.style.bottom = "";
+  } else if (r.height > 120) {
+    panel.style.right = `${Math.round(innerWidth - r.left + 12)}px`; // Messages panel open: go left of it
+    panel.style.bottom = `${Math.round(innerHeight - r.bottom)}px`;
+  } else {
+    panel.style.right = `${Math.round(innerWidth - r.right)}px`; // above the Messages button
+    panel.style.bottom = `${Math.round(innerHeight - r.top + 12)}px`;
+  }
+}
+
 // ponytail: polling the URL is simpler than hooking history; 500 ms is plenty for a button.
 // The panel stays on every page so jobs started from tiles can report; the main
 // button only shows on profile, post and story pages.
 let shownPath = null;
 setInterval(() => {
   if (!panel.isConnected) document.body.append(panel);
+  placePanel();
   if (shownPath === location.pathname) return;
   shownPath = location.pathname;
   const route = routeFromPath(location.pathname);
