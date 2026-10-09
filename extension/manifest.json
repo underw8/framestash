@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "igd: Instagram downloader",
-  "version": "0.7.4",
+  "version": "0.7.5",
   "description": "Download Instagram profiles, posts and stories into a local collection, skipping media you already have.",
   "permissions": [
     "sidePanel"

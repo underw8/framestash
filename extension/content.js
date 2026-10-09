@@ -37,6 +37,7 @@ const ICONS = {
   download: '<path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/>',
   check: '<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/>',
   panel: '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M15 4v16"/>',
+  close: '<path d="M7 7l10 10M17 7L7 17"/>',
 };
 const icon = (name) =>
   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name]}</svg>`;
@@ -52,7 +53,8 @@ panel.innerHTML = `
     <button class="igd-check igd-icon" type="button" title="Check collection (read-only)" aria-label="Check collection">${icon("check")}</button>
     <button class="igd-open igd-icon" type="button" title="Open the igd panel" aria-label="Open the igd panel">${icon("panel")}</button>
   </div>
-  <div class="igd-card"><span class="igd-wordmark">igd<i></i></span><span class="igd-status" aria-live="polite"></span></div>`;
+  <div class="igd-card"><span class="igd-wordmark">igd<i></i></span><span class="igd-status" aria-live="polite"></span>
+    <button class="igd-close" type="button" title="Dismiss" aria-label="Dismiss">${icon("close")}</button></div>`;
 const goButton = panel.querySelector(".igd-go");
 const goLabel = goButton.querySelector("span");
 const storiesButton = panel.querySelector(".igd-stories");
@@ -101,6 +103,8 @@ onUserClick(storiesButton, () => {
 });
 
 onUserClick(panel.querySelector(".igd-check"), () => send({ kind: "check" }));
+
+onUserClick(panel.querySelector(".igd-close"), () => setStatus(""));
 
 onUserClick(panel.querySelector(".igd-open"), async () => {
   const r = await chrome.runtime.sendMessage({ type: "openPanel" }).catch(() => null);

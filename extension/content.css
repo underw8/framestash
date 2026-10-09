@@ -45,6 +45,13 @@
   box-shadow: var(--igd-shadow);
 }
 .igd-card:has(.igd-status:empty) { display: none; }
+.igd-panel .igd-card button.igd-close {
+  width: 24px; height: 24px; padding: 0; margin: -4px -6px -4px 0; border: 0; box-shadow: none;
+  background: transparent; color: var(--igd-muted); opacity: 0; transition: opacity .15s, background-color .15s;
+}
+.igd-panel .igd-card button.igd-close svg { width: 16px; height: 16px; }
+.igd-card:hover .igd-close, .igd-panel .igd-card button.igd-close:focus-visible { opacity: 1; }
+.igd-panel .igd-card button.igd-close:hover { background: var(--igd-hover); color: var(--igd-text); }
 .igd-status { font-size: 13px; line-height: 17px; }
 .igd-status[data-kind="ok"] { color: var(--igd-text); }
 .igd-card:has(.igd-status[data-kind="warn"]) { border-color: var(--igd-warn); }
