@@ -1,24 +1,25 @@
-/* igd panel: Instagram's palette and type, following the system light/dark setting. */
+/* igd panel, modelled on Instagram's Settings pages (measured October 2026) and
+   following the system light/dark setting. */
 :root {
-  --bg: #fafafa; --card: #fff; --text: #000; --muted: #737373; --line: #dbdbdb;
+  --bg: #fff; --card: #efefef; --text: #000; --muted: #737373; --line: #dbdbdb;
   --primary: #4a5df9; --primary-hover: #4150f7; --secondary: #efefef; --secondary-hover: #dbdbdb;
-  --field: #fafafa; --ok: #58c322; --error: #ed4956; --warn: #f5a623;
+  --field-line: #dbdbdb; --track-off: #dbdbdb; --error: #ed4956; --ok: #58c322;
   --dot: linear-gradient(45deg, #ff9a3c, #ff3d7f 50%, #7a5cff);
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0c1014; --card: #212328; --text: #f5f5f5; --muted: #a8a8a8; --line: #363636;
-    --secondary: #363636; --secondary-hover: #262626; --field: #121212;
+    --bg: #0c1014; --card: #262626; --text: #f5f5f5; --muted: #a8a8a8; --line: #363636;
+    --secondary: #363636; --secondary-hover: #262626; --field-line: #2b3036; --track-off: #2b3036;
   }
 }
 
 * { box-sizing: border-box; }
 body {
-  margin: 0; padding: 16px 14px 24px; background: var(--bg); color: var(--text);
+  margin: 0; padding: 20px 16px 28px; background: var(--bg); color: var(--text);
   font: 14px/18px -apple-system, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
-header { display: flex; align-items: baseline; gap: 10px; margin: 0 2px 16px; }
+header { display: flex; align-items: baseline; gap: 10px; margin: 0 4px 8px; }
 .wordmark { font-size: 30px; line-height: 1; font-weight: 800; letter-spacing: -.045em; }
 .wordmark i {
   display: inline-block; width: .3em; height: .3em; margin-left: .06em; border-radius: 50%;
@@ -26,52 +27,78 @@ header { display: flex; align-items: baseline; gap: 10px; margin: 0 2px 16px; }
 }
 .tagline { color: var(--muted); font-size: 12px; }
 
-.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px; margin: 0 0 12px; }
-h2 { margin: 0 0 10px; font-size: 14px; font-weight: 600; }
-.muted { color: var(--muted); margin: 0; font-size: 13px; }
+h2 { margin: 24px 4px 10px; font-size: 16px; line-height: 20px; font-weight: 700; }
+.card { background: var(--card); border-radius: 20px; padding: 16px; }
+.hint { margin: 0; color: var(--muted); font-size: 12px; line-height: 16px; }
 
 button {
-  height: 32px; padding: 0 14px; border: 0; border-radius: 8px; cursor: pointer;
+  height: 32px; padding: 0 16px; border: 0; border-radius: 8px; cursor: pointer; flex: none;
   background: var(--secondary); color: var(--text); font: inherit; font-weight: 600; transition: background-color .15s;
 }
 button:hover { background: var(--secondary-hover); }
 button.primary { background: var(--primary); color: #fff; }
 button.primary:hover { background: var(--primary-hover); }
+button.wide { display: block; width: 100%; }
 button:disabled { opacity: .5; cursor: default; }
-button:focus-visible, textarea:focus-visible, input:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.card button { background: var(--bg); }
+.card button:hover { background: var(--secondary); }
+.card button.primary { background: var(--primary); }
+.card button.primary:hover { background: var(--primary-hover); }
 
-.folder { display: flex; align-items: center; gap: 8px; }
-.folder-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+/* Folder, laid out like Instagram's profile card. */
+.folder { display: flex; align-items: center; gap: 12px; }
+.folder-icon {
+  display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; flex: none;
+  background: var(--bg); color: var(--text);
+}
+.folder-icon svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
+.folder-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.folder-name { font-size: 16px; line-height: 20px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .folder-name.unset { color: var(--muted); font-weight: 400; }
 
+/* Text field like Instagram's Bio box. */
 textarea {
-  display: block; width: 100%; padding: 10px 12px; resize: vertical;
-  background: var(--field); color: var(--text); border: 1px solid var(--line); border-radius: 8px;
-  font: 13px/18px ui-monospace, SFMono-Regular, Menlo, monospace;
+  display: block; width: 100%; padding: 10px 16px; resize: vertical;
+  background: transparent; color: var(--text); border: .8px solid var(--field-line); border-radius: 12px;
+  font: 16px/20px -apple-system, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
-textarea::placeholder { color: var(--muted); font-family: -apple-system, system-ui, sans-serif; }
+textarea::placeholder { color: var(--muted); }
+textarea:focus { border-color: var(--muted); outline: none; }
+.field-hint { margin: 8px 4px 6px; }
 
-.options { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
-.toggle { position: relative; cursor: pointer; }
-.toggle input { position: absolute; opacity: 0; pointer-events: none; }
-.toggle span {
-  display: inline-block; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line);
-  color: var(--muted); font-size: 13px; font-weight: 600; transition: all .15s;
+/* Switch rows like "Show Threads badge". On: track in the text colour, knob in the background colour. */
+.switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 4px; cursor: pointer; font-size: 16px; line-height: 20px; }
+.switch-row input { position: absolute; opacity: 0; pointer-events: none; }
+.switch { position: relative; width: 40px; height: 24px; border-radius: 16px; background: var(--track-off); flex: none; transition: background-color .2s; }
+.switch::after {
+  content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%;
+  background: #fff; transition: transform .2s, background-color .2s;
 }
-.toggle input:checked + span { background: var(--text); border-color: var(--text); color: var(--bg); }
-.toggle input:focus-visible + span { outline: 2px solid var(--primary); outline-offset: 2px; }
-.actions { display: flex; gap: 8px; }
+.switch-row input:checked + .switch { background: var(--text); }
+.switch-row input:checked + .switch::after { transform: translateX(16px); background: var(--bg); }
+.switch-row input:focus-visible + .switch { outline: 2px solid var(--primary); outline-offset: 2px; }
+#add { margin-top: 10px; }
 
+/* Jobs: a status icon, the job in 14 px, details in 12 px grey; red only for errors. */
+.jobs-card { padding: 8px 16px; }
+.jobs-card .hint { padding: 8px 0; }
 #jobs { list-style: none; margin: 0; padding: 0; }
-#jobs li { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; padding: 10px 0; border-top: 1px solid var(--line); }
-#jobs li:first-child { border-top: 0; padding-top: 0; }
+#jobs li { display: flex; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); }
+#jobs li:first-child { border-top: 0; }
+.job-icon { width: 20px; height: 20px; flex: none; margin-top: 1px; color: var(--muted); }
+.job-icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.job-text { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .job-label { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.job-detail { grid-column: 1 / -1; color: var(--muted); font-size: 12px; line-height: 16px; }
-.chip { align-self: start; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; background: var(--secondary); color: var(--muted); }
-li[data-state="running"] .chip { background: var(--primary); color: #fff; }
-li[data-state="done"] .chip { background: color-mix(in srgb, var(--ok) 18%, transparent); color: var(--ok); }
-li[data-state="error"] .chip { background: color-mix(in srgb, var(--error) 18%, transparent); color: var(--error); }
-li[data-state="error"] .job-detail { color: var(--error); }
+.job-detail { color: var(--muted); font-size: 12px; line-height: 16px; overflow-wrap: anywhere; }
+li[data-state="running"] .job-icon { color: var(--primary); }
+li[data-state="running"] .job-icon svg { animation: spin 1s linear infinite; }
+li[data-state="done"] .job-icon { color: var(--text); }
+li[data-state="error"] .job-icon, li[data-state="error"] .job-detail { color: var(--error); }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { li[data-state="running"] .job-icon svg { animation: none; } }
 
+#check { margin-top: 16px; }
+#reportBox { margin-top: 12px; }
 details summary { cursor: pointer; font-weight: 600; }
 pre { margin: 10px 0 0; max-height: 50vh; overflow: auto; white-space: pre-wrap; font: 11px/16px ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--muted); }

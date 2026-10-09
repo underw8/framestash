@@ -12,34 +12,35 @@
     <span class="tagline">Instagram downloader</span>
   </header>
 
-  <section class="card">
-    <h2>Collection folder</h2>
-    <div class="folder">
+  <h2>Collection folder</h2>
+  <section class="card folder">
+    <span class="folder-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H9l2 2.5h7.5A2.5 2.5 0 0 1 21 10v6.5a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 16.5z"/></svg>
+    </span>
+    <span class="folder-text">
       <span id="folder" class="folder-name">No folder chosen</span>
-      <button id="grant" class="primary" type="button" hidden>Allow access</button>
-      <button id="pick" type="button">Choose</button>
-    </div>
+      <span id="folderHint" class="hint">Pick the folder that holds your account folders.</span>
+    </span>
+    <button id="grant" class="primary" type="button" hidden>Allow access</button>
+    <button id="pick" type="button">Choose</button>
   </section>
 
+  <h2>Queue profiles</h2>
   <section class="card">
-    <h2>Queue profiles</h2>
-    <textarea id="usernames" rows="4" placeholder="Usernames or profile links, one per line" spellcheck="false"></textarea>
-    <div class="options">
-      <label class="toggle"><input type="checkbox" id="withPosts" checked><span>Posts</span></label>
-      <label class="toggle"><input type="checkbox" id="withStories"><span>Stories &amp; highlights</span></label>
-    </div>
-    <div class="actions">
-      <button id="add" class="primary" type="button">Add to queue</button>
-      <button id="check" type="button">Check collection</button>
-    </div>
+    <textarea id="usernames" rows="4" placeholder="Usernames or profile links" spellcheck="false"></textarea>
+    <p class="hint field-hint">One per line. Each runs as its own job.</p>
+    <label class="switch-row"><span>Posts</span><input type="checkbox" id="withPosts" role="switch" checked><span class="switch" aria-hidden="true"></span></label>
+    <label class="switch-row"><span>Stories &amp; highlights</span><input type="checkbox" id="withStories" role="switch"><span class="switch" aria-hidden="true"></span></label>
+    <button id="add" class="primary wide" type="button">Add to queue</button>
   </section>
 
-  <section class="card">
-    <h2>Jobs</h2>
-    <p id="empty" class="muted">Nothing yet. Use the buttons on Instagram, or queue profiles above.</p>
+  <h2>Jobs</h2>
+  <section class="card jobs-card">
+    <p id="empty" class="hint">Nothing yet. Use the download buttons on Instagram, or queue profiles above.</p>
     <ol id="jobs"></ol>
   </section>
 
+  <button id="check" class="wide" type="button">Check collection</button>
   <details id="reportBox" class="card" hidden><summary>Collection report</summary><pre id="report"></pre></details>
 
   <script src="naming.js"></script>

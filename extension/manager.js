@@ -33,6 +33,8 @@ async function renderFolder() {
   const state = root ? await root.queryPermission({ mode: "readwrite" }) : null;
   $("folder").textContent = root ? root.name : "No folder chosen";
   $("folder").classList.toggle("unset", !root);
+  $("folderHint").textContent = !root ? "Pick the folder that holds your account folders."
+    : state === "granted" ? "Account folders are created inside." : "Access needs to be allowed again after a restart.";
   $("pick").textContent = root ? "Change" : "Choose";
   $("grant").hidden = !root || state === "granted";
 }
@@ -83,24 +85,36 @@ function alertLine(text) {
   renderJobs();
 }
 
+// Stroke icons drawn for igd, one per job state.
+const STATE_ICONS = {
+  queued: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+  running: '<path d="M12 3.5a8.5 8.5 0 1 1-8.5 8.5"/>',
+  done: '<circle cx="12" cy="12" r="8.5"/><path d="M8 12.5l2.8 2.8L16 10"/>',
+  error: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v5.5M12 16.4v.1"/>',
+};
+
 function renderJobs() {
   $("empty").hidden = jobs.length > 0;
   $("jobs").replaceChildren(...jobs.slice(-50).reverse().map((j) => {
     const li = document.createElement("li");
     li.dataset.state = j.state;
+    li.title = j.state;
+    const icon = document.createElement("span");
+    icon.className = "job-icon";
+    icon.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${STATE_ICONS[j.state]}</svg>`;
+    const text = document.createElement("span");
+    text.className = "job-text";
     const label = document.createElement("span");
     label.className = "job-label";
     label.textContent = j.label;
-    const chip = document.createElement("span");
-    chip.className = "chip";
-    chip.textContent = j.state;
-    li.append(label, chip);
+    text.append(label);
     if (j.detail) {
       const d = document.createElement("span");
       d.className = "job-detail";
       d.textContent = j.detail;
-      li.append(d);
+      text.append(d);
     }
+    li.append(icon, text);
     return li;
   }));
 }

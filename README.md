@@ -63,7 +63,7 @@ Not yet: current-slide-only saving, DASH video quality, per-highlight subfolders
 ## Look and feel
 
 - The in-page buttons and status card read Instagram's own theme variables (`--ig-primary-button`, `--ig-elevated-background`, …), so they follow its light and dark modes. They use its system font, 12 px rounding and blue primary button.
-- The side panel uses the same palette and follows the system's light or dark setting.
+- The side panel follows Instagram's Settings pages, measured live: 16 px bold section titles outside filled 20 px-radius cards, a Bio-style text field, Threads-badge-style switches, a profile-card layout for the folder, and job rows with status icons. It follows the system's light or dark setting.
 - Wordmark **igd.**: heavy sans-serif with a warm-to-violet gradient dot. The toolbar icon is a near-black rounded square, deliberately not a gradient square, so it isn't mistaken for Instagram's own app icon. Icons are drawn for igd as stroke SVGs, not taken from Instagram.
 
 ## Checks
