@@ -23,17 +23,51 @@ function fileName(username, takenAt, id, ext) {
   return `${username}_${takenAt}_${id}.${ext}`.replace(/[<>:"/\\|?*]/g, "");
 }
 
-function mediaKey(username, pk) {
-  return `${username}:${pk}`;
+// A media pk is unique across Instagram and never reused, unlike usernames.
+function mediaKey(pk) {
+  return String(pk);
 }
 
 // username may contain "_" and digits, so anchor on the numeric tail:
 // taken_at is 9-10 digits (Unix seconds), pk is 12+ digits, owner id optional.
-const NAME_RE = /^(.+)_(\d{9,10})_(\d{12,})(?:_\d+)?\.[A-Za-z0-9]+$/;
+const NAME_RE = /^(.+)_(\d{9,10})_(\d{12,})(?:_(\d+))?\.([A-Za-z0-9]+)$/;
+
+function parseFileName(name) {
+  const m = name.match(NAME_RE);
+  return m ? { username: m[1], takenAt: Number(m[2]), pk: m[3], ownerId: m[4] || null, ext: m[5] } : null;
+}
 
 function keyFromFileName(name) {
-  const m = name.match(NAME_RE);
-  return m ? mediaKey(m[1], m[3]) : null;
+  const parsed = parseFileName(name);
+  return parsed ? mediaKey(parsed.pk) : null;
+}
+
+// Which account a folder belongs to, judged from the "_<ownerId>" suffix in its file names.
+// Collab posts carry other owners, so this is a majority vote.
+function inferOwner(names) {
+  const counts = new Map();
+  let total = 0;
+  for (const name of names) {
+    const parsed = parseFileName(name);
+    if (!parsed || !parsed.ownerId) continue;
+    total++;
+    counts.set(parsed.ownerId, (counts.get(parsed.ownerId) || 0) + 1);
+  }
+  let ownerId = null;
+  let top = 0;
+  for (const [id, n] of counts) if (n > top) [ownerId, top] = [id, n];
+  return { ownerId, share: total ? top / total : 0, total, owners: counts.size };
+}
+
+// Identifies a media file by its first bytes, not its name.
+function sniffMedia(b) {
+  const ascii = (from, to) => String.fromCharCode(...b.slice(from, to));
+  if (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return "jpeg";
+  if (b[0] === 0x89 && ascii(1, 4) === "PNG") return "png";
+  if (ascii(0, 4) === "RIFF" && ascii(8, 12) === "WEBP") return "webp";
+  if (ascii(0, 4) === "GIF8") return "gif";
+  if (ascii(4, 8) === "ftyp") return "mp4/heic";
+  return null;
 }
 
 // Records arrive over window messages, which any page script can forge, so only
@@ -41,6 +75,12 @@ function keyFromFileName(name) {
 const USERNAME_RE = /^[A-Za-z0-9._]{1,30}$/;
 const MEDIA_ID_RE = /^\d+(?:_\d+)?$/;
 const CDN_URL_RE = /^https:\/\/[a-z0-9.-]+\.(?:cdninstagram\.com|fbcdn\.net)\//i;
+
+function ownerIdOf(node) {
+  const u = node.user || {};
+  const id = String(u.pk || u.id || String(node.id || "").split("_")[1] || "");
+  return /^\d+$/.test(id) ? id : null;
+}
 
 // One feed node (v1 shape) -> one item per media file. Invalid parts are dropped.
 function itemsFromNode(node) {
@@ -57,8 +97,10 @@ function itemsFromNode(node) {
     if (!MEDIA_ID_RE.test(id) || !/^\d+$/.test(pk) || !Number.isInteger(takenAt)) continue;
     items.push({
       url: best.url,
-      key: mediaKey(owner, pk),
+      key: mediaKey(pk),
       name: fileName(owner, takenAt, id, extensionOf(best.url, best.video)),
+      owner,
+      ownerId: ownerIdOf(node),
     });
   }
   return items;
@@ -90,5 +132,8 @@ function routeFromPath(path) {
 }
 
 if (typeof module !== "undefined") {
-  module.exports = { bestMedia, extensionOf, fileName, keyFromFileName, itemsFromNode, mediaKey, shortcodeFromPath, routeFromPath, USERNAME_RE };
+  module.exports = {
+    bestMedia, extensionOf, fileName, keyFromFileName, parseFileName, inferOwner, sniffMedia,
+    itemsFromNode, mediaKey, shortcodeFromPath, routeFromPath, USERNAME_RE,
+  };
 }

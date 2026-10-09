@@ -3,10 +3,13 @@ const assert = require("node:assert/strict");
 const n = require("../extension/naming.js");
 
 // Names the old tool wrote (docs/04): pk_owner id, and bare pk from its fallback lookup.
-assert.equal(n.keyFromFileName("sample.user_1789389655_3900000000000000071_31600000058.jpg"), "sample.user:3900000000000000071");
-assert.equal(n.keyFromFileName("sample.user_1789389000_3900000000000000071.JPG"), "sample.user:3900000000000000071");
+assert.equal(n.keyFromFileName("sample.user_1789389655_3900000000000000071_31600000058.jpg"), "3900000000000000071");
+assert.equal(n.keyFromFileName("sample.user_1789389000_3900000000000000071.JPG"), "3900000000000000071");
+// The key ignores the username, so files survive an account rename.
+assert.equal(n.keyFromFileName("renamed.user_1789389655_3900000000000000071_31600000058.jpg"), "3900000000000000071");
 // Usernames with digit segments must not confuse the parser.
-assert.equal(n.keyFromFileName("john_123_x_1789389655_3900000000000000071_316.mp4"), "john_123_x:3900000000000000071");
+assert.deepEqual(n.parseFileName("john_123_x_1789389655_3900000000000000071_316.mp4"),
+  { username: "john_123_x", takenAt: 1789389655, pk: "3900000000000000071", ownerId: "316", ext: "mp4" });
 // Leftovers and non-media are ignored.
 for (const f of ["x_1789389655_3900000000000000071_31600000058.jpg.error.txt", "user_0_.jpg", "user_1790000000_31600000058.jpg", ".DS_Store"]) {
   assert.equal(n.keyFromFileName(f), null, f);
@@ -30,9 +33,11 @@ const node = {
   ],
 };
 assert.deepEqual(n.itemsFromNode(node), [
-  { url: "https://scontent-a.cdninstagram.com/l.jpg?a", key: "a.b:100000000000000002", name: "a.b_1789389600_100000000000000002_42.jpg" },
-  { url: "https://instagram.fsgn5-1.fna.fbcdn.net/v.mp4?a", key: "a.b:100000000000000003", name: "a.b_1789389655_100000000000000003_42.mp4" },
+  { url: "https://scontent-a.cdninstagram.com/l.jpg?a", key: "100000000000000002", name: "a.b_1789389600_100000000000000002_42.jpg", owner: "a.b", ownerId: "42" },
+  { url: "https://instagram.fsgn5-1.fna.fbcdn.net/v.mp4?a", key: "100000000000000003", name: "a.b_1789389655_100000000000000003_42.mp4", owner: "a.b", ownerId: "42" },
 ]);
+// Owner id prefers user.pk over the id suffix.
+assert.equal(n.itemsFromNode({ ...node, user: { username: "a.b", pk: "777" } })[0].ownerId, "777");
 // Every generated name must map back to the same key the index uses.
 for (const it of n.itemsFromNode(node)) assert.equal(n.keyFromFileName(it.name), it.key);
 // Forged page replies are dropped: bad usernames, non-numeric ids, non-CDN URLs, missing timestamps.
@@ -73,5 +78,20 @@ for (const [path, route] of [
   ["/stories/highlights/18000000000000040/", { kind: "highlight", id: "18000000000000040" }],
   ["/", null], ["/explore/", null], ["/direct/inbox/", null], ["/reels/", null], ["/stories/", null], ["/stories/highlights/", null],
 ]) assert.deepEqual(n.routeFromPath(path), route, path);
+
+// Folder owner by majority of "_<ownerId>" suffixes; names without a suffix don't vote.
+assert.deepEqual(n.inferOwner([
+  "u_1789389655_100000000000000001_42.jpg", "u_1789389655_100000000000000002_42.jpg",
+  "u_1789389655_100000000000000003_99.jpg", "u_1789389655_100000000000000004.jpg", ".igd.json",
+]), { ownerId: "42", share: 2 / 3, total: 3, owners: 2 });
+assert.deepEqual(n.inferOwner([]), { ownerId: null, share: 0, total: 0, owners: 0 });
+
+// Media sniffing by content.
+const bytes = (...xs) => Uint8Array.from(xs.flatMap((x) => typeof x === "string" ? [...x].map((c) => c.charCodeAt(0)) : [x]));
+assert.equal(n.sniffMedia(bytes(0xff, 0xd8, 0xff, 0xe0, 0, 0, 0, 0, 0, 0, 0, 0)), "jpeg");
+assert.equal(n.sniffMedia(bytes(0, 0, 0, 0x18, "ftypisom", 0, 0, 0, 0)), "mp4/heic");
+assert.equal(n.sniffMedia(bytes("RIFF", 0, 0, 0, 0, "WEBP")), "webp");
+assert.equal(n.sniffMedia(bytes("<!DOCTYPE ht")), null); // error page saved under a media name
+assert.equal(n.sniffMedia(new Uint8Array(0)), null);
 
 console.log("naming: all checks passed");

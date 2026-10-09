@@ -2,7 +2,7 @@
 
 This folder is our own replacement for *a reference extension* v4.12.16, written from scratch. The original extension sits at the repository root (`../`) **as a reference only**. Nothing from it is copied into this folder.
 
-**Status:** v0.4: profile, single-post, grid/feed-item, story and highlight downloads, all saving into an existing collection (`extension/`). Live-tested on 8 October 2026:
+**Status:** v0.5: profile, single-post, grid/feed-item, story and highlight downloads into an existing collection. Account folders are tied to Instagram user IDs, not usernames, and a read-only collection check is included (`extension/`). Live-tested on 8 October 2026:
   - A profile the old tool had already downloaded: **new 0 · already had 25 · failed 0**. Nothing was written to disk.
   - A new 49-post profile, 5 pages: **new 167 · failed 0** (138 JPG + 29 MP4, 155 MB). Every file is non-empty, has real JPEG/MP4 header bytes, and parses back to a unique key.
   - The same profile run again: **new 0 · already had 167**.
@@ -14,9 +14,12 @@ This folder is our own replacement for *a reference extension* v4.12.16, written
     - Feed and explore posts were resolved but not saved, to keep unrelated accounts out of the collection.
   - v0.4:
     - **⬇ Stories** on a profile with 3 highlights (4 items): **new 4**. Running it again: **already had 4**. The highlight page's **Save highlight** then reported **already had 2**.
-    - Active stories of an account with no visible posts resolved to 4 items with their own IDs. They were not saved, and the account still shows "not seen" in the tray. Study notes: `docs/`.
+    - Active stories of an account with no visible posts resolved to 4 items with their own IDs. They were not saved, and the account still shows "not seen" in the tray.
+  - v0.5:
+    - The check on the real `IG` folder found 11 account folders and 315 media files. Every owner could be inferred from file names, with 0 problems.
+    - After one profile run the check reported 1 marked folder, and that run still reported **already had 25**. Study notes: `docs/`.
 
-## Using v0.4
+## Using v0.5
 
 1. Go to `chrome://extensions`, turn on Developer mode, click **Load unpacked**, and choose `igd/extension/`. The old extension can stay installed; the two don't share storage or buttons.
 2. Open a profile, for example `https://www.instagram.com/<user>/`, and a **⬇ Download @user** button appears in the bottom-right corner, above Instagram's Messages button. On a post or reel page (`/p/…`, `/reel/…`, `/reels/…`) the button is **⬇ Save post** instead, and saves every slide into `<root>/<owner>/`.
@@ -27,12 +30,17 @@ This folder is our own replacement for *a reference extension* v4.12.16, written
    - On `/stories/highlights/<id>/`, **Save highlight** saves that highlight.
    - All of these go to `<root>/<user>/stories/`. Each story keeps its own ID in the file name, so a story that is also in a highlight is saved once.
    - Downloading never marks stories as seen.
+   **🔍** checks the whole collection **without changing anything**. It reports duplicates, empty files, saved error pages, unrecognised names, and accounts split across folders.
 3. On the first click in a tab, pick the **root** folder of your collection (the one that contains the account folders, e.g. `IG`). The folder is remembered for that tab: moving between profiles and posts inside Instagram needs no new pick, but a new tab or a reload does. The 📁 button changes it.
 4. The status line shows progress: page, new, already had, failed. Failed items are listed in the DevTools console. Running it again only fetches what's missing.
 
 What it does, and which doc each rule comes from:
 - Lists posts with Instagram's own profile-posts GraphQL query, from the page world [3].
-- Names files exactly like the old tool [4] and skips any media already present, matched on **username + pk** [4].
+- Names files exactly like the old tool [4] and skips any media already present, matched on the media **pk** alone. A pk is unique across Instagram, so this survives renames and every old name format.
+- Ties each account folder to its owner's **user ID** through a hidden `.igd.json`, written the first time igd saves there.
+  - A renamed account keeps using its old folder. Folders are never renamed; new usernames are recorded as aliases.
+  - Old folders without the file are recognised from the `_<ownerId>` in their file names.
+  - If a username now belongs to a different account, that account gets `<username>_<userId>/` instead of sharing the folder.
 - Never overwrites a non-empty file. Creates a file only after a successful, status-checked download, so failures leave nothing behind [6].
 - Writes each page as it arrives, waits 1.5 s between pages, and backs off 60 / 120 / 300 s on HTTP 429 [3, 6].
 - Keeps the folder only in the extension's isolated memory. Anything stored on instagram.com could be read, and used to write into your collection, by any script on the page [6]. Re-asks if the folder was moved or deleted.
@@ -44,7 +52,8 @@ Not yet: current-slide-only saving, a multi-profile queue, DASH video quality, p
 ## Checks
 
 ```bash
-node igd/test/naming.test.js     # naming + dedup-key rules vs old-tool file names
+node igd/test/naming.test.js       # naming, dedup keys, routing, owner inference, file sniffing
+node igd/test/collection.test.js   # folder resolution (renames, reused usernames) and the collection check
 ```
 
 ## Layout

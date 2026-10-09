@@ -116,8 +116,12 @@ async function saveItems(dir, index, items, job) {
 // ---- jobs ----
 
 async function downloadProfile(username, job) {
-  const dir = await (await rootFolder(false)).getDirectoryHandle(username, { create: true });
-  job.where = `${root.name}/${username}`;
+  const top = await rootFolder(false);
+  const id = await pageCall("userId", { username });
+  // Without an id (lookup failed) the folder is chosen by name only, as before.
+  const account = await resolveAccountDir(top, username, id.error ? null : id.pk);
+  const dir = account.dir;
+  job.where = `${top.name}/${account.name}${account.note}`;
   setStatus("Checking files you already have…");
   const index = await indexFolder(dir);
   let after = null;
@@ -148,10 +152,9 @@ async function downloadRecords(op, args, what, sub, job) {
   if (r.error) throw new Error(`Could not load ${what}: ${r.error}`);
   const items = Array.isArray(r.nodes) ? r.nodes.flatMap(itemsFromNode) : [];
   if (!items.length) throw new Error(`Nothing to download: no ${what} found.`);
-  const owner = items[0].key.split(":")[0]; // validated Instagram username
-  let dir = await top.getDirectoryHandle(owner, { create: true });
-  if (sub) dir = await dir.getDirectoryHandle(sub, { create: true });
-  job.where = [top.name, owner, sub].filter(Boolean).join("/");
+  const account = await resolveAccountDir(top, items[0].owner, items[0].ownerId);
+  const dir = sub ? await account.dir.getDirectoryHandle(sub, { create: true }) : account.dir;
+  job.where = [top.name, account.name, sub].filter(Boolean).join("/") + account.note;
   job.progress = () => setStatus(job.summary());
   await saveItems(dir, await indexFolder(dir), items, job);
 }
@@ -166,12 +169,16 @@ panel.innerHTML = `
   <div class="igd-row">
     <button class="igd-go" type="button"></button>
     <button class="igd-stories" type="button" title="Active stories and all highlights" hidden>⬇ Stories</button>
+    <button class="igd-check" type="button" title="Check collection (read-only)">🔍</button>
     <button class="igd-folder" type="button" title="Choose download folder">📁</button>
   </div>
-  <div class="igd-status" aria-live="polite"></div>`;
+  <div class="igd-status" aria-live="polite"></div>
+  <details class="igd-report" hidden><summary>Collection report</summary><pre></pre></details>`;
 const goButton = panel.querySelector(".igd-go");
 const folderButton = panel.querySelector(".igd-folder");
 const storiesButton = panel.querySelector(".igd-stories");
+const checkButton = panel.querySelector(".igd-check");
+const reportBox = panel.querySelector(".igd-report");
 const statusLine = panel.querySelector(".igd-status");
 let running = false;
 
@@ -182,12 +189,22 @@ function setStatus(text, kind = "") {
 
 async function runJob(route) {
   running = true;
-  goButton.disabled = folderButton.disabled = storiesButton.disabled = true;
+  goButton.disabled = folderButton.disabled = storiesButton.disabled = checkButton.disabled = true;
   const job = {
     saved: 0, skipped: 0, failed: 0, failures: [], where: "", progress() {},
     summary() { return `new ${this.saved} · already had ${this.skipped} · failed ${this.failed}`; },
   };
   try {
+    if (route.kind === "check") {
+      const top = await rootFolder(false);
+      setStatus("Checking collection…");
+      const report = await checkCollection(top, (n) => setStatus(`Checking collection… ${n} files`));
+      reportBox.querySelector("pre").textContent = formatReport(report);
+      reportBox.hidden = false;
+      reportBox.open = true;
+      setStatus(`Checked ${top.name}: nothing was changed.`, "ok");
+      return;
+    }
     if (route.kind === "profile") await downloadProfile(route.username, job);
     else if (route.kind === "post") await downloadPost(route.shortcode, job);
     // Stories and highlights share one folder: a highlighted story keeps its pk, so it is saved once.
@@ -203,7 +220,7 @@ async function runJob(route) {
   } finally {
     if (job.failures.length) console.warn("[igd] failed downloads:\n" + job.failures.join("\n"));
     running = false;
-    goButton.disabled = folderButton.disabled = storiesButton.disabled = false;
+    goButton.disabled = folderButton.disabled = storiesButton.disabled = checkButton.disabled = false;
   }
 }
 
@@ -273,6 +290,10 @@ new MutationObserver((records) => {
   scanTimer = setTimeout(scanItems, 300);
 }).observe(document.body, { childList: true, subtree: true });
 scanItems();
+
+checkButton.addEventListener("click", () => {
+  if (!running) runJob({ kind: "check" });
+});
 
 folderButton.addEventListener("click", async () => {
   try {

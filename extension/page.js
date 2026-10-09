@@ -125,6 +125,7 @@
     profilePosts: (d) => profilePosts(d.username, d.after),
     post: (d) => post(d.shortcode),
     stories: (d) => stories(d.username, !!d.withHighlights),
+    userId: (d) => userId(d.username),
     highlight: (d) => reels([`highlight:${d.id}`], true),
   };
 

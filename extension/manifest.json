@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "igd: Instagram profile downloader",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Download an Instagram profile into a local folder, skipping media you already have.",
   "content_scripts": [
     {
@@ -11,7 +11,7 @@
     },
     {
       "matches": ["https://www.instagram.com/*"],
-      "js": ["naming.js", "content.js"],
+      "js": ["naming.js", "collection.js", "content.js"],
       "css": ["content.css"]
     }
   ]
