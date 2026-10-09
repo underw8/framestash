@@ -196,10 +196,7 @@ function placePanel() {
 // The panel stays on every page so jobs started from tiles can report; the main
 // button only shows on profile, post and story pages.
 let shownPath = null;
-setInterval(() => {
-  if (!panel.isConnected) document.body.append(panel);
-  placePanel();
-  scanItems();
+function updateForPage() {
   if (shownPath === location.pathname) return;
   shownPath = location.pathname;
   const route = routeFromPath(location.pathname);
@@ -213,5 +210,13 @@ setInterval(() => {
       stories: `Save @${route.username}'s stories`,
       highlight: "Save highlight",
     }[route.kind];
+  }
+}
+
+// Each step is isolated: a failure in one (e.g. an unexpected page structure while
+// scanning) must not stop the page's buttons from updating.
+setInterval(() => {
+  for (const step of [() => { if (!panel.isConnected) document.body.append(panel); }, updateForPage, placePanel, scanItems]) {
+    try { step(); } catch (e) { console.warn("[igd]", e); }
   }
 }, 500);
