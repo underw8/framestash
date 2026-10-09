@@ -102,6 +102,22 @@ function itemsFromNode(node) {
   return items;
 }
 
+// CDN file name: the URL's last path segment, query dropped. Assumed equal across an image's size variants.
+const MEDIA_NAME_RE = /^[A-Za-z0-9._-]{1,200}$/;
+function mediaNameOf(url) {
+  const m = String(url || "").match(/^https?:\/\/[^/?#]+\/(?:[^?#]*\/)?([^/?#]+)(?:[?#]|$)/);
+  return m && MEDIA_NAME_RE.test(m[1]) ? m[1] : null;
+}
+
+// The node narrowed to the one part whose media URLs end in `mediaName`, or null.
+function slideOnly(node, mediaName) {
+  if (!node || !mediaName) return null;
+  const carousel = Array.isArray(node.carousel_media) && node.carousel_media.length;
+  const urls = (m) => [...((m.image_versions2 && m.image_versions2.candidates) || []), ...(m.video_versions || [])].map((c) => c && c.url);
+  const part = (carousel ? node.carousel_media : [node]).find((m) => m && urls(m).some((u) => mediaNameOf(u) === mediaName));
+  return !part ? null : carousel ? { ...node, carousel_media: [part] } : node;
+}
+
 // "/p/CODE/", "/reel/CODE/", "/reels/CODE/", optionally after "/<user>"; query and hash ignored.
 function shortcodeFromPath(path) {
   const m = String(path).match(/^\/(?:[A-Za-z0-9._]{1,30}\/)?(?:p|reel|reels)\/([A-Za-z0-9_-]+)\/?(?:[?#].*)?$/);
@@ -133,7 +149,7 @@ function queueEntry(job) {
   const label = {
     profile: `@${job.username} posts${job.full ? " (full)" : ""}`,
     stories: `@${job.username} ${job.withHighlights ? "stories & highlights" : "stories"}`,
-    post: `post ${job.shortcode}`,
+    post: `post ${job.shortcode}${job.media ? " (one slide)" : ""}`,
     highlight: `highlight ${job.id}`,
     check: "collection check",
   }[job.kind];
@@ -214,7 +230,7 @@ function wait(ms, signal) {
 if (typeof module !== "undefined") {
   module.exports = {
     bestMedia, extensionOf, fileName, keyFromFileName, parseFileName, inferOwner, sniffMedia,
-    itemsFromNode, shortcodeFromPath, routeFromPath, queueEntry, unfinished, visibleJobs, wait, USERNAME_RE,
+    itemsFromNode, mediaNameOf, slideOnly, MEDIA_NAME_RE, shortcodeFromPath, routeFromPath, queueEntry, unfinished, visibleJobs, wait, USERNAME_RE,
     pinnedFlags, knownStreak, pageStreak, stopListing, resumeFrom, cursorOnFailure, cursorRecord, KNOWN_STOP,
   };
 }

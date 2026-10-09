@@ -15,7 +15,7 @@ This folder is our own replacement for *a reference extension* v4.12.16, written
    - **Profile:** **Download @user** saves every post. **Stories** saves the active stories plus every highlight.
    - **Post or reel page** (`/p/…`, `/reel/…`, `/reels/…`): **Save post** saves every slide into `<root>/<owner>/`.
    - **Story page** (`/stories/<user>/`) or **highlight page** (`/stories/highlights/<id>/`): saves those stories. Stories go to `<root>/<user>/stories/`. Downloading never marks a story as seen.
-   - **Grid tiles and home-feed posts:** a round download button appears on hover and saves that post without opening it.
+   - **Grid tiles and home-feed posts:** a round download button appears on hover and saves that post without opening it. Alt-click (Option-click on macOS) on a feed or opened post's slide button saves only that slide.
    - **Magnifier icon:** runs the collection check. **Panel icon:** opens the side panel.
 
    Every button sends a job to the panel's queue, opening the panel first if it's closed, and the status card shows the job's progress.

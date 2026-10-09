@@ -118,7 +118,8 @@ function addItemButton(host, shortcode) {
   const button = document.createElement("button");
   button.type = "button";
   button.className = "igd-item";
-  button.title = "Save this post (igd)";
+  button.title = "Save this post (igd) · Alt-click: this slide only";
+  button.setAttribute("aria-label", button.title);
   button.innerHTML = icon("download");
   button.dataset.shortcode = shortcode;
   host.append(button);
@@ -166,7 +167,17 @@ document.addEventListener("click", (e) => {
   if (!button) return;
   e.preventDefault();
   e.stopPropagation();
-  if (e.isTrusted) send({ kind: "post", shortcode: button.dataset.shortcode });
+  if (!e.isTrusted) return;
+  const shortcode = button.dataset.shortcode;
+  const frame = button.parentElement;
+  // Grid tiles (the post link itself, or outside an article) always save the whole post.
+  if (!e.altKey || !frame.closest("article") || frame.matches(POST_LINK)) return send({ kind: "post", shortcode });
+  // Read at click time: Instagram reuses slide frames for other slides.
+  const img = frame.querySelector("img");
+  const video = frame.querySelector("video");
+  const media = mediaNameOf(img ? img.currentSrc || img.src : video && video.poster);
+  if (media) send({ kind: "post", shortcode, media });
+  else setStatus("igd couldn't tell which slide this is. Click without Alt to save the whole post.", "warn");
 }, true);
 
 // Instagram's floating Messages button opens into a 360 px panel in the same corner.

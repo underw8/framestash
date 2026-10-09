@@ -41,12 +41,20 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - [ ] Stop a profile midway, choose a different collection folder, then queue it. It should start from page 1.
 
 ## T3 · Save only the current carousel slide
-- status: todo
+- status: needs-check
 - why: on a carousel, every slide's button saves the whole post; sometimes you want one slide.
 - done when:
   - there's a way to save just the visible slide (for example a modifier key or a second action);
   - it still saves into `<root>/<owner>/` under the same naming and dedup rules;
   - the whole-post behaviour stays the default.
+- live checks:
+  - [ ] Reload igd at chrome://extensions and reload the Instagram tab. On a carousel post page (`/p/…`), swipe to slide 3 and Alt-click (Option-click) its igd button. The panel row should read 'post CODE (one slide)', and exactly one file should be saved in `<root>/<owner>/`: slide 3's media, named `<owner>_<taken_at>_<id>.<ext>`.
+  - [ ] On the same post, plain-click a slide's igd button. The whole post should be saved, with slide 3 counted as 'already had' (dedup by pk holds).
+  - [ ] In the home feed, Alt-click a slide button on a carousel post that is not the last one you swiped. The slide shown on that button's post should be saved, not a slide from another post.
+  - [ ] Alt-click the button on a video slide inside a carousel. Either that video is saved, or the panel/tab shows the 'couldn't tell which slide' message. Note which one happens: it tells us whether video slides need another approach.
+  - [ ] In DevTools on a carousel, confirm that the last path segment of the shown `<img>` `currentSrc` equals the last path segment of one of that slide's `image_versions2.candidates[].url` in the PolarisPostRootQuery reply (playbook step 3). Then the docs/03 'to verify' note can be cleared.
+  - [ ] Alt-click a grid tile's button on a profile. It should save the whole post as before (tiles have no visible slide).
+  - [ ] Hover a slide button: the tooltip and the VoiceOver label mention 'Alt-click: this slide only'.
 
 ## T4 · Per-highlight subfolders
 - status: todo
