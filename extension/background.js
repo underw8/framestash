@@ -7,8 +7,24 @@ chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(() => 
 // ponytail: kept in worker memory; the panel loads in about a second.
 const pending = [];
 
+// Windows with an open igd panel: each open panel holds a port named "panel:<windowId>",
+// so the in-page panel button can close it again without awaiting anything first.
+const openPanels = new Set();
+chrome.runtime.onConnect.addListener((port) => {
+  const m = /^panel:(\d+)$/.exec(port.name);
+  if (!m || port.sender.tab) return;
+  const windowId = Number(m[1]);
+  openPanels.add(windowId);
+  port.onDisconnect.addListener(() => openPanels.delete(windowId));
+});
+
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.type === "openPanel" && sender.tab) {
+    if (openPanels.has(sender.tab.windowId)) {
+      chrome.runtime.sendMessage({ type: "closePanel", windowId: sender.tab.windowId }).catch(() => {});
+      sendResponse({ ok: true });
+      return false;
+    }
     chrome.sidePanel.open({ windowId: sender.tab.windowId })
       .then(() => sendResponse({ ok: true }), (e) => sendResponse({ ok: false, reason: e.message }));
     return true;

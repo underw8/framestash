@@ -604,6 +604,20 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   return true;
 });
 
+// Tell the background this window's panel is open (see background.js). The port drops
+// whenever the service worker stops, so it reconnects, which also wakes the worker.
+const myWindow = chrome.windows.getCurrent().then((w) => {
+  const connect = () => chrome.runtime.connect({ name: `panel:${w.id}` }).onDisconnect.addListener(connect);
+  connect();
+  return w.id;
+});
+
+chrome.runtime.onMessage.addListener((msg, sender) => {
+  if (msg.type !== "closePanel" || sender.tab || sender.id !== chrome.runtime.id) return false;
+  myWindow.then((id) => { if (id === msg.windowId) window.close(); });
+  return false;
+});
+
 function usernameFromLine(line) {
   const s = line.trim().replace(/^@/, "");
   if (!s) return null;

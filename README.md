@@ -16,7 +16,7 @@ This folder is our own replacement for *a reference extension* v4.12.16, written
    - **Post or reel page** (`/p/…`, `/reel/…`, `/reels/…`): **Save post** saves every slide into `<root>/<owner>/`.
    - **Story page** (`/stories/<user>/`) or **highlight page** (`/stories/highlights/<id>/`): saves those stories. Stories go to `<root>/<user>/stories/`; with **Highlights in their own folders** on, each highlight goes to `stories/<highlight title or id>/`. Downloading never marks a story as seen.
    - **Grid tiles and home-feed posts:** a round download button appears on hover and saves the whole post without opening it. On a carousel in the feed or on a post page, a second button beside it saves only the visible slide.
-   - **Magnifier icon:** runs the collection check. **Panel icon:** opens the side panel.
+   - **Panel icon:** opens the side panel, or closes it if it is already open. The collection check is in the panel.
 
    Every button sends a job to the panel's queue, opening the panel first if it's closed, and the status card shows the job's progress.
 4. **Re-run any time.** A job run again only fetches what's missing. A profile re-run stops listing after 12 already-saved posts in a row (pinned posts aside), once a previous run of it listed to the end; posts deleted from disk below that point come back only with **List every post**. An interrupted profile (Stop, closed panel, error) picks up its listing where it stopped instead of starting again from page 1. Failed items are listed in the panel's DevTools console.

@@ -35,7 +35,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 // Stroke icons drawn for igd (24-unit grid, 2-unit stroke, round caps).
 const ICONS = {
   download: '<path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/>',
-  check: '<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/>',
   panel: '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M15 4v16"/>',
   dismiss: '<path d="M7 12h10"/>',
   slide: '<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 8v7M9 12.5l3 3 3-3"/>',
@@ -48,11 +47,10 @@ panel.className = "igd-panel";
 panel.innerHTML = `
   <div class="igd-row">
     <button class="igd-go" type="button">${icon("download")}<span></span></button>
-    <button class="igd-stories" type="button" title="Active stories and all highlights" hidden>${icon("download")}Stories</button>
   </div>
   <div class="igd-row">
-    <button class="igd-check igd-icon" type="button" title="Check collection (read-only)" aria-label="Check collection">${icon("check")}</button>
-    <button class="igd-open igd-icon" type="button" title="Open the igd panel" aria-label="Open the igd panel">${icon("panel")}</button>
+    <button class="igd-stories" type="button" title="Active stories and all highlights" hidden>${icon("download")}Stories</button>
+    <button class="igd-open igd-icon" type="button" title="Open or close the igd panel" aria-label="Open or close the igd panel">${icon("panel")}</button>
   </div>
   <div class="igd-card"><span class="igd-wordmark">igd<i></i></span><span class="igd-status" aria-live="polite"></span>
     <button class="igd-close" type="button" title="Dismiss" aria-label="Dismiss">${icon("dismiss")}</button></div>`;
@@ -96,8 +94,6 @@ onUserClick(storiesButton, () => {
   const route = routeFromPath(location.pathname);
   if (route && route.kind === "profile") send({ kind: "stories", username: route.username, withHighlights: true });
 });
-
-onUserClick(panel.querySelector(".igd-check"), () => send({ kind: "check" }));
 
 onUserClick(panel.querySelector(".igd-close"), () => setStatus(""));
 
