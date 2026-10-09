@@ -37,7 +37,6 @@ const ICONS = {
   download: '<path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/>',
   panel: '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M15 4v16"/>',
   dismiss: '<path d="M7 12h10"/>',
-  slide: '<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 8v7M9 12.5l3 3 3-3"/>',
 };
 const icon = (name) =>
   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name]}</svg>`;
@@ -108,16 +107,16 @@ onUserClick(panel.querySelector(".igd-open"), async () => {
 
 const POST_LINK = 'a[href*="/p/"], a[href*="/reel/"]';
 
-const hasItemButton = (host, sel = ".igd-item:not(.igd-slide)") => host.querySelector(`:scope > ${sel}`);
+const hasItemButton = (host) => host.querySelector(":scope > .igd-item");
 
-function addItemButton(host, shortcode, slide = false) {
+function addItemButton(host, shortcode) {
   if (getComputedStyle(host).position === "static") host.classList.add("igd-host");
   const button = document.createElement("button");
   button.type = "button";
-  button.className = slide ? "igd-item igd-slide" : "igd-item";
-  button.title = slide ? "Save only this slide (igd)" : "Save this post (igd)";
+  button.className = "igd-item";
+  button.title = "Save this post (igd)";
   button.setAttribute("aria-label", button.title);
-  button.innerHTML = icon(slide ? "slide" : "download");
+  button.innerHTML = icon("download");
   button.dataset.shortcode = shortcode;
   host.append(button);
 }
@@ -132,41 +131,6 @@ function scanItems() {
     const shortcode = linkCode(a);
     if (shortcode && a.querySelector("img, video")) addItemButton(a, shortcode);
   }
-  // Feed posts and opened posts: an <article> whose links include the post's permalink.
-  // The button goes on each large, on-screen photo or video, inside its frame.
-  // A carousel is an article whose large media sit in 2+ distinct frames (a video and
-  // its poster share one); its frames get only the one-slide button, since the action
-  // row's icon saves the whole post.
-  for (const article of document.querySelectorAll("article")) {
-    const link = articleCode(article);
-    if (!link) continue;
-    const large = [...article.querySelectorAll("img, video")]
-      .map((media) => [media, media.getBoundingClientRect()])
-      .filter(([, r]) => r.width >= 200 && r.height >= 200);
-    const frames = new Set(large.map(([media]) => mediaFrame(media, article)));
-    const carousel = frames.size > 1;
-    for (const [media, r] of large) {
-      if (r.bottom < 0 || r.top > innerHeight) continue;
-      const frame = mediaFrame(media, article);
-      if (carousel) {
-        hasItemButton(frame)?.remove(); // added on an earlier tick, before the other slides loaded
-        if (!hasItemButton(frame, ".igd-slide")) addItemButton(frame, link, true);
-      } else if (!hasItemButton(frame)) addItemButton(frame, link);
-    }
-  }
-}
-
-// The outermost wrapper with the media's own size: the photo's frame, or one carousel
-// slide (the slide strip is wider, which stops the walk). Its top-left corner is on the photo.
-function mediaFrame(media, stop) {
-  const m = media.getBoundingClientRect();
-  let frame = media.parentElement;
-  for (let e = frame; e && e !== stop; e = e.parentElement) {
-    const r = e.getBoundingClientRect();
-    if (Math.abs(r.width - m.width) > 2 || Math.abs(r.height - m.height) > 2) break;
-    frame = e;
-  }
-  return frame;
 }
 
 // ---- native-style buttons: a download icon in each post's or reel's action icons ----
@@ -242,14 +206,7 @@ document.addEventListener("click", (e) => {
   const route = routeFromPath(location.pathname);
   const shortcode = button.dataset.shortcode || (route && route.kind === "post" ? route.shortcode : "");
   if (!shortcode) return setStatus("igd couldn't tell which post this is. Open the post and try again.", "warn");
-  const frame = button.parentElement;
-  if (!button.classList.contains("igd-slide")) return send({ kind: "post", shortcode });
-  // Read at click time: Instagram reuses slide frames for other slides.
-  const img = frame.querySelector("img");
-  const video = frame.querySelector("video");
-  const media = mediaNameOf(img ? img.currentSrc || img.src : video && video.poster);
-  if (media) send({ kind: "post", shortcode, media });
-  else setStatus("igd couldn't tell which slide this is. Use the other button to save the whole post.", "warn");
+  send({ kind: "post", shortcode });
 }, true);
 
 // Instagram's floating Messages button opens into a 360 px panel in the same corner.

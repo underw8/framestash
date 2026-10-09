@@ -8,6 +8,7 @@ Work list for igd. The `igd-task` workflow (`.claude/workflows/igd-task.js`) tak
 - `needs-check`: built and committed, but waiting for the live checks listed under it.
 - `done`: live checks passed.
 - `blocked`: needs a decision, with the reason in the notes.
+- `dropped`: removed by the user; kept for the record.
 
 When you add a task, keep the same shape: a `## T<n> · title` heading, then the bullets.
 
@@ -41,15 +42,13 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - [ ] Stop a profile midway, choose a different collection folder, then queue it. It should start from page 1.
 
 ## T3 · Save only the current carousel slide
-- status: needs-check
+- status: dropped
 - why: on a carousel, every slide's button saves the whole post; sometimes you want one slide.
 - done when:
   - there's a way to save just the visible slide (for example a modifier key or a second action);
   - it still saves into `<root>/<owner>/` under the same naming and dedup rules;
   - the whole-post behaviour stays the default.
-- live checks:
-  - [ ] Pass T11's live checks. They replace the Alt-click checks, since T11 removed Alt-click.
-  - [ ] In DevTools on a carousel, confirm that the last path segment of the shown `<img>` `currentSrc` equals the last path segment of one of that slide's `image_versions2.candidates[].url` in the PolarisPostRootQuery reply (playbook step 2). Then the docs/instagram-api.md 'to verify' note can be cleared.
+- notes: the user removed single-slide saving; the action-row icon and grid-tile button save the whole post.
 
 ## T4 · Per-highlight subfolders
 - status: needs-check
@@ -171,7 +170,7 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - [ ] A queued profile with no saved position (or a story/post job) shows no Start over button.
 
 ## T11 · Second button for one carousel slide
-- status: needs-check
+- status: dropped
 - why: saving one slide with Alt-click (T3) is hard to discover. The user chose a visible second button.
 - done when:
   - on a carousel post, a small second button next to the per-item download button saves only the visible slide. Single-image and video posts don't show it.
@@ -179,14 +178,7 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - the new button requires event.isTrusted, finds posts without Instagram class names, has a title and aria-label, and matches the existing per-item button style.
   - saving, naming and dedup are unchanged (`<root>/<owner>/`, pk).
   - README describes the new button; the existing test suites pass.
-- live checks:
-  - [ ] Reload igd at chrome://extensions and reload the Instagram tab. On a carousel post page (/p/…), hover a slide: two round buttons appear top-left, and the second one has the slide icon and reads 'Save only this slide (igd)' as its tooltip.
-  - [ ] Swipe to slide 3 and click the slide button. The panel row reads 'post CODE (one slide)', and exactly one file, slide 3's media named `<owner>_<taken_at>_<id>.<ext>`, is saved in `<root>/<owner>/`.
-  - [ ] Click the main button on the same post. The whole post is saved, and slide 3 is counted as 'already had' (pk dedup holds).
-  - [ ] Alt-click the main button: it saves the whole post, so the Alt shortcut is gone.
-  - [ ] In the home feed, check that a single-image post and a single-video post show only the main button, and that a carousel post shows both. Clicking the slide button on a carousel post that is not the one you last swiped saves that post's visible slide.
-  - [ ] On a profile grid, tiles show only the main button and do not navigate when it is clicked.
-  - [ ] Click the slide button on a video slide inside a carousel. Note whether the video is saved or the 'couldn't tell which slide' warning appears.
+- notes: the user removed single-slide saving; the action-row icon and grid-tile button save the whole post.
 
 ## T12 · Native-style download icon on posts and reels
 - status: needs-check
@@ -196,7 +188,7 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - **Reel side bar:** on reels, a download icon in the vertical like / comment / share / save column, styled the same way. It saves that reel.
   - placement uses page structure and post links (`shortcodeFromPath`), never Instagram class names. The icons may rely on the order of the action icons, but not on English aria-labels as the only signal. When a spot can't be found, that button simply doesn't appear, and the bottom-right panel still works.
   - the bottom-right panel (Download @user / Save post, Stories, the panel toggle and the status card) is unchanged and always shown.
-  - the round grid-tile buttons and the one-slide carousel button are unchanged.
+  - the round grid-tile buttons are unchanged.
   - every new button requires event.isTrusted, has a title and aria-label, is keyboard-reachable, and follows Instagram's light and dark themes.
   - no flicker or duplicate buttons as Instagram re-renders or the user scrolls the feed; the existing 500 ms scan handles placement.
   - README describes the new buttons; the existing test suites pass, and any new pure logic is unit-tested.
@@ -205,5 +197,5 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - [ ] Home feed: each post's like / comment / share / save row has a download icon right after the bookmark, matching Instagram's icons. Clicking it saves that post. Scroll a long way: no duplicate icons and no flicker.
   - [ ] Post page (/p/…): the action row has the icon and the bottom-right Save post is still shown.
   - [ ] Reels (/reels/…): the side column has the icon; clicking it saves the reel shown.
-  - [ ] Grid tiles and the one-slide carousel button look and work as before.
+  - [ ] Grid tiles look and work as before; feed posts and post pages have no buttons on the photos themselves.
   - [ ] Tab to each new button: it is reachable, has a focus ring, and VoiceOver reads its label. Check light and dark mode.

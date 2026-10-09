@@ -58,14 +58,6 @@ Post nodes may also carry `is_dash_eligible`, `number_of_qualities` and `video_d
 
 `video_versions` if present, else `image_versions2.candidates`. The largest width × height wins; the first wins ties. No DASH, no separate audio, no muxing.
 
-## Carousel slide matching
-
-The one-slide button saves only the visible slide. igd takes the shown `<img>`'s `currentSrc` (or the video's `poster`), keeps its CDN file name (the last path segment, query dropped), and matches it against each `carousel_media[]` part's `image_versions2.candidates[].url` and `video_versions[].url`. If nothing matches, nothing is saved.
-
-- The pagination dots are not used (they need Instagram class names), and neither is `img_index` (in the feed it can belong to another post).
-- An image is assumed to keep the same file name across its size variants. **To verify** (playbook step 2).
-- A post counts as a carousel when its `<article>` holds 2 or more large media with different frames. No class names, dots or aria-labels are used.
-
 ## Profile listing
 
 - `PolarisProfilePostsQuery` lists posts newest first by `taken_at`. Up to 3 pinned posts come first on page 1, with older `taken_at` than the posts after them, and may appear again at their date position.

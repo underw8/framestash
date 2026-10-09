@@ -76,39 +76,6 @@ assert.deepEqual(n.itemsFromNode(null), []);
   assert.equal(items[0].key, n.itemsFromNode(good)[0].key);
 }
 
-// slideOnly(): narrows a carousel to the slide whose CDN file name matches, ignoring query and size variant.
-{
-  const cdn = "https://scontent-a.cdninstagram.com/v/t51/";
-  const slides = {
-    ...node,
-    carousel_media: [
-      { ...node.carousel_media[0], image_versions2: { candidates: [{ url: `${cdn}one.jpg?stp=s320`, width: 320, height: 320 }, { url: `${cdn}one.jpg?stp=s1080`, width: 1080, height: 1080 }] } },
-      { pk: "100000000000000004", id: "100000000000000004_42", taken_at: 1789389700,
-        image_versions2: { candidates: [{ url: `${cdn}two.jpg?stp=s1080&x=1`, width: 1080, height: 1080 }, { url: `${cdn}s640x640/two.jpg?y=2`, width: 640, height: 640 }] } },
-      node.carousel_media[1],
-    ],
-  };
-  const second = n.slideOnly(slides, "two.jpg");
-  assert.deepEqual(second.carousel_media, [slides.carousel_media[1]]);
-  assert.equal(second.pk, slides.pk);
-  // Naming and pk dedup must equal the whole-post item for that slide.
-  assert.deepEqual(n.itemsFromNode(second), [n.itemsFromNode(slides)[1]]);
-  assert.deepEqual(n.slideOnly(slides, "v.mp4").carousel_media, [node.carousel_media[1]]); // via video_versions
-  assert.deepEqual(n.itemsFromNode(n.slideOnly(slides, "v.mp4")), [n.itemsFromNode(slides)[2]]);
-  assert.equal(n.slideOnly(slides, "three.jpg"), null);
-  assert.equal(n.slideOnly(slides, null), null);
-  assert.equal(n.slideOnly(null, "two.jpg"), null);
-  assert.equal(n.slideOnly(good, "x.jpg"), good); // single media returns itself
-  assert.equal(n.slideOnly(good, "y.jpg"), null);
-}
-
-// mediaNameOf(): last path segment of an http(s) URL, query dropped; null otherwise.
-assert.equal(n.mediaNameOf("https://scontent-a.cdninstagram.com/v/t51/s640x640/AbC_1-2.webp?stp=x&a=1"), "AbC_1-2.webp");
-assert.equal(n.mediaNameOf("https://scontent-a.cdninstagram.com/x.jpg#f"), "x.jpg");
-for (const bad of ["", null, undefined, "blob:https://www.instagram.com/1234-ab", "https://cdn.x/", "https://cdn.x/dir/", "https://cdn.x/a%20b.jpg", "https://cdn.x/" + "a".repeat(201), "data:image/png;base64,AA"]) {
-  assert.equal(n.mediaNameOf(bad), null, String(bad));
-}
-
 // Ties: first candidate wins.
 assert.equal(n.bestMedia({ image_versions2: { candidates: [{ url: "first", width: 10, height: 10 }, { url: "second", width: 10, height: 10 }] } }).url, "first");
 
@@ -181,9 +148,6 @@ assert.equal(n.queueEntry({ kind: "stories", username: "a.b" }).label, "@a.b sto
 assert.equal(n.queueEntry({ kind: "profile", username: "x", full: true }).label, "@x posts (full)");
 assert.equal(n.queueEntry({ kind: "profile", username: "x" }).label, "@x posts");
 assert.equal(n.queueEntry({ kind: "post", shortcode: "CODE1" }).label, "post CODE1");
-const slideJob = n.queueEntry({ kind: "post", shortcode: "CODE1", media: "two.jpg" });
-assert.equal(slideJob.label, "post CODE1 (one slide)");
-assert.equal(slideJob.media, "two.jpg");
 
 // pinnedFlags: only nodes older than a later node on the page (pinned, listed first) are flagged.
 {

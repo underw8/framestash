@@ -210,8 +210,7 @@ function validJob(j) {
   return (j.kind === "profile" && user(j.username) && (j.full === undefined || typeof j.full === "boolean")
       && (j.fresh === undefined || typeof j.fresh === "boolean"))
     || (j.kind === "stories" && user(j.username))
-    || (j.kind === "post" && typeof j.shortcode === "string" && /^[A-Za-z0-9_-]{5,40}$/.test(j.shortcode)
-      && (j.media === undefined || (typeof j.media === "string" && MEDIA_NAME_RE.test(j.media))))
+    || (j.kind === "post" && typeof j.shortcode === "string" && /^[A-Za-z0-9_-]{5,40}$/.test(j.shortcode))
     || (j.kind === "highlight" && /^\d+$/.test(String(j.id)))
     || j.kind === "check";
 }
@@ -553,14 +552,7 @@ async function run(job) {
   update(job, `Loading ${what}…`);
   const r = await bridge(job, op, args);
   if (r.error) throw new Error(`Could not load ${what}: ${r.error}`);
-  let nodes = Array.isArray(r.nodes) ? r.nodes : [];
-  if (job.media) {
-    nodes = nodes.map((n) => slideOnly(n, job.media)).filter(Boolean);
-    if (!nodes.length) {
-      job.detail = "Couldn't find that slide in the post; nothing saved.";
-      return;
-    }
-  }
+  const nodes = Array.isArray(r.nodes) ? r.nodes : [];
   const items = nodes.flatMap(itemsFromNode);
   if (!items.length) {
     job.detail = `Nothing to download: no ${what} found.`;
