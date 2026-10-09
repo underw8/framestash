@@ -163,12 +163,12 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - the button is a real button, keyboard-reachable and labelled, and matches the panel's style.
   - README describes the new control; the existing test suites pass, and new pure logic is unit-tested.
 - live checks:
-  - Reload igd at chrome://extensions and reload the Instagram tab. Queue a large profile from the panel and Stop it after page 3. Queue it again: the queued row shows Start over. Click it, and the job should list from page 1 with no 'resumed from page' note.
-  - Repeat with the in-page Download @user button instead of the panel: the queued row shows Start over and it works the same.
-  - Stop a profile midway, turn on List every post and queue it. It should resume from the saved page (no Start over clicked), list to the end, and not stop early.
-  - Click Start over on a queued row, then close and reopen the panel before it runs. It should still start from page 1.
-  - Keyboard only: Tab to Start over and press Enter. Focus should land on Remove, and VoiceOver should read 'Start over @user posts'. Check light and dark mode.
-  - A queued profile with no saved position (or a story/post job) shows no Start over button.
+  - [ ] Reload igd at chrome://extensions and reload the Instagram tab. Queue a large profile from the panel and Stop it after page 3. Queue it again: the queued row shows Start over. Click it, and the job should list from page 1 with no 'resumed from page' note.
+  - [ ] Repeat with the in-page Download @user button instead of the panel: the queued row shows Start over and it works the same.
+  - [ ] Stop a profile midway, turn on List every post and queue it. It should resume from the saved page (no Start over clicked), list to the end, and not stop early.
+  - [ ] Click Start over on a queued row, then close and reopen the panel before it runs. It should still start from page 1.
+  - [ ] Keyboard only: Tab to Start over and press Enter. Focus should land on Remove, and VoiceOver should read 'Start over @user posts'. Check light and dark mode.
+  - [ ] A queued profile with no saved position (or a story/post job) shows no Start over button.
 
 ## T11 · Second button for one carousel slide
 - status: needs-check
