@@ -140,9 +140,14 @@ function queueEntry(job) {
   return { ...job, label, state: "queued", detail: "" };
 }
 
+// Jobs worth keeping when the panel closes; a running job restarts as queued.
+function unfinished(jobs) {
+  return jobs.filter((j) => j.state === "queued" || j.state === "running").map(queueEntry);
+}
+
 if (typeof module !== "undefined") {
   module.exports = {
     bestMedia, extensionOf, fileName, keyFromFileName, parseFileName, inferOwner, sniffMedia,
-    itemsFromNode, shortcodeFromPath, routeFromPath, queueEntry, USERNAME_RE,
+    itemsFromNode, shortcodeFromPath, routeFromPath, queueEntry, unfinished, USERNAME_RE,
   };
 }

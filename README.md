@@ -10,7 +10,7 @@ This folder is our own replacement for *a reference extension* v4.12.16, written
 2. **Choose the folder.** Click the igd icon to open the **side panel**, then **Choose** and pick the **root** folder of your collection: the one that contains the account folders, e.g. `IG`. It's remembered across tabs and restarts. After a browser restart, one click on **Allow access** restores it.
    - **Queue profiles:** paste usernames or profile URLs, one per line. Choose Posts and/or Stories & highlights, then **Add to queue**. Jobs run one after another, using any open, logged-in Instagram tab.
    - **Check collection:** a read-only report, shown in the panel. It lists duplicates, empty files, saved error pages, unrecognised names, and accounts split across folders.
-   - **Keep the panel open while jobs run.** Closing it ends the queue; any igd button in Instagram reopens it.
+   - **Closing the panel pauses the queue.** Queued and interrupted jobs come back when it reopens; any igd button in Instagram reopens it. A restarted job lists from the start again, and files already saved are skipped.
 3. **Download from Instagram.** igd adds buttons in the bottom-right corner, above Instagram's Messages button:
    - **Profile:** **Download @user** saves every post. **Stories** saves the active stories plus every highlight.
    - **Post or reel page** (`/p/…`, `/reel/…`, `/reels/…`): **Save post** saves every slide into `<root>/<owner>/`.
@@ -47,7 +47,6 @@ The numbers in brackets point to the study notes in `docs/`.
 - resuming an interrupted profile run from where it stopped (a re-run skips what's saved, but lists every page again)
 - DASH video quality
 - per-highlight subfolders
-- a queue that survives closing the panel
 
 **When Instagram changes something,** re-run playbook steps 5–6 (`docs/11`) and update `docs/03` before changing code.
 

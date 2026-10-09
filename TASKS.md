@@ -12,13 +12,18 @@ Work list for igd. The `igd-task` workflow (`.claude/workflows/igd-task.js`) tak
 When you add a task, keep the same shape: a `## T<n> · title` heading, then the bullets.
 
 ## T1 · Queue survives closing the panel
-- status: todo
+- status: needs-check
 - why: closing the side panel drops every queued and running job, which hurts long profile downloads.
 - done when:
   - queued jobs are kept in the extension's own storage and come back when the panel reopens;
   - a job that was running when the panel closed restarts;
   - finished jobs aren't re-run;
   - the existing test suites still pass.
+- live checks:
+  - [ ] Reload igd at chrome://extensions. Queue 2–3 profiles in the panel, close the side panel while the first one is running, then reopen it from the toolbar icon. All of them should be listed again as queued, the first one should restart, and files that were already saved should count as 'already had'.
+  - [ ] Let one job finish, then close and reopen the panel. The finished job should not run again (it is no longer listed), and only the jobs that were still pending come back.
+  - [ ] With the panel closed, click an igd button on an Instagram post. The panel should open with the earlier saved queue plus the new job, and nothing should be lost.
+  - [ ] Restart Chrome with jobs still queued and open the panel. The jobs should come back, and the queue should wait for 'Allow access' before running.
 
 ## T2 · Resume an interrupted profile download
 - status: todo

@@ -107,4 +107,21 @@ assert.equal(hl.label, "highlight 18000000000000040");
 assert.equal(hl.state, "queued");
 assert.equal(n.queueEntry({ kind: "stories", username: "a.b" }).label, "@a.b stories"); // withHighlights unset = active only
 
+// Only queued and running jobs are kept across a panel close, all back as queued.
+const kept = n.unfinished([
+  { kind: "profile", username: "a", label: "x", state: "running", detail: "page 3", tabId: 4 },
+  { kind: "post", shortcode: "ABCDE", label: "post ABCDE", state: "done", detail: "1 saved" },
+  { kind: "stories", username: "b", withHighlights: true, label: "x", state: "queued", detail: "" },
+  { label: "Not a username", state: "error", detail: "" }, // alertLine entry, no kind
+  { kind: "highlight", id: "18000000000000040", label: "x", state: "queued", detail: "" },
+  { kind: "post", shortcode: "FGHIJ", label: "x", state: "error", detail: "boom" },
+]);
+assert.deepEqual(kept, [
+  { kind: "profile", username: "a", label: "@a posts", state: "queued", detail: "", tabId: 4 },
+  { kind: "stories", username: "b", withHighlights: true, label: "@b stories & highlights", state: "queued", detail: "" },
+  { kind: "highlight", id: "18000000000000040", label: "highlight 18000000000000040", state: "queued", detail: "" },
+]);
+assert.deepEqual(JSON.parse(JSON.stringify(kept)), kept); // plain data, safe for IndexedDB
+assert.deepEqual(n.unfinished([]), []);
+
 console.log("naming: all checks passed");

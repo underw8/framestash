@@ -80,6 +80,29 @@ $("grant").addEventListener("click", async () => {
 const jobs = [];
 let busy = false;
 
+// One panel per profile owns the saved queue; the others stand by until it closes.
+let ownsQueue; // undefined until the first lock request settles
+let decide;
+const decided = new Promise((r) => { decide = r; });
+const owned = new Promise((resolve) => {
+  const hold = () => { ownsQueue = true; decide(); resolve(); return new Promise(() => {}); };
+  navigator.locks.request("igd-queue", { ifAvailable: true }, (lock) => {
+    if (lock) return hold();
+    ownsQueue = false;
+    decide();
+    alertLine("Another igd panel is running the queue. This one takes over when that panel closes.");
+    return navigator.locks.request("igd-queue", hold);
+  });
+});
+
+// Writes chain after the restore so an early delivery can't overwrite the saved queue unread.
+const restored = owned.then(() => kv("jobs")).then((saved) => {
+  jobs.unshift(...(saved || []).filter(validJob).map(queueEntry));
+  renderJobs();
+}).catch(() => {});
+let saving = restored;
+const saveQueue = () => { saving = saving.then(() => kv("jobs", unfinished(jobs))).catch(() => {}); };
+
 function alertLine(text) {
   jobs.push({ label: text, state: "error", detail: "" });
   renderJobs();
@@ -125,17 +148,19 @@ function validJob(j) {
 
 function enqueue(job) {
   jobs.push(queueEntry(job));
+  saveQueue();
   renderJobs();
   pump();
   return jobs.filter((j) => j.state === "queued" || j.state === "running").length;
 }
 
 async function pump() {
-  if (busy) return;
+  if (busy || !ownsQueue) return;
   busy = true;
   try {
     for (let job; (job = jobs.find((j) => j.state === "queued")); ) {
       job.state = "running";
+      saveQueue();
       update(job, "Starting…");
       try {
         await run(job);
@@ -145,8 +170,9 @@ async function pump() {
         job.state = "error";
         update(job, e.message, "error");
         // A folder problem stops the queue until the user fixes it here.
-        if (/igd panel/.test(e.message)) { job.state = "queued"; renderJobs(); break; }
+        if (/igd panel/.test(e.message)) { job.state = "queued"; saveQueue(); renderJobs(); break; }
       }
+      saveQueue();
     }
   } finally {
     busy = false;
@@ -267,9 +293,10 @@ function acceptDelivery(d) {
 }
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  if (msg.type !== "job" || sender.tab || sender.id !== chrome.runtime.id) return false;
-  sendResponse(acceptDelivery(msg));
-  return false;
+  if (msg.type !== "job" || sender.tab || sender.id !== chrome.runtime.id || ownsQueue === false) return false;
+  // Standby panels stay silent so only the owner answers.
+  decided.then(() => ownsQueue && sendResponse(acceptDelivery(msg)));
+  return true;
 });
 
 function usernameFromLine(line) {
@@ -301,6 +328,8 @@ $("check").addEventListener("click", () => enqueue({ kind: "check" }));
 (async () => {
   root = (await kv("root")) || null;
   await renderFolder();
+  await restored; // also waits for queue ownership
+  pump(); // root is loaded only now
   // Pick up jobs that were sent while this panel was opening.
   const waiting = await chrome.runtime.sendMessage({ type: "managerReady" }).catch(() => []);
   for (const d of waiting || []) acceptDelivery(d);
