@@ -61,6 +61,7 @@ $("pick").addEventListener("click", async () => {
   try {
     root = await showDirectoryPicker({ id: "igd-root", mode: "readwrite", startIn: "downloads" });
     await kv("root", root);
+    await kv("listed", {}); // "listed to the end" describes the old collection
   } catch (e) {
     if (e.name !== "AbortError") alertLine(e.message);
   }
@@ -174,7 +175,7 @@ function update(job, detail, kind = "") {
 function validJob(j) {
   if (!j || typeof j !== "object") return false;
   const user = (u) => typeof u === "string" && USERNAME_RE.test(u);
-  return (j.kind === "profile" && user(j.username))
+  return (j.kind === "profile" && user(j.username) && (j.full === undefined || typeof j.full === "boolean"))
     || (j.kind === "stories" && user(j.username))
     || (j.kind === "post" && typeof j.shortcode === "string" && /^[A-Za-z0-9_-]{5,40}$/.test(j.shortcode))
     || (j.kind === "highlight" && /^\d+$/.test(String(j.id)))
@@ -430,15 +431,41 @@ async function run(job) {
     const c = counters(job, () => `Page ${page} · `);
     update(job, "Checking files you already have…");
     const index = await indexFolder(account.dir);
+    // listed[pk] is the newest post of the last complete listing: everything at or before it is
+    // saved. It is cleared until this run completes too.
+    const listedKey = id.error ? null : String(id.pk);
+    const listed = (await kv("listed")) || {};
+    const prevMark = listedKey && typeof listed[listedKey] === "number" ? listed[listedKey] : null;
+    const incremental = !job.full && prevMark !== null;
+    if (listedKey) { delete listed[listedKey]; await kv("listed", listed); }
     let after = null;
+    let streak = 0;
+    let newest = prevMark ?? -Infinity;
+    let early = "";
     do {
       const r = await bridge(job, "profilePosts", { username: job.username, after });
       if (r.error) throw new Error(`Stopped listing after ${page} page(s): ${r.error} (${summary(c)})`);
       page++;
-      for (const node of r.nodes) await saveItems(account.dir, index, itemsFromNode(node), c);
+      const saved = [];
+      for (const node of r.nodes) {
+        const items = itemsFromNode(node);
+        const before = c.skipped;
+        await saveItems(account.dir, index, items, c);
+        saved.push(items.length > 0 && c.skipped - before === items.length);
+        const t = Number(node && node.taken_at);
+        if (Number.isFinite(t) && t > newest) newest = t;
+      }
+      streak = pageStreak(streak, r.nodes, saved, prevMark ?? -Infinity);
       after = typeof r.next === "string" ? r.next : null;
+      if (stopListing(streak, incremental, !!after)) {
+        after = null;
+        early = " · stopped early: nothing older is new";
+      }
     } while (after);
-    return finish(job, c, `${top.name}/${account.name}${account.note}`);
+    if (listedKey && c.failed === 0 && root === top && Number.isFinite(newest)) { listed[listedKey] = newest; await kv("listed", listed); }
+    finish(job, c, `${top.name}/${account.name}${account.note}`);
+    job.detail += early;
+    return;
   }
 
   const request = {
@@ -502,7 +529,7 @@ $("add").addEventListener("click", () => {
   const names = [...new Set(lines.map(usernameFromLine).filter(Boolean))];
   const bad = lines.filter((l) => l.trim() && !usernameFromLine(l));
   for (const username of names) {
-    if ($("withPosts").checked) enqueue({ kind: "profile", username });
+    if ($("withPosts").checked) enqueue({ kind: "profile", username, ...($("fullList").checked && { full: true }) });
     if ($("withStories").checked) enqueue({ kind: "stories", username, withHighlights: true });
   }
   $("usernames").value = bad.join("\n");

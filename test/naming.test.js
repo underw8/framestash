@@ -106,6 +106,56 @@ assert.equal(hl.id, "18000000000000040");
 assert.equal(hl.label, "highlight 18000000000000040");
 assert.equal(hl.state, "queued");
 assert.equal(n.queueEntry({ kind: "stories", username: "a.b" }).label, "@a.b stories"); // withHighlights unset = active only
+assert.equal(n.queueEntry({ kind: "profile", username: "x", full: true }).label, "@x posts (full)");
+assert.equal(n.queueEntry({ kind: "profile", username: "x" }).label, "@x posts");
+
+// pinnedFlags: only nodes older than a later node on the page (pinned, listed first) are flagged.
+{
+  const t = (...ts) => ts.map((taken_at) => ({ taken_at }));
+  assert.deepEqual(n.pinnedFlags(t(100, 200, 900, 800, 700)), [true, true, false, false, false]);
+  assert.deepEqual(n.pinnedFlags(t(900, 800, 700)), [false, false, false]);
+  assert.deepEqual(n.pinnedFlags([]), []);
+}
+
+// knownStreak: pinned posts never move the streak; a new post resets it; it carries across pages.
+{
+  let s = 0;
+  for (let i = 0; i < 3; i++) s = n.knownStreak(s, true, true);
+  for (let i = 0; i < 11; i++) s = n.knownStreak(s, false, true);
+  assert.equal(s, 11);
+  assert.ok(s < n.KNOWN_STOP);
+  assert.equal(n.knownStreak(s, true, false), 11); // a new pinned post doesn't reset it
+  assert.equal(n.knownStreak(s, false, false), 0);
+  s = 0;
+  for (const page of [6, 6]) for (let i = 0; i < page; i++) s = n.knownStreak(s, false, true);
+  assert.equal(s, n.KNOWN_STOP);
+}
+
+// pageStreak + stopListing: the per-page stop decision, with the watermark rule.
+{
+  const node = (taken_at) => ({ taken_at });
+  const all = (k, v) => Array(k).fill(v);
+  const mark = 1000;
+  // page 1: 3 pinned known posts, then 11 known posts → no stop yet
+  const p1 = [node(10), node(20), node(30), ...Array.from({ length: 11 }, (_, i) => node(900 - i))];
+  let s = n.pageStreak(0, p1, all(14, true), mark);
+  assert.equal(s, 11);
+  assert.equal(n.stopListing(s, true, true), false);
+  // page 2: one more known post → stop
+  s = n.pageStreak(s, [node(500)], [true], mark);
+  assert.equal(s, n.KNOWN_STOP);
+  assert.equal(n.stopListing(s, true, true), true);
+  assert.equal(n.stopListing(s, false, true), false); // full listing never stops
+  assert.equal(n.stopListing(s, true, false), false); // last page: nothing left to skip
+  // a new post resets the streak
+  assert.equal(n.pageStreak(s, [node(400)], [false], mark), 0);
+  // watermark: saved posts newer than the mark (single-post jobs) don't count as known
+  const newer = Array.from({ length: 12 }, (_, i) => node(2000 - i));
+  assert.equal(n.pageStreak(0, newer, all(12, true), mark), 0);
+  assert.equal(n.pageStreak(0, [...newer, node(990)], all(13, true), mark), 1);
+  // no mark yet: nothing counts as known
+  assert.equal(n.pageStreak(0, [node(5)], [true], -Infinity), 0);
+}
 
 // Only queued and running jobs are kept across a panel close, all back as queued.
 const kept = n.unfinished([

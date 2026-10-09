@@ -131,13 +131,41 @@ function routeFromPath(path) {
 // Queue entry for a job. Must keep the job's own fields: a highlight job's `id` is the highlight id.
 function queueEntry(job) {
   const label = {
-    profile: `@${job.username} posts`,
+    profile: `@${job.username} posts${job.full ? " (full)" : ""}`,
     stories: `@${job.username} ${job.withHighlights ? "stories & highlights" : "stories"}`,
     post: `post ${job.shortcode}`,
     highlight: `highlight ${job.id}`,
     check: "collection check",
   }[job.kind];
   return { ...job, label, state: "queued", detail: "" };
+}
+
+// Profile pages list posts newest first, after up to 3 pinned posts. A node is pinned when
+// a later node on the same page is newer.
+function pinnedFlags(nodes) {
+  let newest = -Infinity;
+  return nodes.map((n) => Number(n && n.taken_at)).reverse()
+    .map((t) => { const pinned = t < newest; if (t > newest) newest = t; return pinned; }).reverse();
+}
+
+// A profile re-run stops listing after this many already-saved posts in a row.
+const KNOWN_STOP = 12;
+
+// Pinned posts are older than the posts after them, so they neither extend nor break the streak.
+function knownStreak(streak, pinned, known) {
+  return pinned ? streak : known ? streak + 1 : 0;
+}
+
+// Streak after one listing page. A post counts as known only if it was already saved and is no
+// newer than `mark`, the newest post of the last complete listing: posts saved by other routes
+// (single-post jobs, copied files) can sit above a gap, so they must not extend the streak.
+function pageStreak(streak, nodes, saved, mark) {
+  const pins = pinnedFlags(nodes);
+  return nodes.reduce((s, node, i) => knownStreak(s, pins[i], saved[i] && Number(node && node.taken_at) <= mark), streak);
+}
+
+function stopListing(streak, incremental, hasNext) {
+  return !!(hasNext && incremental && streak >= KNOWN_STOP);
 }
 
 // Jobs worth keeping when the panel closes; a running job restarts as queued.
@@ -166,5 +194,6 @@ if (typeof module !== "undefined") {
   module.exports = {
     bestMedia, extensionOf, fileName, keyFromFileName, parseFileName, inferOwner, sniffMedia,
     itemsFromNode, shortcodeFromPath, routeFromPath, queueEntry, unfinished, visibleJobs, wait, USERNAME_RE,
+    pinnedFlags, knownStreak, pageStreak, stopListing, KNOWN_STOP,
   };
 }

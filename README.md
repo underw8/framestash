@@ -8,7 +8,7 @@ This folder is our own replacement for *a reference extension* v4.12.16, written
 
 1. **Install.** Go to `chrome://extensions`, turn on Developer mode, click **Load unpacked**, and choose `igd/extension/`. Pin igd to the toolbar. The old extension can stay installed; the two don't share storage or buttons.
 2. **Choose the folder.** Click the igd icon to open the **side panel**, then **Choose** and pick the **root** folder of your collection: the one that contains the account folders, e.g. `IG`. It's remembered across tabs and restarts. After a browser restart, one click on **Allow access** restores it.
-   - **Queue profiles:** paste usernames or profile URLs, one per line. Choose Posts and/or Stories & highlights, then **Add to queue**. Jobs run one after another, using any open, logged-in Instagram tab. The running job has a **Stop** button and queued jobs a **Remove** button; files already saved are kept.
+   - **Queue profiles:** paste usernames or profile URLs, one per line. Choose Posts and/or Stories & highlights, then **Add to queue**. A re-run of a profile that was fully listed before stops after 12 posts in a row you already have; turn on **List every post** to force a full pass. Jobs run one after another, using any open, logged-in Instagram tab. The running job has a **Stop** button and queued jobs a **Remove** button; files already saved are kept.
    - **Check collection:** a read-only report, shown in the panel. It lists duplicates, empty files, saved error pages, unrecognised names, and accounts split across folders.
    - **Closing the panel pauses the queue.** Queued and interrupted jobs come back when it reopens; any igd button in Instagram reopens it. A restarted job lists from the start again, and files already saved are skipped.
 3. **Download from Instagram.** igd adds buttons in the bottom-right corner, above Instagram's Messages button:
@@ -19,7 +19,7 @@ This folder is our own replacement for *a reference extension* v4.12.16, written
    - **Magnifier icon:** runs the collection check. **Panel icon:** opens the side panel.
 
    Every button sends a job to the panel's queue, opening the panel first if it's closed, and the status card shows the job's progress.
-4. **Re-run any time.** A job run again only fetches what's missing. Failed items are listed in the panel's DevTools console.
+4. **Re-run any time.** A job run again only fetches what's missing. A profile re-run stops listing after 12 already-saved posts in a row (pinned posts aside), once a previous run of it listed to the end; posts deleted from disk below that point come back only with **List every post**. Failed items are listed in the panel's DevTools console.
 5. **After updating igd**, reload open Instagram tabs. Chrome only adds the new scripts to pages loaded after the update, and igd tells you when this is needed.
 
 ## What it does
@@ -45,7 +45,7 @@ The numbers in brackets point to the study notes in `docs/`.
 
 **Not yet:**
 - saving only the current carousel slide
-- resuming an interrupted profile run from where it stopped (a re-run skips what's saved, but lists every page again)
+- resuming an interrupted profile run from where it stopped
 - DASH video quality
 - per-highlight subfolders
 

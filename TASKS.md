@@ -99,7 +99,7 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - classify() trips only on 401, 403 and 429. Any other non-OK HTTP reply (400 with no JSON block body, 5xx, and so on) returns null. The job fails and the queue moves straight on to the next job's request. Done-when says "a reply that isn't the expected data holds the whole queue", and an HTTP error reply is not the expected data.
 
 ## T8 · Incremental re-runs
-- status: todo
+- status: needs-check
 - why: re-running a profile lists every page again, even when only a few posts are new. That's the largest source of avoidable Instagram requests.
 - done when:
   - Instagram lists posts newest first, so a profile run stops listing after 12 posts in a row that are already in the collection.
@@ -108,6 +108,13 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - there's an explicit way to force a full listing for a profile.
   - stories and single posts are unchanged.
   - the stop rule is unit-tested; the existing test suites pass.
+- live checks:
+  - [ ] Reload igd at chrome://extensions and reload the Instagram tab. Queue a profile you have never fully run: it lists to the last page.
+  - [ ] Queue the same profile again: it stops after the first page or two with 'stopped early', and the request count in the panel is small.
+  - [ ] On a profile with pinned posts that are already saved, run it twice and confirm the second run doesn't stop because of the pinned posts. If you can, also confirm in DevTools that pinned nodes come first with older `taken_at`, as docs/03 now says.
+  - [ ] Stop a profile run mid-way, then queue it again: it lists to the end.
+  - [ ] Turn on 'List every post' and queue a fully listed profile: it lists every page and the row reads '@x posts (full)'.
+  - [ ] Save a single post and a story: both behave as before.
 
 ## T9 · Pause and resume the queue
 - status: todo
