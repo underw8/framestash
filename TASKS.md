@@ -26,13 +26,19 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - [x] Restart Chrome with jobs still queued and open the panel. The jobs should come back, and the queue should wait for 'Allow access' before running.
 
 ## T2 · Resume an interrupted profile download
-- status: todo
+- status: needs-check
 - why: re-running a profile skips saved files but lists every page again from the start, which is slow and hits Instagram's limits on big profiles.
 - done when:
   - the profile listing cursor is saved per account while a run is in progress;
   - a re-run continues from the saved cursor;
   - a completed run clears the cursor;
   - there's an explicit way to start over.
+- live checks:
+  - [ ] Reload igd at chrome://extensions and reload the Instagram tab. Queue a large profile and click Stop after page 3 or so. Queue it again: its first request should be page 4, the row should end with 'resumed from page 3', and it should not list page 1 again (check the page counter in the job detail).
+  - [ ] Let a resumed run finish, then queue the same profile again. It should start from page 1 (and stop early under the T8 rule), not resume.
+  - [ ] Stop a profile midway, turn on 'List every post' and queue it. It should start from page 1 and list to the end. A later normal queue of that profile should not resume.
+  - [ ] Stop a profile midway, then close the panel or restart Chrome, reopen it and re-queue the profile. It should still resume from the saved page.
+  - [ ] Stop a profile midway, choose a different collection folder, then queue it. It should start from page 1.
 
 ## T3 · Save only the current carousel slide
 - status: todo

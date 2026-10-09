@@ -168,6 +168,27 @@ function stopListing(streak, incremental, hasNext) {
   return !!(hasNext && incremental && streak >= KNOWN_STOP);
 }
 
+// Saved listing position of an interrupted profile run, or null to list from the top.
+function resumeFrom(rec, full) {
+  if (full || !rec || typeof rec.after !== "string" || !rec.after) return null;
+  if (!Number.isInteger(rec.page) || rec.page < 0) return null;
+  const newest = Number.isFinite(rec.newest) ? rec.newest : -Infinity;
+  const tries = Number.isInteger(rec.tries) && rec.tries > 0 ? rec.tries : 0;
+  return { after: rec.after, page: rec.page, newest, failed: rec.failed === true, tries };
+}
+
+// What a failed page does to the saved cursor. A failing or empty resume page may be transient or
+// stale: retry once, drop on the second failure, drop at once when empty (it must not mark the profile listed).
+function cursorOnFailure(res, page, empty) {
+  if (!res || page !== res.page) return "keep";
+  return empty || res.tries + 1 >= 2 ? "drop" : "retry";
+}
+
+// Cursor saved after each listed page; a failure anywhere in the interrupted run sticks.
+function cursorRecord(after, page, newest, priorFailed, failed) {
+  return { after, page, newest, failed: priorFailed || failed > 0 };
+}
+
 // Jobs worth keeping when the panel closes; a running job restarts as queued.
 function unfinished(jobs) {
   return jobs.filter((j) => j.state === "queued" || j.state === "running").map(queueEntry);
@@ -194,6 +215,6 @@ if (typeof module !== "undefined") {
   module.exports = {
     bestMedia, extensionOf, fileName, keyFromFileName, parseFileName, inferOwner, sniffMedia,
     itemsFromNode, shortcodeFromPath, routeFromPath, queueEntry, unfinished, visibleJobs, wait, USERNAME_RE,
-    pinnedFlags, knownStreak, pageStreak, stopListing, KNOWN_STOP,
+    pinnedFlags, knownStreak, pageStreak, stopListing, resumeFrom, cursorOnFailure, cursorRecord, KNOWN_STOP,
   };
 }

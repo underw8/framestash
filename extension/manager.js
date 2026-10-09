@@ -61,7 +61,8 @@ $("pick").addEventListener("click", async () => {
   try {
     root = await showDirectoryPicker({ id: "igd-root", mode: "readwrite", startIn: "downloads" });
     await kv("root", root);
-    await kv("listed", {}); // "listed to the end" describes the old collection
+    await kv("listed", {}); // "listed to the end" and saved cursors describe the old collection
+    await kv("cursors", {});
   } catch (e) {
     if (e.name !== "AbortError") alertLine(e.message);
   }
@@ -438,13 +439,33 @@ async function run(job) {
     const prevMark = listedKey && typeof listed[listedKey] === "number" ? listed[listedKey] : null;
     const incremental = !job.full && prevMark !== null;
     if (listedKey) { delete listed[listedKey]; await kv("listed", listed); }
-    let after = null;
+    // cursors[pk] is where an interrupted listing stopped; List every post starts over.
+    const cursors = (await kv("cursors")) || {};
+    const res = listedKey && resumeFrom(cursors[listedKey], job.full);
+    const dropCursor = async () => { if (listedKey && listedKey in cursors && root === top) { delete cursors[listedKey]; await kv("cursors", cursors); } };
+    // Start over once: a restored List every post job resumes like any other.
+    if (job.full) { await dropCursor(); delete job.full; saveQueue(); }
+    let after = res ? res.after : null;
+    page = res ? res.page : 0;
     let streak = 0;
-    let newest = prevMark ?? -Infinity;
+    let newest = res ? Math.max(prevMark ?? -Infinity, res.newest) : prevMark ?? -Infinity;
+    const priorFailed = !!(res && res.failed);
     let early = "";
     do {
       const r = await bridge(job, "profilePosts", { username: job.username, after });
-      if (r.error) throw new Error(`Stopped listing after ${page} page(s): ${r.error} (${summary(c)})`);
+      const empty = !r.error && res && page === res.page && !(Array.isArray(r.nodes) && r.nodes.length);
+      if (r.error || empty) {
+        let note = "";
+        const action = cursorOnFailure(res, page, empty);
+        if (action === "drop") {
+          await dropCursor();
+          note = " · saved position no longer works; the next run starts over";
+        } else if (action === "retry" && listedKey in cursors && root === top) {
+          cursors[listedKey] = { ...cursors[listedKey], tries: res.tries + 1 };
+          await kv("cursors", cursors);
+        }
+        throw new Error(`Stopped listing after ${page} page(s): ${r.error || "saved position returned no posts"} (${summary(c)})${note}`);
+      }
       page++;
       const saved = [];
       for (const node of r.nodes) {
@@ -461,10 +482,15 @@ async function run(job) {
         after = null;
         early = " · stopped early: nothing older is new";
       }
+      if (listedKey && after && root === top) {
+        cursors[listedKey] = cursorRecord(after, page, newest, priorFailed, c.failed);
+        await kv("cursors", cursors);
+      }
     } while (after);
-    if (listedKey && c.failed === 0 && root === top && Number.isFinite(newest)) { listed[listedKey] = newest; await kv("listed", listed); }
+    await dropCursor();
+    if (listedKey && c.failed === 0 && !priorFailed && root === top && Number.isFinite(newest)) { listed[listedKey] = newest; await kv("listed", listed); }
     finish(job, c, `${top.name}/${account.name}${account.note}`);
-    job.detail += early;
+    job.detail += early + (res ? ` · resumed from page ${res.page}` : "");
     return;
   }
 

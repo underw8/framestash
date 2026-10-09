@@ -157,6 +157,32 @@ assert.equal(n.queueEntry({ kind: "profile", username: "x" }).label, "@x posts")
   assert.equal(n.pageStreak(0, [node(5)], [true], -Infinity), 0);
 }
 
+// resumeFrom: a saved listing cursor, ignored by a full listing or when malformed.
+{
+  const rec = { after: "QVFD", page: 4, newest: 1700000000, failed: true, tries: 1 };
+  assert.deepEqual(n.resumeFrom(rec, false), rec);
+  assert.equal(n.resumeFrom(rec, true), null);
+  assert.equal(n.resumeFrom(undefined, false), null);
+  for (const after of [42, "", null]) assert.equal(n.resumeFrom({ ...rec, after }, false), null);
+  for (const page of [-1, 1.5, "4"]) assert.equal(n.resumeFrom({ ...rec, page }, false), null);
+  assert.deepEqual(n.resumeFrom({ after: "x", page: 0 }, false), { after: "x", page: 0, newest: -Infinity, failed: false, tries: 0 });
+  for (const tries of [-1, 1.5, "1"]) assert.equal(n.resumeFrom({ ...rec, tries }, false).tries, 0);
+}
+
+// cursorOnFailure: retry the resume page once, drop it on the second failure or when empty.
+{
+  const res = { after: "QVFD", page: 4, newest: 1, failed: false, tries: 0 };
+  assert.equal(n.cursorOnFailure(res, 4, false), "retry");
+  assert.equal(n.cursorOnFailure({ ...res, tries: 1 }, 4, false), "drop");
+  assert.equal(n.cursorOnFailure(res, 4, true), "drop");
+  assert.equal(n.cursorOnFailure(res, 5, false), "keep");
+  assert.equal(n.cursorOnFailure(null, 0, false), "keep");
+  // cursorRecord: a failure before the interruption keeps the record failed, which blocks the listed mark.
+  assert.deepEqual(n.cursorRecord("a", 2, 9, false, 0), { after: "a", page: 2, newest: 9, failed: false });
+  assert.equal(n.cursorRecord("a", 2, 9, true, 0).failed, true);
+  assert.equal(n.cursorRecord("a", 2, 9, false, 3).failed, true);
+}
+
 // Only queued and running jobs are kept across a panel close, all back as queued.
 const kept = n.unfinished([
   { kind: "profile", username: "a", label: "x", state: "running", detail: "page 3", tabId: 4 },
