@@ -113,7 +113,7 @@ const POST_LINK = 'a[href*="/p/"], a[href*="/reel/"]';
 
 const hasItemButton = (host) => host.querySelector(":scope > .igd-item");
 
-function addItemButton(host, shortcode, top) {
+function addItemButton(host, shortcode) {
   if (getComputedStyle(host).position === "static") host.classList.add("igd-host");
   const button = document.createElement("button");
   button.type = "button";
@@ -121,7 +121,6 @@ function addItemButton(host, shortcode, top) {
   button.title = "Save this post (igd)";
   button.innerHTML = icon("download");
   button.dataset.shortcode = shortcode;
-  if (top) button.style.top = `${top}px`;
   host.append(button);
 }
 
@@ -132,18 +131,33 @@ function scanItems() {
     const shortcode = shortcodeFromPath(new URL(a.href, location.origin).pathname);
     if (shortcode && a.querySelector("img, video")) addItemButton(a, shortcode);
   }
-  // Feed posts: an <article> whose links include the post's permalink.
+  // Feed posts and opened posts: an <article> whose links include the post's permalink.
+  // The button goes on each large, on-screen photo or video, inside its frame.
   for (const article of document.querySelectorAll("article")) {
-    if (hasItemButton(article)) continue; // checked before any layout measurement
     const link = [...article.querySelectorAll(POST_LINK)]
       .map((a) => shortcodeFromPath(new URL(a.href, location.origin).pathname))
       .find(Boolean);
     if (!link) continue;
-    // Sit on the media's top-left corner, below the post header.
-    const media = [...article.querySelectorAll("img, video")].find((m) => m.getBoundingClientRect().width >= 200);
-    const top = media ? Math.round(media.getBoundingClientRect().top - article.getBoundingClientRect().top) + 8 : 64;
-    addItemButton(article, link, top);
+    for (const media of article.querySelectorAll("img, video")) {
+      const r = media.getBoundingClientRect();
+      if (r.width < 200 || r.height < 200 || r.bottom < 0 || r.top > innerHeight) continue;
+      const frame = mediaFrame(media, article);
+      if (!hasItemButton(frame)) addItemButton(frame, link);
+    }
   }
+}
+
+// The outermost wrapper with the media's own size: the photo's frame, or one carousel
+// slide (the slide strip is wider, which stops the walk). Its top-left corner is on the photo.
+function mediaFrame(media, stop) {
+  const m = media.getBoundingClientRect();
+  let frame = media.parentElement;
+  for (let e = frame; e && e !== stop; e = e.parentElement) {
+    const r = e.getBoundingClientRect();
+    if (Math.abs(r.width - m.width) > 2 || Math.abs(r.height - m.height) > 2) break;
+    frame = e;
+  }
+  return frame;
 }
 
 // Capture phase, so the tile's link never navigates and Instagram's handlers never see the click.
