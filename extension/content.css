@@ -2,7 +2,7 @@
    triplets on <html>), so light and dark mode follow Instagram; fallbacks are its light theme. */
 .igd-panel, .igd-item {
   --igd-bg: rgb(var(--ig-elevated-background, 255, 255, 255));
-  --igd-hover: rgb(var(--ig-highlight-background, 239, 239, 239));
+  --igd-hover: var(--hover-overlay, rgba(0, 0, 0, .05));
   /* Same faint edge and shadow as Instagram's floating Messages button. */
   --igd-edge: rgba(var(--ig-primary-text, 0, 0, 0), .05);
   --igd-shadow: 0 4px 12px rgba(0, 0, 0, .2);
@@ -10,7 +10,6 @@
   --igd-muted: rgb(var(--ig-secondary-text, 115, 115, 115));
   --igd-line: rgb(var(--ig-elevated-separator, 219, 219, 219));
   --igd-primary: rgb(var(--ig-primary-button, 74, 93, 249));
-  --igd-primary-hover: rgb(var(--ig-primary-button-hover, 65, 80, 247));
   --igd-error: rgb(var(--ig-error-or-destructive, 237, 73, 86));
   --igd-warn: #f5a623;
   --igd-dot: linear-gradient(45deg, #ff9a3c, #ff3d7f 50%, #7a5cff);
@@ -27,14 +26,19 @@
 .igd-row { display: flex; gap: 8px; }
 .igd-row:not(:has(> button:not([hidden]))) { display: none; }
 .igd-panel button {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   height: 44px; padding: 0 20px; border: 1px solid var(--igd-edge); border-radius: 999px; cursor: pointer; white-space: nowrap;
   background: var(--igd-bg); color: var(--igd-text); font: inherit; font-weight: 600;
   box-shadow: var(--igd-shadow); transition: background-color .15s;
 }
-.igd-panel button:hover { background: var(--igd-hover); }
+/* Hover like Instagram's own buttons: the background stays, and a full-size layer
+   of its --hover-overlay colour fades in over 0.1 s. */
+.igd-panel button::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: var(--igd-hover); opacity: 0; transition: opacity .1s linear;
+}
+.igd-panel button:hover::after { opacity: 1; }
 .igd-panel button.igd-go { background: var(--igd-primary); border-color: transparent; color: #fff; }
-.igd-panel button.igd-go:hover { background: var(--igd-primary-hover); }
 .igd-panel button.igd-icon { width: 44px; padding: 0; }
 .igd-panel button[hidden] { display: none; }
 .igd-panel svg { width: 20px; height: 20px; flex: none; }
@@ -51,7 +55,7 @@
 }
 .igd-panel .igd-card button.igd-close svg { width: 16px; height: 16px; }
 .igd-panel .igd-card:hover button.igd-close, .igd-panel .igd-card button.igd-close:focus-visible { opacity: 1; }
-.igd-panel .igd-card button.igd-close:hover { background: var(--igd-hover); color: var(--igd-text); }
+.igd-panel .igd-card button.igd-close:hover { color: var(--igd-text); }
 .igd-status { font-size: 13px; line-height: 17px; }
 .igd-status[data-kind="ok"] { color: var(--igd-text); }
 .igd-card:has(.igd-status[data-kind="warn"]) { border-color: var(--igd-warn); }
