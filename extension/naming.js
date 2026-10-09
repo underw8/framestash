@@ -78,12 +78,23 @@ function ownerIdOf(node) {
   return /^\d+$/.test(id) ? id : null;
 }
 
+// Folder name for a highlight item's node, or null for anything else. Falls back to the id
+// when the title cleans to nothing.
+function highlightFolder(node) {
+  const h = node && node.highlight;
+  if (!h || !/^\d+$/.test(String(h.id))) return null;
+  const title = (typeof h.title === "string" ? h.title : "").replace(/[\x00-\x1f\x7f<>:"/\\|?*]/g, "").trim()
+    .replace(/^[. ]+|[. ]+$/g, "").slice(0, 80).replace(/[. ]+$/, "");
+  return title || String(h.id);
+}
+
 // One feed node (v1 shape) -> one item per media file. Invalid parts are dropped.
 function itemsFromNode(node) {
   const owner = node && node.user && node.user.username;
   if (typeof owner !== "string" || !USERNAME_RE.test(owner)) return [];
   const parts = node.carousel_media && node.carousel_media.length ? node.carousel_media : [node];
   const items = [];
+  const folder = highlightFolder(node);
   for (const m of parts) {
     const best = bestMedia(m);
     if (!best || typeof best.url !== "string" || !CDN_URL_RE.test(best.url)) continue;
@@ -97,6 +108,7 @@ function itemsFromNode(node) {
       name: fileName(owner, takenAt, id, extensionOf(best.url, best.video)),
       owner,
       ownerId: ownerIdOf(node),
+      folder,
     });
   }
   return items;
@@ -230,7 +242,7 @@ function wait(ms, signal) {
 if (typeof module !== "undefined") {
   module.exports = {
     bestMedia, extensionOf, fileName, keyFromFileName, parseFileName, inferOwner, sniffMedia,
-    itemsFromNode, mediaNameOf, slideOnly, MEDIA_NAME_RE, shortcodeFromPath, routeFromPath, queueEntry, unfinished, visibleJobs, wait, USERNAME_RE,
+    itemsFromNode, highlightFolder, mediaNameOf, slideOnly, MEDIA_NAME_RE, shortcodeFromPath, routeFromPath, queueEntry, unfinished, visibleJobs, wait, USERNAME_RE,
     pinnedFlags, knownStreak, pageStreak, stopListing, resumeFrom, cursorOnFailure, cursorRecord, KNOWN_STOP,
   };
 }

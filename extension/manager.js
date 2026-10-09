@@ -534,7 +534,15 @@ async function run(job) {
   const account = await resolveAccountDir(top, items[0].owner, items[0].ownerId);
   const dir = sub ? await account.dir.getDirectoryHandle(sub, { create: true }) : account.dir;
   const c = counters(job, () => "");
-  await saveItems(dir, await indexFolder(dir), items, c);
+  // One index over stories/ and its highlight folders, so a pk saved in any of them is skipped.
+  const index = await indexFolder(dir, sub === "stories");
+  const split = sub === "stories" && $("highlightFolders").checked;
+  const groups = new Map();
+  for (const item of items) {
+    const g = split && item.folder ? item.folder : "";
+    groups.set(g, [...(groups.get(g) || []), item]);
+  }
+  for (const [g, group] of groups) await saveItems(g ? await dir.getDirectoryHandle(g, { create: true }) : dir, index, group, c);
   finish(job, c, [top.name, account.name, sub].filter(Boolean).join("/") + account.note);
 }
 
@@ -586,6 +594,9 @@ $("add").addEventListener("click", () => {
 });
 
 $("check").addEventListener("click", () => enqueue({ kind: "check" }));
+
+kv("highlightFolders").then((on) => { $("highlightFolders").checked = !!on; }).catch(() => {});
+$("highlightFolders").addEventListener("change", (e) => kv("highlightFolders", e.target.checked).catch(() => {}));
 
 (async () => {
   root = (await kv("root")) || null;

@@ -91,10 +91,14 @@ async function resolveAccountDir(root, username, userId) {
 // ---- saving ----
 
 // key -> file handles whose names map to that key; `true` once saved in this run.
-async function indexFolder(dir) {
-  const index = new Map();
+// `deep` also indexes direct subfolders (highlight folders), skipping dot-names.
+async function indexFolder(dir, deep, index = new Map()) {
   for await (const [name, handle] of dir.entries()) {
-    const key = handle.kind === "file" && keyFromFileName(name);
+    if (handle.kind === "directory") {
+      if (deep && !name.startsWith(".")) await indexFolder(handle, false, index);
+      continue;
+    }
+    const key = keyFromFileName(name);
     if (key) index.set(key, [...(index.get(key) || []), handle]);
   }
   return index;

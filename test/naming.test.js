@@ -33,8 +33,8 @@ const node = {
   ],
 };
 assert.deepEqual(n.itemsFromNode(node), [
-  { url: "https://scontent-a.cdninstagram.com/l.jpg?a", key: "100000000000000002", name: "a.b_1789389600_100000000000000002_42.jpg", owner: "a.b", ownerId: "42" },
-  { url: "https://instagram.fsgn5-1.fna.fbcdn.net/v.mp4?a", key: "100000000000000003", name: "a.b_1789389655_100000000000000003_42.mp4", owner: "a.b", ownerId: "42" },
+  { url: "https://scontent-a.cdninstagram.com/l.jpg?a", key: "100000000000000002", name: "a.b_1789389600_100000000000000002_42.jpg", owner: "a.b", ownerId: "42", folder: null },
+  { url: "https://instagram.fsgn5-1.fna.fbcdn.net/v.mp4?a", key: "100000000000000003", name: "a.b_1789389655_100000000000000003_42.mp4", owner: "a.b", ownerId: "42", folder: null },
 ]);
 // Owner id prefers user.pk over the id suffix.
 assert.equal(n.itemsFromNode({ ...node, user: { username: "a.b", pk: "777" } })[0].ownerId, "777");
@@ -55,6 +55,26 @@ for (const bad of [
   { ...good, image_versions2: { candidates: [{ url: "http://scontent-a.cdninstagram.com/x.jpg", width: 1, height: 1 }] } },
 ]) assert.deepEqual(n.itemsFromNode(bad), [], JSON.stringify(bad).slice(0, 80));
 assert.deepEqual(n.itemsFromNode(null), []);
+
+// highlightFolder(): cleaned title, id when the title cleans to nothing, null when not a highlight.
+{
+  const hl = (title, id = "17900000000000001") => n.highlightFolder({ highlight: { id, title } });
+  assert.equal(hl("Trip 2026"), "Trip 2026");
+  assert.equal(hl('a<b>c:d"e/f\\g|h?i*j'), "abcdefghij");
+  assert.equal(hl("x\u0000y\nz\u007f"), "xyz");
+  assert.equal(hl(".."), "17900000000000001");
+  assert.equal(hl("  "), "17900000000000001");
+  assert.equal(hl(" .hidden. "), "hidden");
+  assert.equal(hl(undefined), "17900000000000001");
+  assert.equal(hl("x".repeat(200)).length, 80);
+  assert.equal(hl("Trip", "highlight:1"), null);
+  assert.equal(n.highlightFolder({ user: { username: "a" } }), null);
+  assert.equal(n.highlightFolder(null), null);
+  const items = n.itemsFromNode({ ...good, highlight: { id: "17900000000000001", title: "Trip" } });
+  assert.equal(items[0].folder, "Trip");
+  assert.equal(items[0].name, n.itemsFromNode(good)[0].name);
+  assert.equal(items[0].key, n.itemsFromNode(good)[0].key);
+}
 
 // slideOnly(): narrows a carousel to the slide whose CDN file name matches, ignoring query and size variant.
 {

@@ -14,7 +14,7 @@ This folder is our own replacement for *a reference extension* v4.12.16, written
 3. **Download from Instagram.** igd adds buttons in the bottom-right corner, above Instagram's Messages button:
    - **Profile:** **Download @user** saves every post. **Stories** saves the active stories plus every highlight.
    - **Post or reel page** (`/p/…`, `/reel/…`, `/reels/…`): **Save post** saves every slide into `<root>/<owner>/`.
-   - **Story page** (`/stories/<user>/`) or **highlight page** (`/stories/highlights/<id>/`): saves those stories. Stories go to `<root>/<user>/stories/`. Downloading never marks a story as seen.
+   - **Story page** (`/stories/<user>/`) or **highlight page** (`/stories/highlights/<id>/`): saves those stories. Stories go to `<root>/<user>/stories/`; with **Highlights in their own folders** on, each highlight goes to `stories/<highlight title or id>/`. Downloading never marks a story as seen.
    - **Grid tiles and home-feed posts:** a round download button appears on hover and saves that post without opening it. Alt-click (Option-click on macOS) on a feed or opened post's slide button saves only that slide.
    - **Magnifier icon:** runs the collection check. **Panel icon:** opens the side panel.
 

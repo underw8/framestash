@@ -57,12 +57,18 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - [ ] Hover a slide button: the tooltip and the VoiceOver label mention 'Alt-click: this slide only'.
 
 ## T4 · Per-highlight subfolders
-- status: todo
+- status: needs-check
 - why: every story and highlight goes to `<user>/stories/`, so highlights can't be told apart.
 - done when:
   - there's an option to save each highlight into `<user>/stories/<highlight title or id>/`;
   - dedup by pk still works across these folders (a story already saved elsewhere isn't downloaded again);
   - the default layout is unchanged.
+- live checks:
+  - [ ] Reload igd at chrome://extensions and reload the Instagram tab. With "Highlights in their own folders" off, queue a profile's Stories & highlights. Everything should land in `<user>/stories/` with no subfolders, as before.
+  - [ ] Turn the switch on, close and reopen the panel: it should still be on. Queue the same profile again. Nothing new should be downloaded (every item counts as 'already had'), and no files should be written into highlight subfolders.
+  - [ ] With the switch on, download a highlight not saved before (from its `/stories/highlights/<id>/` page). Its items should go to `<user>/stories/<highlight title>/`. Active stories from the same run stay in `<user>/stories/`.
+  - [ ] In DevTools, check that `PolarisStoriesV3ReelPageStandaloneQuery` → `reels_media[].title` holds the highlight's display name (playbook steps 3–6). Then clear the 'to confirm' note in docs/03. If `title` is missing, folders are named by the highlight id.
+  - [ ] Move a file from `stories/<title>/` up into `stories/` and re-run. It should count as 'already had' and not be downloaded into the highlight folder again.
 
 ## T5 · DASH video quality
 - status: todo

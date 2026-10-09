@@ -106,7 +106,10 @@
       if (r.error) return r;
       if (!Array.isArray(r.data.reels_media)) return SHAPE;
       // Story items carry no owner of their own; the reel does.
-      for (const reel of r.data.reels_media) for (const item of (reel && reel.items) || []) nodes.push({ ...item, user: reel.user });
+      for (const reel of r.data.reels_media) {
+        const highlight = isHighlight && reel ? { id: String(reel.id).replace(/^highlight:/, ""), title: reel.title } : undefined;
+        for (const item of (reel && reel.items) || []) nodes.push({ ...item, user: reel.user, ...(highlight && { highlight }) });
+      }
     }
     return { nodes };
   }

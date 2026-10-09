@@ -135,5 +135,29 @@ const marker = async (dir) => JSON.parse(await (await (await dir.getFileHandle("
   assert.equal(pcStop.failed, 0);
   assert.equal(pcStop.saved, 0);
 
+  // Highlight folders: the deep index sees stories/<sub>/, never dot-folders; the shallow one is unchanged.
+  const stories = new FakeDir("stories");
+  stories.file(media("h", "100000000000000061", "9"));
+  (await stories.getDirectoryHandle("Trip", { create: true })).file(media("h", "100000000000000062", "9"));
+  (await stories.getDirectoryHandle(".trash", { create: true })).file(media("h", "100000000000000063", "9"));
+  const deep = await ctx.indexFolder(stories, true);
+  assert.ok(deep.has("100000000000000061") && deep.has("100000000000000062"));
+  assert.ok(!deep.has("100000000000000063"));
+  assert.deepEqual([...(await ctx.indexFolder(stories)).keys()], ["100000000000000061"]);
+
+  // Dedup across folders: a pk already in stories/ is not saved into stories/Trip/, and the reverse.
+  const hc = () => ({ saved: 0, skipped: 0, failed: 0, failures: [], progress() {} });
+  const trip = await stories.getDirectoryHandle("Trip");
+  const before61 = trip.children.size;
+  const c1 = hc();
+  await ctx.saveItems(trip, deep, [{ url: "https://x", key: "100000000000000061", name: media("h", "100000000000000061", "9") }], c1);
+  assert.equal(c1.skipped, 1);
+  assert.equal(trip.children.size, before61);
+  const c2 = hc();
+  const top = stories.children.size;
+  await ctx.saveItems(stories, deep, [{ url: "https://x", key: "100000000000000062", name: media("h", "100000000000000062", "9") }], c2);
+  assert.equal(c2.skipped, 1);
+  assert.equal(stories.children.size, top);
+
   console.log("collection: all checks passed");
 })().catch((e) => { console.error(e); process.exit(1); });
