@@ -240,6 +240,9 @@ function unfinished(jobs) {
   return jobs.filter((j) => j.state === "queued" || j.state === "running").map(queueEntry);
 }
 
+// Clear queue keeps only the job that is running or stopping; Stop handles that one.
+const clearQueue = (jobs) => jobs.filter((j) => j.state === "running" || j.state === "stopping");
+
 // Rows to render, newest first: every live job (it carries Stop/Remove), then finished ones up to `cap` total.
 function visibleJobs(jobs, cap = 50) {
   const live = (j) => j.state === "queued" || j.state === "running" || j.state === "stopping";
@@ -260,7 +263,7 @@ function wait(ms, signal) {
 if (typeof module !== "undefined") {
   module.exports = {
     bestMedia, extensionOf, fileName, keyFromFileName, parseFileName, inferOwner, sniffMedia,
-    itemsFromNode, highlightFolder, mediaNameOf, slideOnly, MEDIA_NAME_RE, shortcodeFromPath, routeFromPath, queueEntry, unfinished, visibleJobs, wait, USERNAME_RE,
+    itemsFromNode, highlightFolder, mediaNameOf, slideOnly, MEDIA_NAME_RE, shortcodeFromPath, routeFromPath, queueEntry, unfinished, clearQueue, visibleJobs, wait, USERNAME_RE,
     pinnedFlags, knownStreak, pageStreak, stopListing, resumeFrom, cursorOnFailure, cursorRecord, backfillUsername, startOverShown, KNOWN_STOP,
   };
 }

@@ -158,7 +158,14 @@ function renderJobs() {
     if (list.children[i] !== li) list.insertBefore(li, list.children[i] || null);
   });
   while (list.children.length > shown.length) list.lastElementChild.remove();
+  $("clear").hidden = clearQueue(jobs).length === jobs.length;
 }
+
+$("clear").addEventListener("click", () => {
+  jobs.splice(0, jobs.length, ...clearQueue(jobs));
+  saveQueue();
+  renderJobs();
+});
 
 $("jobs").addEventListener("click", (e) => {
   const restart = e.target.closest(".job-restart");

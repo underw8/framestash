@@ -303,6 +303,13 @@ assert.deepEqual(n.unfinished([]), []);
   assert.deepEqual(n.visibleJobs([]), []);
 }
 
+// clearQueue(): drops queued and finished jobs, keeps the running or stopping one.
+{
+  const jobs = ["queued", "running", "done", "error", "stopped", "stopping", "queued"].map((state) => ({ state }));
+  assert.deepEqual(n.clearQueue(jobs), [jobs[1], jobs[5]]);
+  assert.deepEqual(n.clearQueue([]), []);
+}
+
 (async () => {
   // wait(): resolves, rejects at once on an aborted signal, rejects and clears its timer when aborted mid-wait.
   await n.wait(20);

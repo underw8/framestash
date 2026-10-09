@@ -109,10 +109,10 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
 - live checks:
   - [x] Reload igd at chrome://extensions. Queue a large profile and watch the job detail: page requests should be 3–6 s apart, and the file count should climb about one file per 0.3–1 s.
   - [x] Queue two profiles. After the first finishes, the second should show a 30–90 s wait before its first request.
-  - [ ] Open the Pacing settings, set the hourly budget to 3 and run a profile. After 3 requests, the panel should say the queue is holding until a time about an hour after the first request. Close and reopen the panel (or restart Chrome): the hold and its time should still be shown. Reset to defaults afterwards.
+  - [x] Open the Pacing settings, set the hourly budget to 3 and run a profile. After 3 requests, the panel should say the queue is holding until a time about an hour after the first request. Close and reopen the panel (or restart Chrome): the hold and its time should still be shown. Reset to defaults afterwards.
   - [ ] Click Stop during each kind of wait (API gap, job gap, budget hold, breaker hold). The job should end as 'Stopped' within a second.
   - [ ] Breaker, timed: if a real 429 or 'please wait' happens (or simulate one by temporarily returning {error:'HTTP 429',status:429} from page.js), the panel should show the reason and a resume time 30 min out. No retry should happen before then, and a second trip should show 60 min.
-  - [ ] Breaker, manual: log out of Instagram in the tab and run a job. The panel should explain it's a login problem and show a Resume button, with no automatic resume. Log back in and click Resume: the job should continue from the same call.
+  - [x] Breaker, manual: log out of Instagram in the tab and run a job. The panel should explain it's a login problem and show a Resume button, with no automatic resume. Log back in and click Resume: the job should continue from the same call.
   - [ ] Check the hold card and Pacing settings in light and dark mode, and with keyboard only: the Resume button and the inputs are reachable and labelled, and VoiceOver reads the hold text.
 
 ## T8 · Incremental re-runs
