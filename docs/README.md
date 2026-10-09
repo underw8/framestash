@@ -7,4 +7,4 @@
 | [playbook.md](playbook.md) | Console probes for re-checking Instagram's API and auditing a collection |
 | [dash-video.md](dash-video.md) | Whether to save DASH video instead of progressive MP4: design, costs, decision |
 
-Instagram details drift. Before relying on [instagram-api.md](instagram-api.md), re-check it with playbook steps 2–5.
+Instagram details drift. Before relying on [instagram-api.md](instagram-api.md), re-check it with playbook steps 1–5.

@@ -1,3 +1,10 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="design/wordmark-dark.png">
+    <img src="design/wordmark-light.png" alt="igd." width="150">
+  </picture>
+</p>
+
 # igd: an Instagram downloader
 
 **Status:** igd downloads profiles, single posts, grid and feed items, stories and highlights into an existing collection. All saving happens in an **igd side panel**, which holds the folder once for every tab and runs a **download queue**. The extension is in `extension/`; history and test results are in the git log. Specs are in `docs/`.
@@ -31,7 +38,7 @@
   - A folder is never shared by two accounts. If a username now belongs to someone else, that account gets `<username>_<userId>/`.
 - **Writing:** never overwrites a non-empty file. A file is created only after a successful, status-checked download, so failures leave nothing behind. 0-byte, `.error.txt` and corrupt files already in a collection are reported by the check, never deleted.
 - **Pacing:** each page of posts is written as it arrives. One pacer in the panel spaces every Instagram request 3–6 s apart, CDN downloads 0.3–1 s apart and rests up to 30–90 s after a job, in proportion to the requests it made, so a job of a request or two adds only a few seconds (all jittered), takes a 5–10 min break about every 150 requests, and keeps to a budget of 200 requests per hour and 1,500 per day that survives restarts. All of these are settings in the panel.
-- **Circuit breaker:** a 429, a "please wait" / feedback_required reply, or a reply that isn't the expected data holds the whole queue for 30 min, doubling on each repeated trip (capped at 24 h). A login or checkpoint/challenge reply holds it until you click Resume.
+- **Circuit breaker:** a 429 or other HTTP error, a "please wait" / feedback_required reply, or a reply that isn't the expected data holds the whole queue for 30 min, doubling on each repeated trip (capped at 24 h). A login or checkpoint/challenge reply holds it until you click Resume.
 - **Pause:** Pause queue halts the running job at its next request or download and starts nothing new until you click Resume. The pause survives closing the panel and restarting Chrome; a profile job then continues from its saved listing position.
 - **Security:**
   - The folder handle is stored only in the panel's own extension storage, which pages on instagram.com can't reach.
@@ -42,7 +49,7 @@
 
 **Not yet:** DASH video quality ([dash-video.md](docs/dash-video.md)).
 
-**When Instagram changes something,** re-run playbook steps 4–5 ([playbook.md](docs/playbook.md)) and update [instagram-api.md](docs/instagram-api.md) before changing code.
+**When Instagram changes something,** re-run playbook steps 1–5 ([playbook.md](docs/playbook.md)) and update [instagram-api.md](docs/instagram-api.md) before changing code.
 
 ## Working on tasks
 
@@ -54,7 +61,9 @@ Open work lives in `TASKS.md`. The saved workflow `igd-task` (`.claude/workflows
 4. **Review:** security, collection-compatibility and correctness reviews, with up to two reviewed fix rounds.
 5. **Finish:** one commit. The task is set to `needs-check`, with the live checks only you can do (reloads, real clicks, folder picks).
 
-Start it in Claude Code by asking it to run the `igd-task` workflow, optionally naming the task.
+Start it in Claude Code by asking it to run the `igd-task` workflow, optionally naming the task. To run several tasks back to back, use `igd-tasks` (`.claude/workflows/igd-tasks.js`) with a list of task ids; it stops at the first task that doesn't end in a commit, and the live checks collect in `TASKS.md` for later.
+
+Plan, Build and Review run on the session's model, because they carry the security and compatibility rules. Pick and Finish are mechanical and run on smaller models.
 
 ## Look and feel
 
@@ -63,7 +72,7 @@ Start it in Claude Code by asking it to run the `igd-task` workflow, optionally 
 - **Wordmark igd.:** heavy sans-serif with a warm-to-violet gradient dot.
   - The toolbar icon is a near-black rounded square, so it isn't mistaken for Instagram's app icon.
   - Icons are stroke SVGs drawn for igd.
-  - The logo sources are in `design/`; `render-icons.sh` rebuilds the PNGs. `wordmark.svg` is the brand master; the panel draws the wordmark in CSS.
+  - The logo sources are in `design/`; `render-icons.sh` rebuilds the PNGs, including the light and dark wordmarks at the top of this README. `wordmark.svg` is the brand master; the panel and the status card draw the wordmark in CSS.
 
 ## Checks
 
@@ -81,10 +90,10 @@ node test/pacer.test.js        # pacing, budgets, block-signal classification an
 igd/
 ├── extension/      the MV3 extension (load unpacked)
 ├── design/         logo sources + render-icons.sh
-├── test/           node checks
+├── test/           node checks (naming, collection, pacer)
 ├── docs/           collection format, Instagram API, probes, design notes
 ├── TASKS.md        open work, consumed by the igd-task workflow
-├── .claude/workflows/igd-task.js
+├── .claude/workflows/   igd-task.js (one task), igd-tasks.js (several in order)
 ├── README.md       this file
 └── CLAUDE.md       ground rules for working here
 ```
