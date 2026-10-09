@@ -381,6 +381,7 @@ async function paceCdn(job) {
 
 const TRIP_TEXT = {
   rate: "Instagram is limiting requests",
+  http: "Instagram answered with an error",
   shape: "Instagram sent an unexpected reply; Instagram may have changed the query, and igd may need an update",
   login: "Instagram wants you to log in again. Log in on instagram.com.",
   challenge: "Instagram wants you to confirm your account. Clear the check on instagram.com.",

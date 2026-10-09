@@ -53,6 +53,7 @@ function classify(op, r) {
   }
   if (r.checkpoint || /^\/challenge/.test(redirect || "") || said(/checkpoint|challenge/i)) return { reason: "challenge", manual: true };
   if (r.status === 429 || r.spam || said(/please wait|feedback_required|spam/i)) return { reason: "rate", manual: false };
+  if (r.status >= 400) return { reason: "http", manual: false };
   if (redirect || /not JSON|unexpected response shape|malformed reply/.test(err)) return { reason: "shape", manual: false };
   if (err) return null;
   const ok = op === "userId" ? typeof r.pk === "string" && r.pk !== "" : Array.isArray(r.nodes);

@@ -41,18 +41,22 @@
         fb_dtsg: R("DTSGInitialData").token,
       }),
     });
-    if (!res.ok) return { error: `HTTP ${res.status}`, status: res.status };
     if (res.redirected) return { error: `redirected to ${new URL(res.url).pathname}` };
+    // Block replies usually come with HTTP 400, so error bodies are read too.
+    const status = res.ok ? undefined : res.status;
+    const httpError = { error: `HTTP ${res.status}`, status };
     const text = (await res.text()).replace(/^for \(;;\);/, "");
     let json;
-    try { json = JSON.parse(text); } catch { return { error: "response is not JSON (Instagram may have changed the query)" }; }
+    try { json = JSON.parse(text); } catch { return res.ok ? { error: "response is not JSON (Instagram may have changed the query)" } : httpError; }
+    if (!json || typeof json !== "object") return res.ok ? SHAPE : httpError;
     // Some queries return usable data next to field-level errors, so data wins.
-    const data = json.data && json.data[rootField];
+    const data = res.ok && json.data && json.data[rootField];
     if (data) return { data };
     // Instagram's block replies (docs/03, "Block signals"); the panel's breaker tells them apart.
     if (json.message || json.require_login || json.checkpoint_url) {
-      return { error: String(json.message || "login required"), block: true, login: !!json.require_login, checkpoint: !!json.checkpoint_url, spam: !!json.spam };
+      return { error: String(json.message || "login required"), status, block: true, login: !!json.require_login, checkpoint: !!json.checkpoint_url, spam: !!json.spam };
     }
+    if (!res.ok) return httpError;
     if (json.errors && json.errors.length) return { error: json.errors[0].message || "GraphQL error" };
     return SHAPE;
   }
