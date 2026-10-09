@@ -48,13 +48,8 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - it still saves into `<root>/<owner>/` under the same naming and dedup rules;
   - the whole-post behaviour stays the default.
 - live checks:
-  - [ ] Reload igd at chrome://extensions and reload the Instagram tab. On a carousel post page (`/p/…`), swipe to slide 3 and Alt-click (Option-click) its igd button. The panel row should read 'post CODE (one slide)', and exactly one file should be saved in `<root>/<owner>/`: slide 3's media, named `<owner>_<taken_at>_<id>.<ext>`.
-  - [ ] On the same post, plain-click a slide's igd button. The whole post should be saved, with slide 3 counted as 'already had' (dedup by pk holds).
-  - [ ] In the home feed, Alt-click a slide button on a carousel post that is not the last one you swiped. The slide shown on that button's post should be saved, not a slide from another post.
-  - [ ] Alt-click the button on a video slide inside a carousel. Either that video is saved, or the panel/tab shows the 'couldn't tell which slide' message. Note which one happens: it tells us whether video slides need another approach.
+  - [ ] Pass T11's live checks. They replace the Alt-click checks, since T11 removed Alt-click.
   - [ ] In DevTools on a carousel, confirm that the last path segment of the shown `<img>` `currentSrc` equals the last path segment of one of that slide's `image_versions2.candidates[].url` in the PolarisPostRootQuery reply (playbook step 3). Then the docs/03 'to verify' note can be cleared.
-  - [ ] Alt-click a grid tile's button on a profile. It should save the whole post as before (tiles have no visible slide).
-  - [ ] Hover a slide button: the tooltip and the VoiceOver label mention 'Alt-click: this slide only'.
 
 ## T4 · Per-highlight subfolders
 - status: needs-check
@@ -176,7 +171,7 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - A queued profile with no saved position (or a story/post job) shows no Start over button.
 
 ## T11 · Second button for one carousel slide
-- status: todo
+- status: needs-check
 - why: saving one slide with Alt-click (T3) is hard to discover. The user chose a visible second button.
 - done when:
   - on a carousel post, a small second button next to the per-item download button saves only the visible slide. Single-image and video posts don't show it.
@@ -184,3 +179,11 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - the new button requires event.isTrusted, finds posts without Instagram class names, has a title and aria-label, and matches the existing per-item button style.
   - saving, naming and dedup are unchanged (`<root>/<owner>/`, pk).
   - README describes the new button; the existing test suites pass.
+- live checks:
+  - [ ] Reload igd at chrome://extensions and reload the Instagram tab. On a carousel post page (/p/…), hover a slide: two round buttons appear top-left, and the second one has the slide icon and reads 'Save only this slide (igd)' as its tooltip.
+  - [ ] Swipe to slide 3 and click the slide button. The panel row reads 'post CODE (one slide)', and exactly one file, slide 3's media named `<owner>_<taken_at>_<id>.<ext>`, is saved in `<root>/<owner>/`.
+  - [ ] Click the main button on the same post. The whole post is saved, and slide 3 is counted as 'already had' (pk dedup holds).
+  - [ ] Alt-click the main button: it saves the whole post, so the Alt shortcut is gone.
+  - [ ] In the home feed, check that a single-image post and a single-video post show only the main button, and that a carousel post shows both. Clicking the slide button on a carousel post that is not the one you last swiped saves that post's visible slide.
+  - [ ] On a profile grid, tiles show only the main button and do not navigate when it is clicked.
+  - [ ] Click the slide button on a video slide inside a carousel. Note whether the video is saved or the 'couldn't tell which slide' warning appears.

@@ -38,6 +38,7 @@ const ICONS = {
   check: '<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/>',
   panel: '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M15 4v16"/>',
   close: '<path d="M7 7l10 10M17 7L7 17"/>',
+  slide: '<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 8v7M9 12.5l3 3 3-3"/>',
 };
 const icon = (name) =>
   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name]}</svg>`;
@@ -111,16 +112,16 @@ onUserClick(panel.querySelector(".igd-open"), async () => {
 
 const POST_LINK = 'a[href*="/p/"], a[href*="/reel/"]';
 
-const hasItemButton = (host) => host.querySelector(":scope > .igd-item");
+const hasItemButton = (host, sel = ".igd-item:not(.igd-slide)") => host.querySelector(`:scope > ${sel}`);
 
-function addItemButton(host, shortcode) {
+function addItemButton(host, shortcode, slide = false) {
   if (getComputedStyle(host).position === "static") host.classList.add("igd-host");
   const button = document.createElement("button");
   button.type = "button";
-  button.className = "igd-item";
-  button.title = "Save this post (igd) · Alt-click: this slide only";
+  button.className = slide ? "igd-item igd-slide" : "igd-item";
+  button.title = slide ? "Save only this slide (igd)" : "Save this post (igd)";
   button.setAttribute("aria-label", button.title);
-  button.innerHTML = icon("download");
+  button.innerHTML = icon(slide ? "slide" : "download");
   button.dataset.shortcode = shortcode;
   host.append(button);
 }
@@ -134,16 +135,23 @@ function scanItems() {
   }
   // Feed posts and opened posts: an <article> whose links include the post's permalink.
   // The button goes on each large, on-screen photo or video, inside its frame.
+  // A carousel is an article whose large media sit in 2+ distinct frames (a video and
+  // its poster share one); its frames also get a one-slide button.
   for (const article of document.querySelectorAll("article")) {
     const link = [...article.querySelectorAll(POST_LINK)]
       .map((a) => shortcodeFromPath(new URL(a.href, location.origin).pathname))
       .find(Boolean);
     if (!link) continue;
-    for (const media of article.querySelectorAll("img, video")) {
-      const r = media.getBoundingClientRect();
-      if (r.width < 200 || r.height < 200 || r.bottom < 0 || r.top > innerHeight) continue;
+    const large = [...article.querySelectorAll("img, video")]
+      .map((media) => [media, media.getBoundingClientRect()])
+      .filter(([, r]) => r.width >= 200 && r.height >= 200);
+    const frames = new Set(large.map(([media]) => mediaFrame(media, article)));
+    const carousel = frames.size > 1;
+    for (const [media, r] of large) {
+      if (r.bottom < 0 || r.top > innerHeight) continue;
       const frame = mediaFrame(media, article);
       if (!hasItemButton(frame)) addItemButton(frame, link);
+      if (carousel && !hasItemButton(frame, ".igd-slide")) addItemButton(frame, link, true);
     }
   }
 }
@@ -170,14 +178,13 @@ document.addEventListener("click", (e) => {
   if (!e.isTrusted) return;
   const shortcode = button.dataset.shortcode;
   const frame = button.parentElement;
-  // Grid tiles (the post link itself, or outside an article) always save the whole post.
-  if (!e.altKey || !frame.closest("article") || frame.matches(POST_LINK)) return send({ kind: "post", shortcode });
+  if (!button.classList.contains("igd-slide")) return send({ kind: "post", shortcode });
   // Read at click time: Instagram reuses slide frames for other slides.
   const img = frame.querySelector("img");
   const video = frame.querySelector("video");
   const media = mediaNameOf(img ? img.currentSrc || img.src : video && video.poster);
   if (media) send({ kind: "post", shortcode, media });
-  else setStatus("igd couldn't tell which slide this is. Click without Alt to save the whole post.", "warn");
+  else setStatus("igd couldn't tell which slide this is. Use the other button to save the whole post.", "warn");
 }, true);
 
 // Instagram's floating Messages button opens into a 360 px panel in the same corner.

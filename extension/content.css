@@ -75,6 +75,7 @@
   background: rgba(0, 0, 0, .6); color: #fff;
   opacity: 0; transition: opacity .15s, transform .15s;
 }
+.igd-item.igd-slide { left: 48px; }
 .igd-item svg { width: 18px; height: 18px; }
 .igd-item:hover { transform: scale(1.08); background: rgba(0, 0, 0, .7); }
 :hover > .igd-item, .igd-item:focus-visible { opacity: 1; }

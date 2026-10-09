@@ -15,7 +15,7 @@ This folder is our own replacement for *a reference extension* v4.12.16, written
    - **Profile:** **Download @user** saves every post. **Stories** saves the active stories plus every highlight.
    - **Post or reel page** (`/p/…`, `/reel/…`, `/reels/…`): **Save post** saves every slide into `<root>/<owner>/`.
    - **Story page** (`/stories/<user>/`) or **highlight page** (`/stories/highlights/<id>/`): saves those stories. Stories go to `<root>/<user>/stories/`; with **Highlights in their own folders** on, each highlight goes to `stories/<highlight title or id>/`. Downloading never marks a story as seen.
-   - **Grid tiles and home-feed posts:** a round download button appears on hover and saves that post without opening it. Alt-click (Option-click on macOS) on a feed or opened post's slide button saves only that slide.
+   - **Grid tiles and home-feed posts:** a round download button appears on hover and saves the whole post without opening it. On a carousel in the feed or on a post page, a second button beside it saves only the visible slide.
    - **Magnifier icon:** runs the collection check. **Panel icon:** opens the side panel.
 
    Every button sends a job to the panel's queue, opening the panel first if it's closed, and the status card shows the job's progress.
@@ -45,7 +45,6 @@ The numbers in brackets point to the study notes in `docs/`.
 - **Privacy:** no telemetry and no web-accessible resources [5]. Permissions are `sidePanel`, plus host access to instagram.com and Instagram's CDN so the panel can fetch media.
 
 **Not yet:**
-- saving only the current carousel slide
 - resuming an interrupted profile run from where it stopped
 - DASH video quality
 - per-highlight subfolders
