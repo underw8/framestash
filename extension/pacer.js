@@ -64,6 +64,20 @@ const cooldownMs = (trips) => Math.min(30 * 60e3 * 2 ** (Math.max(1, trips) - 1)
 // Trip count for a new trip: doubling restarts after a day without one.
 const nextTrips = (prev, lastTrip, now) => (lastTrip && now - lastTrip < DAY ? (prev || 0) + 1 : 1);
 
+// A user pause sits on top of a still-running timed hold, which comes back on Resume.
+const pauseHold = (hold, now) => ({
+  until: null, reason: "You paused the queue.", manual: true, paused: true,
+  after: hold && !hold.manual && hold.until > now ? hold : null,
+});
+const resumeHold = (hold, now) => (hold && hold.after && hold.after.until > now ? hold.after : null);
+// A timed trip during a user pause waits under it; a manual trip replaces it.
+const tripHold = (current, next) => (current && current.paused && !next.manual ? { ...current, after: next } : next);
+
+function holdText(h, now, clock) {
+  if (!h || (!h.manual && h.until <= now)) return "";
+  return h.manual ? `${h.reason} Click Resume to continue.` : `${h.reason} The queue resumes at ${clock(h.until)}.`;
+}
+
 if (typeof module !== "undefined") {
-  module.exports = { PACING_DEFAULTS, pacingSettings, jitter, nextBreakAt, budgetWait, classify, cooldownMs, nextTrips };
+  module.exports = { PACING_DEFAULTS, pacingSettings, jitter, nextBreakAt, budgetWait, classify, cooldownMs, nextTrips, pauseHold, resumeHold, tripHold, holdText };
 }

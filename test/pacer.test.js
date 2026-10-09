@@ -85,4 +85,28 @@ assert.equal(p.nextTrips(0, 0, now), 1);
 assert.equal(p.nextTrips(2, now - HOUR, now), 3);
 assert.equal(p.nextTrips(5, now - DAY - 1, now), 1);
 
+// Pause and resume: a still-running timed hold survives a pause.
+const timed = { until: now + HOUR, reason: "Instagram is limiting requests.", manual: false };
+const paused = p.pauseHold(null, now);
+assert.deepEqual(paused, { until: null, reason: "You paused the queue.", manual: true, paused: true, after: null });
+assert.equal(p.pauseHold(timed, now).after, timed);
+assert.equal(p.pauseHold({ ...timed, until: now }, now).after, null);
+assert.equal(p.pauseHold({ until: null, reason: "Log in.", manual: true }, now).after, null);
+assert.equal(p.resumeHold(p.pauseHold(timed, now), now + MIN), timed);
+assert.equal(p.resumeHold(p.pauseHold(timed, now), now + HOUR), null);
+assert.deepEqual(p.tripHold(paused, timed), { ...paused, after: timed });
+assert.equal(p.resumeHold(p.tripHold(paused, timed), now + MIN), timed);
+const manualTrip = { until: null, reason: "Log in.", manual: true };
+assert.equal(p.tripHold(paused, manualTrip), manualTrip);
+assert.equal(p.tripHold(timed, manualTrip), manualTrip);
+assert.equal(p.tripHold(null, timed), timed);
+assert.equal(p.resumeHold(paused, now), null);
+assert.equal(p.resumeHold(null, now), null);
+
+const clock = (t) => `@${t}`;
+assert.ok(p.holdText(paused, now, clock).endsWith("Click Resume to continue."));
+assert.equal(p.holdText(timed, now, clock), `Instagram is limiting requests. The queue resumes at @${now + HOUR}.`);
+assert.equal(p.holdText(null, now, clock), "");
+assert.equal(p.holdText(timed, now + HOUR, clock), "");
+
 console.log("pacer: all checks passed");

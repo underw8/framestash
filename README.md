@@ -36,6 +36,7 @@ The numbers in brackets point to the study notes in `docs/`.
 - **Writing:** never overwrites a non-empty file. A file is created only after a successful, status-checked download, so failures leave nothing behind. The 0-byte, `.error.txt` and corrupt files the old tool left are reported by the check, never deleted [6].
 - **Pacing:** each page of posts is written as it arrives. One pacer in the panel spaces every Instagram request 3–6 s apart, CDN downloads 0.3–1 s apart and jobs 30–90 s apart (all jittered), takes a 5–10 min break about every 150 requests, and keeps to a budget of 200 requests per hour and 1,500 per day that survives restarts. All of these are settings in the panel [3].
 - **Circuit breaker:** a 429, a "please wait" / feedback_required reply, or a reply that isn't the expected data holds the whole queue for 30 min, doubling on each repeated trip (capped at 24 h). A login or checkpoint/challenge reply holds it until you click Resume [3, 6].
+- **Pause:** Pause queue halts the running job at its next request or download and starts nothing new until you click Resume. The pause survives closing the panel and restarting Chrome; a profile job then continues from its saved listing position.
 - **Security:**
   - The folder handle is stored only in the panel's own extension storage, which pages on instagram.com can't reach [6].
   - Instagram tabs only list posts and stories. The panel validates every record and does all fetching and writing.

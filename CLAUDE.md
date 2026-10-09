@@ -13,7 +13,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
   Naming must stay compatible with the old collections; run the test after any change.
 - `extension/collection.js`: `.igd.json` markers, `resolveAccountDir`, saving, and the read-only `checkCollection`. Used by the panel; tested offline against an in-memory folder tree in `test/collection.test.js`.
-- `extension/pacer.js`: pure pacing and circuit-breaker rules (jitter, settings, hourly/daily budget, reply classification, cool-down growth), tested in `test/pacer.test.js`. `manager.js` sends every bridge call through `paceApi` and every download through `paceCdn`; a block signal holds the whole queue instead of retrying, and login/challenge holds wait for the user's Resume.
+- `extension/pacer.js`: pure pacing and circuit-breaker rules (jitter, settings, hourly/daily budget, reply classification, cool-down growth), tested in `test/pacer.test.js`. `manager.js` sends every bridge call through `paceApi` and every download through `paceCdn`; a block signal holds the whole queue instead of retrying, and login/challenge holds wait for the user's Resume. Pause is one more manual hold (`pauseHold`/`resumeHold`) that keeps any running timed hold for after Resume.
 - `extension/page.js`: page-world GraphQL calls (`PolarisProfilePostsQuery`, `PolarisPostRootQuery`, `PolarisAPITopsearchQuery` for username → id, `PolarisProfileStoryHighlightsTrayContentQuery`, `PolarisStoriesV3ReelPageStandaloneQuery`).
   - Query flags ("provided variables") are read from each query's definition.
   - Each request gets exactly one reply on its port.

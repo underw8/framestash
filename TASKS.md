@@ -123,7 +123,7 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - [ ] Save a single post and a story: both behave as before.
 
 ## T9 · Pause and resume the queue
-- status: todo
+- status: needs-check
 - why: Stop drops a job. Sometimes you want to halt everything for a while and continue later from the same place.
 - done when:
   - the panel has one Pause button for the whole queue. The running job halts at its next safe point (the same points Stop uses) and keeps its position. Nothing new starts while paused.
@@ -132,3 +132,12 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - pause shares the hold state of the T7 circuit breaker, so a breaker hold and a user pause show and resume the same way.
   - the controls are real buttons, keyboard-reachable and labelled, and match the panel's style.
   - pure logic is unit-tested; the existing test suites pass.
+- live checks:
+  - [ ] Reload igd at chrome://extensions. Queue a large profile and click 'Pause queue' while it lists. Within one request or download gap, the file count should stop. The hold card should read 'You paused the queue. Click Resume to continue.', and the job row should stay Running with the same text.
+  - [ ] While paused, queue another job. It should stay Queued and not start.
+  - [ ] Click Resume. The same job should continue from the same page, with no counts reset and no repeated page, and then the queued job should run.
+  - [ ] Pause, then close the side panel and reopen it. The hold card should still say paused, and the job should be back in the list as Queued. Click Resume: the profile should continue with 'resumed from page N'.
+  - [ ] Pause, quit and restart Chrome, then open the panel. It should still be paused. Resume should continue from the saved page.
+  - [ ] While paused, click Stop on the running job. It should show Stopped within a second.
+  - [ ] Keyboard only: Tab to 'Pause queue' and press Enter. Focus should move to Resume. Press Enter again: focus should go back to Pause. VoiceOver should read the hold text. Check light and dark mode.
+  - [ ] If a breaker cool-down happens (or you simulate a 429 as in T7), click Pause during it and then Resume before the cool-down ends. The timed hold with its original resume time should come back, not a direct restart.

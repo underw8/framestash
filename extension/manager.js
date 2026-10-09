@@ -195,7 +195,9 @@ async function pump() {
   if (busy || !ownsQueue) return;
   busy = true;
   try {
+    await paceLoaded;
     for (let job; (job = jobs.find((j) => j.state === "queued")); ) {
+      if (pace.hold && pace.hold.manual) break;
       job.state = "running";
       saveQueue();
       update(job, "Starting…");
@@ -265,15 +267,11 @@ const savePace = () => { paceSaving = paceSaving.then(() => kv("pace", pace)).ca
 
 const clock = (t) => new Date(t).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
-function holdText(h) {
-  if (!h || (!h.manual && h.until <= Date.now())) return "";
-  return h.manual ? `${h.reason} Then click Resume.` : `${h.reason} The queue resumes at ${clock(h.until)}.`;
-}
-
-function renderHold(text = holdText(pace.hold)) {
+function renderHold(text = holdText(pace.hold, Date.now(), clock)) {
   $("hold").hidden = !text;
   $("holdText").textContent = text;
   $("resume").hidden = !(pace.hold && pace.hold.manual);
+  $("pause").hidden = !!(pace.hold && pace.hold.manual);
 }
 
 function renderPacing() {
@@ -292,11 +290,19 @@ $("pacingBox").addEventListener("change", () => setPacing(Object.fromEntries([..
 $("pacingReset").addEventListener("click", () => setPacing({}));
 
 $("resume").addEventListener("click", () => {
-  pace.hold = null; // trips are kept, so the next trip still doubles
+  pace.hold = resumeHold(pace.hold, Date.now()); // trips are kept, so the next trip still doubles
   savePace();
   renderHold();
   resumeNow();
   pump();
+  $("pause").focus();
+});
+
+$("pause").addEventListener("click", () => {
+  pace.hold = pauseHold(pace.hold, Date.now());
+  savePace();
+  renderHold();
+  $("resume").focus();
 });
 
 function untilResume(signal) {
@@ -319,13 +325,11 @@ async function paceApi(job) {
     const now = Date.now();
     const h = pace.hold;
     if (h && h.manual) {
-      update(job, holdText(h), "warn");
-      renderHold();
-      await untilResume(stopper.signal);
+      await whileManualHold(job);
       continue;
     }
     if (h && h.until > now) {
-      update(job, holdText(h), "warn");
+      update(job, holdText(h, Date.now(), clock), "warn");
       renderHold();
       await waitUntil(h.until);
       continue;
@@ -355,12 +359,22 @@ async function paceApi(job) {
     const at = Math.max(pace.lastApi + jitter(pacing.apiMin, pacing.apiMax), gap);
     if (gap > now) update(job, `Waiting until ${clock(gap)} between jobs…`);
     await wait(Math.max(0, at - now), stopper.signal);
+    if (pace.hold && pace.hold.manual) continue;
     return;
   }
 }
 
-async function paceCdn() {
+async function whileManualHold(job) {
+  while (pace.hold && pace.hold.manual) {
+    update(job, holdText(pace.hold, Date.now(), clock), "warn");
+    renderHold();
+    await untilResume(stopper.signal);
+  }
+}
+
+async function paceCdn(job) {
   await wait(Math.max(0, lastCdn + jitter(pacing.cdnMin, pacing.cdnMax) - Date.now()), stopper.signal);
+  await whileManualHold(job);
   lastCdn = Date.now();
 }
 
@@ -394,7 +408,7 @@ async function bridge(job, op, args) {
     pace.trips = nextTrips(pace.trips, pace.lastTrip, now);
     pace.lastTrip = now;
     const why = trip.manual ? TRIP_TEXT[trip.reason] : `${TRIP_TEXT[trip.reason]} (${String(r.error || "missing data").slice(0, 120)}).`;
-    pace.hold = { until: trip.manual ? null : now + cooldownMs(pace.trips), reason: why, manual: trip.manual };
+    pace.hold = tripHold(pace.hold, { until: trip.manual ? null : now + cooldownMs(pace.trips), reason: why, manual: trip.manual });
     savePace();
     renderHold();
   }
@@ -407,7 +421,7 @@ const summary = (c) => `new ${c.saved} · already had ${c.skipped} · failed ${c
 function counters(job, prefix) {
   const c = { saved: 0, skipped: 0, failed: 0, failures: [], progress: () => update(job, `${prefix()}${summary(c)}`) };
   c.halt = () => stopper.signal.throwIfAborted();
-  c.pace = () => paceCdn();
+  c.pace = () => paceCdn(job);
   counts = c;
   return c;
 }
