@@ -27,6 +27,11 @@ function pacingSettings(raw) {
 // A random wait between min and max seconds, in ms.
 const jitter = (min, max, rand = Math.random) => (min + (max - min) * rand()) * 1000;
 
+// Rest after a job grows with the Instagram calls it made: a job that needed a
+// call or two gets a few seconds, one with JOB_FULL_CALLS or more gets the full gap.
+const JOB_FULL_CALLS = 20;
+const jobGap = (calls, s, rand = Math.random) => jitter(s.jobMin, s.jobMax, rand) * Math.min(1, calls / JOB_FULL_CALLS);
+
 // Calls until the next long break: breakEvery ± 10 %.
 const nextBreakAt = (s, rand = Math.random) => Math.max(1, Math.round(s.breakEvery * (0.9 + 0.2 * rand())));
 
@@ -80,5 +85,5 @@ function holdText(h, now, clock) {
 }
 
 if (typeof module !== "undefined") {
-  module.exports = { PACING_DEFAULTS, pacingSettings, jitter, nextBreakAt, budgetWait, classify, cooldownMs, nextTrips, pauseHold, resumeHold, tripHold, holdText };
+  module.exports = { PACING_DEFAULTS, pacingSettings, jitter, jobGap, nextBreakAt, budgetWait, classify, cooldownMs, nextTrips, pauseHold, resumeHold, tripHold, holdText };
 }

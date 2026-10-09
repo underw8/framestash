@@ -8,6 +8,14 @@ const DAY = 24 * HOUR;
 
 // Jitter: seconds in, ms out, both ends reachable.
 assert.equal(p.jitter(3, 6, () => 0), 3000);
+// Job gap scales with the calls the job made, capped at the full gap.
+{
+  const s = p.pacingSettings({});
+  assert.equal(p.jobGap(0, s, () => 0), 0);
+  assert.equal(p.jobGap(1, s, () => 0), 1500);
+  assert.equal(p.jobGap(10, s, () => 1), 45000);
+  assert.equal(p.jobGap(500, s, () => 1), 90000);
+}
 assert.equal(Math.round(p.jitter(3, 6, () => 0.999)), 5997);
 for (let i = 0; i < 1000; i++) {
   const ms = p.jitter(0.3, 1);

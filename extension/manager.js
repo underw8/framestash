@@ -236,7 +236,7 @@ async function pump() {
       update(job, "Starting…");
       stopper = new AbortController();
       counts = null;
-      apiThisJob = false;
+      apiThisJob = 0;
       try {
         await run(job);
         job.state = "done";
@@ -253,7 +253,7 @@ async function pump() {
         // A folder problem stops the queue until the user fixes it here.
         if (/igd panel/.test(e.message)) { job.state = "queued"; saveQueue(); renderJobs(); break; }
       } finally {
-        if (apiThisJob) { pace.lastJobEnd = Date.now(); savePace(); }
+        if (apiThisJob) { pace.lastJobEnd = Date.now(); pace.jobGap = jobGap(apiThisJob, pacing); savePace(); }
         await loadCursors();
       }
       saveQueue();
@@ -285,9 +285,9 @@ async function instagramTab(preferred) {
 let pacing = pacingSettings();
 // Persisted so closing the panel or restarting Chrome keeps budgets and holds.
 // hold: null or { until (null = until Resume), reason, manual }.
-let pace = { stamps: [], sinceBreak: 0, breakAt: nextBreakAt(pacing), lastApi: 0, lastJobEnd: 0, trips: 0, lastTrip: 0, hold: null };
+let pace = { stamps: [], sinceBreak: 0, breakAt: nextBreakAt(pacing), lastApi: 0, lastJobEnd: 0, jobGap: 0, trips: 0, lastTrip: 0, hold: null };
 let lastCdn = 0;
-let apiThisJob = false;
+let apiThisJob = 0; // Instagram calls made by the running job
 let resumeNow = () => {};
 const paceInputs = document.querySelectorAll("[data-pace]");
 
@@ -389,7 +389,7 @@ async function paceApi(job) {
       continue;
     }
     // The job gap applies only to the first call after a job ended.
-    const gap = pace.lastJobEnd >= pace.lastApi ? pace.lastJobEnd + jitter(pacing.jobMin, pacing.jobMax) : 0;
+    const gap = pace.lastJobEnd >= pace.lastApi ? pace.lastJobEnd + (pace.jobGap || 0) : 0;
     const at = Math.max(pace.lastApi + jitter(pacing.apiMin, pacing.apiMax), gap);
     if (gap > now) update(job, `Waiting until ${clock(gap)} between jobs…`);
     await wait(Math.max(0, at - now), stopper.signal);
@@ -437,7 +437,7 @@ async function bridge(job, op, args) {
     for (let i = 0; i < n; i++) pace.stamps.push(now);
     pace.sinceBreak += n;
     pace.lastApi = now;
-    apiThisJob = true;
+    apiThisJob += n;
     const trip = classify(op, r);
     if (!trip) { savePace(); return r; }
     pace.trips = nextTrips(pace.trips, pace.lastTrip, now);
