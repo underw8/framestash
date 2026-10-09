@@ -167,18 +167,21 @@ scanItems();
 // Find whichever is there (the fixed element under a point near the corner) and sit
 // above the button or to the left of the panel. Instagram's class names are never used.
 function placePanel() {
-  const target = document.elementsFromPoint(innerWidth - 60, innerHeight - 60).find((e) => !panel.contains(e));
+  // right/bottom of fixed elements are measured from the viewport minus scrollbars.
+  const vw = document.documentElement.clientWidth;
+  const vh = document.documentElement.clientHeight;
+  const target = document.elementsFromPoint(vw - 60, vh - 60).find((e) => !panel.contains(e));
   let fixed = target;
   while (fixed && fixed !== document.body && getComputedStyle(fixed).position !== "fixed") fixed = fixed.parentElement;
   const r = fixed && fixed !== document.body ? fixed.getBoundingClientRect() : null;
-  if (!r || r.width > innerWidth / 2) {
+  if (!r || r.width > vw / 2) {
     panel.style.right = panel.style.bottom = "";
   } else if (r.height > 120) {
-    panel.style.right = `${Math.round(innerWidth - r.left + 12)}px`; // Messages panel open: go left of it
-    panel.style.bottom = `${Math.round(innerHeight - r.bottom)}px`;
+    panel.style.right = `${Math.round(vw - r.left + 12)}px`; // Messages panel open: go left of it
+    panel.style.bottom = `${Math.round(vh - r.bottom)}px`;
   } else {
-    panel.style.right = `${Math.round(innerWidth - r.right)}px`; // above the Messages button
-    panel.style.bottom = `${Math.round(innerHeight - r.top + 12)}px`;
+    panel.style.right = `${Math.round(vw - r.right)}px`; // above the Messages button
+    panel.style.bottom = `${Math.round(vh - r.top + 12)}px`;
   }
 }
 
