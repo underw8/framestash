@@ -4,7 +4,6 @@
 // happens here. Helpers come from naming.js and collection.js.
 
 const $ = (id) => document.getElementById(id);
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ---- folder ----
 
@@ -79,6 +78,9 @@ $("grant").addEventListener("click", async () => {
 
 const jobs = [];
 let busy = false;
+// One job runs at a time; its controller stays off the job, which is structured-cloned into IndexedDB.
+let stopper = null;
+let counts = null;
 
 // One panel per profile owns the saved queue; the others stand by until it closes.
 let ownsQueue; // undefined until the first lock request settles
@@ -114,20 +116,53 @@ const STATE_ICONS = {
   running: '<path d="M12 3.5a8.5 8.5 0 1 1-8.5 8.5"/>',
   done: '<circle cx="12" cy="12" r="8.5"/><path d="M8 12.5l2.8 2.8L16 10"/>',
   error: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v5.5M12 16.4v.1"/>',
+  stopped: '<circle cx="12" cy="12" r="8.5"/><rect x="9" y="9" width="6" height="6" rx="1"/>',
 };
+STATE_ICONS.stopping = STATE_ICONS.running;
 
 // Labels and details carry usernames, so they go in with textContent only.
+// Rows are updated in place: replacing a row mid-click would drop the click on its button.
+const rows = new WeakMap();
 function renderJobs() {
   $("empty").hidden = jobs.length > 0;
-  $("jobs").replaceChildren(...jobs.slice(-50).reverse().map((j) => {
-    const li = $("jobRow").content.firstElementChild.cloneNode(true);
-    li.dataset.state = li.title = j.state;
-    li.querySelector("svg").innerHTML = STATE_ICONS[j.state];
+  const list = $("jobs");
+  const shown = visibleJobs(jobs);
+  shown.forEach((j, i) => {
+    let li = rows.get(j);
+    if (!li) {
+      li = $("jobRow").content.firstElementChild.cloneNode(true);
+      li.querySelector(".job-action").job = j;
+      rows.set(j, li);
+    }
+    const btn = li.querySelector(".job-action");
+    if (li.dataset.state !== j.state) {
+      li.dataset.state = li.title = j.state;
+      li.querySelector("svg").innerHTML = STATE_ICONS[j.state];
+      const action = { running: "Stop", queued: "Remove" }[j.state];
+      btn.hidden = !action;
+      if (action) btn.textContent = action;
+    }
     li.querySelector(".job-label").textContent = j.label;
     li.querySelector(".job-detail").textContent = j.detail;
-    return li;
-  }));
+    if (!btn.hidden) btn.setAttribute("aria-label", `${btn.textContent} ${j.label}`);
+    if (list.children[i] !== li) list.insertBefore(li, list.children[i] || null);
+  });
+  while (list.children.length > shown.length) list.lastElementChild.remove();
 }
+
+$("jobs").addEventListener("click", (e) => {
+  const job = e.target.closest(".job-action")?.job;
+  if (!job) return;
+  if (job.state === "running") {
+    stopper.abort();
+    job.state = "stopping";
+    job.detail = "Stopping…";
+  } else if (job.state === "queued") {
+    jobs.splice(jobs.indexOf(job), 1);
+  } else return;
+  saveQueue();
+  renderJobs();
+});
 
 function update(job, detail, kind = "") {
   job.detail = detail;
@@ -162,11 +197,19 @@ async function pump() {
       job.state = "running";
       saveQueue();
       update(job, "Starting…");
+      stopper = new AbortController();
+      counts = null;
       try {
         await run(job);
         job.state = "done";
         update(job, job.detail, "ok");
       } catch (e) {
+        if (stopper.signal.aborted) {
+          job.state = "stopped";
+          update(job, counts ? `Stopped · ${summary(counts)}` : "Stopped before any file was saved.", "warn");
+          saveQueue();
+          continue;
+        }
         job.state = "error";
         update(job, e.message, "error");
         // A folder problem stops the queue until the user fixes it here.
@@ -199,6 +242,7 @@ async function instagramTab(preferred) {
 async function bridge(job, op, args) {
   const waits = [60, 120, 300];
   for (let attempt = 0; ; attempt++) {
+    stopper.signal.throwIfAborted();
     const tabId = await instagramTab(job.tabId);
     let r;
     try {
@@ -209,7 +253,7 @@ async function bridge(job, op, args) {
     r = r && typeof r === "object" ? r : { error: "malformed reply" };
     if (r.status !== 429 || attempt >= waits.length) return r;
     update(job, `Instagram is rate-limiting; waiting ${waits[attempt]} s…`, "warn");
-    await sleep(waits[attempt] * 1000);
+    await wait(waits[attempt] * 1000, stopper.signal);
   }
 }
 
@@ -219,6 +263,8 @@ const summary = (c) => `new ${c.saved} · already had ${c.skipped} · failed ${c
 
 function counters(job, prefix) {
   const c = { saved: 0, skipped: 0, failed: 0, failures: [], progress: () => update(job, `${prefix()}${summary(c)}`) };
+  c.halt = () => stopper.signal.throwIfAborted();
+  counts = c;
   return c;
 }
 
@@ -227,7 +273,7 @@ async function run(job) {
 
   if (job.kind === "check") {
     update(job, "Checking collection…");
-    const report = await checkCollection(top, (n) => update(job, `Checking collection… ${n} files`));
+    const report = await checkCollection(top, (n) => { stopper.signal.throwIfAborted(); update(job, `Checking collection… ${n} files`); });
     $("report").textContent = formatReport(report);
     $("reportBox").hidden = false;
     $("reportBox").open = true;
@@ -250,7 +296,7 @@ async function run(job) {
       page++;
       for (const node of r.nodes) await saveItems(account.dir, index, itemsFromNode(node), c);
       after = typeof r.next === "string" ? r.next : null;
-      if (after) await sleep(1500);
+      if (after) await wait(1500, stopper.signal);
     } while (after);
     return finish(job, c, `${top.name}/${account.name}${account.note}`);
   }

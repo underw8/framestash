@@ -132,6 +132,7 @@ async function save(dir, item) {
 
 async function saveItems(dir, index, items, job) {
   for (const item of items) {
+    if (job.halt) job.halt(); // outside the try: a stop is not a failed file
     if (await alreadyHave(index, item.key)) {
       job.skipped++;
     } else {

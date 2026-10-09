@@ -91,7 +91,7 @@ textarea:focus { border-color: var(--muted); outline: none; }
 #jobs li:first-child { border-top: 0; }
 .job-icon { width: 20px; height: 20px; flex: none; margin-top: 1px; color: var(--muted); }
 .job-icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.job-text { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.job-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .job-label { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .job-detail { color: var(--muted); font-size: 12px; line-height: 16px; overflow-wrap: anywhere; }
 .job-detail:empty { display: none; }
@@ -99,6 +99,8 @@ li[data-state="running"] .job-icon { color: var(--primary); }
 li[data-state="running"] .job-icon svg { animation: spin 1s linear infinite; }
 li[data-state="done"] .job-icon { color: var(--text); }
 li[data-state="error"] .job-icon, li[data-state="error"] .job-detail { color: var(--error); }
+li[data-state="stopped"] .job-icon, li[data-state="stopping"] .job-icon { color: var(--muted); }
+.job-action { align-self: center; height: 28px; padding: 0 12px; font-size: 12px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { li[data-state="running"] .job-icon svg { animation: none; } }
 

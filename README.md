@@ -8,7 +8,7 @@ This folder is our own replacement for *a reference extension* v4.12.16, written
 
 1. **Install.** Go to `chrome://extensions`, turn on Developer mode, click **Load unpacked**, and choose `igd/extension/`. Pin igd to the toolbar. The old extension can stay installed; the two don't share storage or buttons.
 2. **Choose the folder.** Click the igd icon to open the **side panel**, then **Choose** and pick the **root** folder of your collection: the one that contains the account folders, e.g. `IG`. It's remembered across tabs and restarts. After a browser restart, one click on **Allow access** restores it.
-   - **Queue profiles:** paste usernames or profile URLs, one per line. Choose Posts and/or Stories & highlights, then **Add to queue**. Jobs run one after another, using any open, logged-in Instagram tab.
+   - **Queue profiles:** paste usernames or profile URLs, one per line. Choose Posts and/or Stories & highlights, then **Add to queue**. Jobs run one after another, using any open, logged-in Instagram tab. The running job has a **Stop** button and queued jobs a **Remove** button; files already saved are kept.
    - **Check collection:** a read-only report, shown in the panel. It lists duplicates, empty files, saved error pages, unrecognised names, and accounts split across folders.
    - **Closing the panel pauses the queue.** Queued and interrupted jobs come back when it reopens; any igd button in Instagram reopens it. A restarted job lists from the start again, and files already saved are skipped.
 3. **Download from Instagram.** igd adds buttons in the bottom-right corner, above Instagram's Messages button:

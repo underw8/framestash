@@ -106,5 +106,17 @@ const marker = async (dir) => JSON.parse(await (await (await dir.getFileHandle("
   assert.match(text, /1 accounts split across folders/);
   assert.match(text, /user 5: a, a_renamed/);
 
+  // A stop (halt throws) between files: one file saved, the error propagates, nothing counted as failed.
+  ctx.fetch = async () => ({ ok: true, headers: { get: () => "image/jpeg" }, blob: async () => Object.assign(Buffer.from([0xff, 0xd8, 0xff]), { size: 3 }) });
+  const stopDir = new FakeDir("s");
+  const items = ["100000000000000041", "100000000000000042", "100000000000000043"].map((pk) => ({ url: "https://x", key: pk, name: media("s", pk, "9") }));
+  let calls = 0;
+  const halted = Object.assign(new Error("stopped"), { name: "AbortError" });
+  const c = { saved: 0, skipped: 0, failed: 0, failures: [], progress() {}, halt() { if (calls++ >= 1) throw halted; } };
+  await assert.rejects(ctx.saveItems(stopDir, new Map(), items, c), (e) => e === halted);
+  assert.equal(c.saved, 1);
+  assert.equal(c.failed, 0);
+  assert.equal(stopDir.children.size, 1);
+
   console.log("collection: all checks passed");
 })().catch((e) => { console.error(e); process.exit(1); });

@@ -145,9 +145,26 @@ function unfinished(jobs) {
   return jobs.filter((j) => j.state === "queued" || j.state === "running").map(queueEntry);
 }
 
+// Rows to render, newest first: every live job (it carries Stop/Remove), then finished ones up to `cap` total.
+function visibleJobs(jobs, cap = 50) {
+  const live = (j) => j.state === "queued" || j.state === "running" || j.state === "stopping";
+  let room = cap - jobs.filter(live).length;
+  return jobs.slice().reverse().filter((j) => live(j) || room-- > 0);
+}
+
+// Resolves after ms; rejects with signal.reason if the signal aborts first.
+function wait(ms, signal) {
+  return new Promise((resolve, reject) => {
+    if (signal && signal.aborted) return reject(signal.reason);
+    const stop = () => { clearTimeout(timer); reject(signal.reason); };
+    const timer = setTimeout(() => { if (signal) signal.removeEventListener("abort", stop); resolve(); }, ms);
+    if (signal) signal.addEventListener("abort", stop, { once: true });
+  });
+}
+
 if (typeof module !== "undefined") {
   module.exports = {
     bestMedia, extensionOf, fileName, keyFromFileName, parseFileName, inferOwner, sniffMedia,
-    itemsFromNode, shortcodeFromPath, routeFromPath, queueEntry, unfinished, USERNAME_RE,
+    itemsFromNode, shortcodeFromPath, routeFromPath, queueEntry, unfinished, visibleJobs, wait, USERNAME_RE,
   };
 }

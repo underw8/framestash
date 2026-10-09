@@ -58,7 +58,7 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - there's a go/no-go decision. If go, it's an opt-in setting, and files stay named the same so dedup still holds.
 
 ## T6 · Stop a running job, remove queued ones
-- status: todo
+- status: needs-check
 - why: a job can't be stopped once started. Since T1, closing the panel doesn't stop it either, because it restarts when the panel reopens.
 - done when:
   - the running job in the panel has a **Stop** button; queued jobs have a **Remove** button.
@@ -68,4 +68,9 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - no partial files are left behind; a later re-run skips what's already saved.
   - the controls are real buttons, keyboard-reachable and labelled, and match the panel's style.
   - the existing test suites pass, and new pure logic is unit-tested.
-
+- live checks:
+  - [ ] Reload igd at chrome://extensions. Queue 2 profiles, and click Stop on the running one partway through. It should end as 'Stopped · new N · already had M · failed 0' and the second profile should start by itself.
+  - [ ] Click Remove on a queued job. It should disappear. Then close and reopen the side panel: neither the stopped nor the removed job comes back, and only the others are listed.
+  - [ ] Re-queue the stopped profile. Files saved before the stop count as 'already had', and the account folder has no 0-byte or .crswap leftovers.
+  - [ ] If you hit a 429 ('Instagram is rate-limiting; waiting … s'), click Stop. The job should stop within a second instead of waiting out the back-off.
+  - [ ] Keyboard only: Tab to the Stop or Remove button while a job is making progress. Focus should stay on it as the progress text updates, Enter/Space should activate it, and a screen reader (VoiceOver) should read 'Stop @user posts' or 'Remove @user posts'. Check the look in both light and dark mode.

@@ -115,6 +115,8 @@ const kept = n.unfinished([
   { label: "Not a username", state: "error", detail: "" }, // alertLine entry, no kind
   { kind: "highlight", id: "18000000000000040", label: "x", state: "queued", detail: "" },
   { kind: "post", shortcode: "FGHIJ", label: "x", state: "error", detail: "boom" },
+  { kind: "profile", username: "c", label: "x", state: "stopped", detail: "Stopped" },
+  { kind: "profile", username: "d", label: "x", state: "stopping", detail: "Stopping…" },
 ]);
 assert.deepEqual(kept, [
   { kind: "profile", username: "a", label: "@a posts", state: "queued", detail: "", tabId: 4 },
@@ -124,4 +126,34 @@ assert.deepEqual(kept, [
 assert.deepEqual(JSON.parse(JSON.stringify(kept)), kept); // plain data, safe for IndexedDB
 assert.deepEqual(n.unfinished([]), []);
 
-console.log("naming: all checks passed");
+// visibleJobs(): newest first, every live job kept, finished rows fill what is left of the cap.
+{
+  const mk = (state, i) => ({ state, label: `${state}${i}` });
+  const few = [mk("done", 0), mk("running", 1), mk("queued", 2)];
+  assert.deepEqual(n.visibleJobs(few), few.slice().reverse());
+  const finished = Array.from({ length: 60 }, (_, i) => mk(i % 2 ? "done" : "error", i));
+  const live = [mk("running", 0), mk("queued", 1), mk("stopping", 2)];
+  const mixed = [live[0], ...finished.slice(0, 30), live[1], ...finished.slice(30), live[2]];
+  const shown = n.visibleJobs(mixed);
+  assert.equal(shown.length, 50);
+  assert.ok(live.every((j) => shown.includes(j)));
+  assert.deepEqual(shown.filter((j) => !live.includes(j)), finished.slice(-47).reverse());
+  assert.deepEqual(shown, mixed.filter((j) => shown.includes(j)).reverse()); // display order is newest first
+  const many = Array.from({ length: 55 }, (_, i) => mk("queued", i));
+  assert.deepEqual(n.visibleJobs([...finished.slice(0, 5), ...many]), many.slice().reverse());
+  assert.deepEqual(n.visibleJobs(finished.slice(0, 3), 2), finished.slice(1, 3).reverse());
+  assert.deepEqual(n.visibleJobs([]), []);
+}
+
+(async () => {
+  // wait(): resolves, rejects at once on an aborted signal, rejects and clears its timer when aborted mid-wait.
+  await n.wait(20);
+  const reason = new Error("stop");
+  await assert.rejects(n.wait(10000, AbortSignal.abort(reason)), (e) => e === reason);
+  const ac = new AbortController();
+  const pending = n.wait(10000, ac.signal);
+  ac.abort(reason);
+  await assert.rejects(pending, (e) => e === reason); // a live timer would keep node running ~10 s
+
+  console.log("naming: all checks passed");
+})().catch((e) => { console.error(e); process.exit(1); });
