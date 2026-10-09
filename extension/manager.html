@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>igd</title>
+  <link rel="stylesheet" href="manager.css">
+</head>
+<body>
+  <section>
+    <h1>igd</h1>
+    <div class="row">
+      <span id="folder">No folder chosen</span>
+      <button id="pick" type="button">Choose folder</button>
+      <button id="grant" type="button" hidden>Allow access</button>
+    </div>
+  </section>
+  <section>
+    <h2>Queue profiles</h2>
+    <textarea id="usernames" rows="4" placeholder="One username or profile URL per line"></textarea>
+    <div class="row">
+      <label><input type="checkbox" id="withPosts" checked> Posts</label>
+      <label><input type="checkbox" id="withStories"> Stories &amp; highlights</label>
+      <button id="add" type="button">Add to queue</button>
+    </div>
+    <div class="row">
+      <button id="check" type="button">Check collection</button>
+    </div>
+  </section>
+  <section>
+    <h2>Jobs</h2>
+    <ol id="jobs"></ol>
+  </section>
+  <details id="reportBox" hidden><summary>Collection report</summary><pre id="report"></pre></details>
+  <script src="naming.js"></script>
+  <script src="collection.js"></script>
+  <script src="manager.js"></script>
+</body>
+</html>

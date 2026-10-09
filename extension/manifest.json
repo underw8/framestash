@@ -1,8 +1,17 @@
 {
   "manifest_version": 3,
-  "name": "igd: Instagram profile downloader",
-  "version": "0.5.0",
-  "description": "Download an Instagram profile into a local folder, skipping media you already have.",
+  "name": "igd: Instagram downloader",
+  "version": "0.6.0",
+  "description": "Download Instagram profiles, posts and stories into a local collection, skipping media you already have.",
+  "permissions": ["sidePanel"],
+  "host_permissions": [
+    "https://www.instagram.com/*",
+    "https://*.cdninstagram.com/*",
+    "https://*.fbcdn.net/*"
+  ],
+  "background": { "service_worker": "background.js" },
+  "action": { "default_title": "Open igd" },
+  "side_panel": { "default_path": "manager.html" },
   "content_scripts": [
     {
       "matches": ["https://www.instagram.com/*"],
@@ -11,7 +20,7 @@
     },
     {
       "matches": ["https://www.instagram.com/*"],
-      "js": ["naming.js", "collection.js", "content.js"],
+      "js": ["naming.js", "content.js"],
       "css": ["content.css"]
     }
   ]

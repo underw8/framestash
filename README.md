@@ -2,7 +2,7 @@
 
 This folder is our own replacement for *a reference extension* v4.12.16, written from scratch. The original extension sits at the repository root (`../`) **as a reference only**. Nothing from it is copied into this folder.
 
-**Status:** v0.5: profile, single-post, grid/feed-item, story and highlight downloads into an existing collection. Account folders are tied to Instagram user IDs, not usernames, and a read-only collection check is included (`extension/`). Live-tested on 8 October 2026:
+**Status:** v0.6: profile, single-post, grid/feed-item, story and highlight downloads into an existing collection. All saving happens in an **igd side panel**, which holds the folder once for every tab and runs a **download queue**. Account folders are tied to Instagram user IDs, and a read-only collection check is included (`extension/`). Live-tested on 8 October 2026:
   - A profile the old tool had already downloaded: **new 0 · already had 25 · failed 0**. Nothing was written to disk.
   - A new 49-post profile, 5 pages: **new 167 · failed 0** (138 JPG + 29 MP4, 155 MB). Every file is non-empty, has real JPEG/MP4 header bytes, and parses back to a unique key.
   - The same profile run again: **new 0 · already had 167**.
@@ -15,14 +15,22 @@ This folder is our own replacement for *a reference extension* v4.12.16, written
   - v0.4:
     - **⬇ Stories** on a profile with 3 highlights (4 items): **new 4**. Running it again: **already had 4**. The highlight page's **Save highlight** then reported **already had 2**.
     - Active stories of an account with no visible posts resolved to 4 items with their own IDs. They were not saved, and the account still shows "not seen" in the tray.
+  - v0.6:
+    - From a brand-new tab, with no folder pick: **already had 25**.
+    - Two jobs sent back to back: the second was "Queued in igd (1 ahead)", then the jobs ran in order (stories: already had 4; post: already had 11).
+    - The panel's username queue ran both profiles once the stale tab issue was fixed.
   - v0.5:
     - The check on the real `IG` folder found 11 account folders and 315 media files. Every owner could be inferred from file names, with 0 problems.
     - After one profile run the check reported 1 marked folder, and that run still reported **already had 25**. Study notes: `docs/`.
 
-## Using v0.5
+## Using v0.6
 
-1. Go to `chrome://extensions`, turn on Developer mode, click **Load unpacked**, and choose `igd/extension/`. The old extension can stay installed; the two don't share storage or buttons.
-2. Open a profile, for example `https://www.instagram.com/<user>/`, and a **⬇ Download @user** button appears in the bottom-right corner, above Instagram's Messages button. On a post or reel page (`/p/…`, `/reel/…`, `/reels/…`) the button is **⬇ Save post** instead, and saves every slide into `<root>/<owner>/`.
+1. Go to `chrome://extensions`, turn on Developer mode, click **Load unpacked**, and choose `igd/extension/`. Pin igd to the toolbar. The old extension can stay installed; the two don't share storage or buttons.
+2. Click the igd icon to open the **side panel**, then **Choose folder** and pick the **root** folder of your collection (the one that contains the account folders, e.g. `IG`). It's remembered across tabs and restarts. After a browser restart, the panel may show **Allow access**; one click restores it.
+   - **Queue profiles:** paste usernames or profile URLs, one per line. Choose Posts and/or Stories & highlights, then **Add to queue**. Jobs run one after another, using any open, logged-in Instagram tab.
+   - **Check collection:** the read-only report, shown in the panel.
+   - Keep the panel open while jobs run. Closing it ends the queue.
+3. In Instagram, open a profile, for example `https://www.instagram.com/<user>/`, and a **⬇ Download @user** button appears in the bottom-right corner, above Instagram's Messages button. On a post or reel page (`/p/…`, `/reel/…`, `/reels/…`) the button is **⬇ Save post** instead, and saves every slide into `<root>/<owner>/`.
    Grid tiles (profile, tagged, explore, saved) and home-feed posts get a round **⬇** button when you hover them. It saves that post, exactly like **Save post**, without opening it.
    Stories:
    - On a profile, **⬇ Stories** saves the active stories plus every highlight.
@@ -31,8 +39,9 @@ This folder is our own replacement for *a reference extension* v4.12.16, written
    - All of these go to `<root>/<user>/stories/`. Each story keeps its own ID in the file name, so a story that is also in a highlight is saved once.
    - Downloading never marks stories as seen.
    **🔍** checks the whole collection **without changing anything**. It reports duplicates, empty files, saved error pages, unrecognised names, and accounts split across folders.
-3. On the first click in a tab, pick the **root** folder of your collection (the one that contains the account folders, e.g. `IG`). The folder is remembered for that tab: moving between profiles and posts inside Instagram needs no new pick, but a new tab or a reload does. The 📁 button changes it.
-4. The status line shows progress: page, new, already had, failed. Failed items are listed in the DevTools console. Running it again only fetches what's missing.
+   Every button sends a job to the panel's queue. The tab's status line shows that job's progress (new, already had, failed). **📁** opens the panel.
+4. Running a job again only fetches what's missing. Failed items are listed in the panel's DevTools console.
+5. After igd is updated or reloaded, reload open Instagram tabs. Chrome only adds the new scripts to pages loaded after the update, and igd tells you when this is needed.
 
 What it does, and which doc each rule comes from:
 - Lists posts with Instagram's own profile-posts GraphQL query, from the page world [3].
@@ -43,11 +52,12 @@ What it does, and which doc each rule comes from:
   - If a username now belongs to a different account, that account gets `<username>_<userId>/` instead of sharing the folder.
 - Never overwrites a non-empty file. Creates a file only after a successful, status-checked download, so failures leave nothing behind [6].
 - Writes each page as it arrives, waits 1.5 s between pages, and backs off 60 / 120 / 300 s on HTTP 429 [3, 6].
-- Keeps the folder only in the extension's isolated memory. Anything stored on instagram.com could be read, and used to write into your collection, by any script on the page [6]. Re-asks if the folder was moved or deleted.
+- Keeps the folder in the extension's own storage, inside the panel. Pages on instagram.com can't reach it; storing it on instagram.com would let any page script write into your collection [6]. Re-asks if the folder was moved or deleted.
+- Instagram tabs only list posts and stories; the panel validates the records and does all fetching and writing.
 - Treats replies from the page as untrusted, because any page script can answer them. Only Instagram-shaped usernames and IDs and Instagram CDN URLs are accepted.
-- No telemetry, no host permissions, no web-accessible resources [5].
+- No telemetry and no web-accessible resources [5]. Permissions: `sidePanel`, plus host access to instagram.com and Instagram's CDN, so the panel can fetch media.
 
-Not yet: current-slide-only saving, a multi-profile queue, DASH video quality, per-highlight subfolders. A future version could hold the folder in an extension page, so one pick is shared across tabs.
+Not yet: current-slide-only saving, DASH video quality, per-highlight subfolders, a queue that survives closing the panel.
 
 ## Checks
 

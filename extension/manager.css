@@ -1,0 +1,16 @@
+body { font: 13px/1.45 system-ui, sans-serif; margin: 12px; color: #111; background: #fafafa; }
+h1 { font-size: 18px; margin: 0 0 8px; }
+h2 { font-size: 14px; margin: 16px 0 6px; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 6px 0; }
+#folder { flex: 1; font-weight: 600; }
+button { border: 0; border-radius: 6px; padding: 6px 10px; background: #0095f6; color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+button:disabled { opacity: .5; cursor: default; }
+#grant { background: #f39c12; }
+textarea { width: 100%; box-sizing: border-box; font: 12px ui-monospace, monospace; }
+#jobs { padding-left: 20px; margin: 0; }
+#jobs li { margin: 4px 0; }
+#jobs li[data-state="running"] { font-weight: 600; }
+#jobs li[data-state="error"] { color: #c0392b; }
+#jobs li[data-state="done"] { color: #1e8449; }
+.detail { display: block; color: #555; font-weight: 400; }
+pre { white-space: pre-wrap; font: 11px/1.4 ui-monospace, monospace; max-height: 50vh; overflow: auto; }

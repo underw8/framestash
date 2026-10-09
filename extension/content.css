@@ -28,6 +28,3 @@
 }
 :hover > .igd-item, .igd-item:focus-visible { opacity: 1; }
 .igd-panel button[hidden] { display: none; }
-.igd-report { max-width: 560px; background: rgba(0,0,0,.85); color: #fff; border-radius: 8px; padding: 6px 10px; }
-.igd-report summary { cursor: pointer; font-weight: 600; }
-.igd-report pre { max-height: 50vh; overflow: auto; margin: 6px 0 0; font: 12px/1.45 ui-monospace, monospace; white-space: pre-wrap; }

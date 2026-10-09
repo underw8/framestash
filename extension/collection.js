@@ -84,6 +84,65 @@ async function resolveAccountDir(root, username, userId) {
   return { dir, name, note: plain ? ` (@${username} folder belongs to another account)` : "" };
 }
 
+// ---- saving ----
+
+// key -> file handles whose names map to that key; `true` once saved in this run.
+async function indexFolder(dir) {
+  const index = new Map();
+  for await (const [name, handle] of dir.entries()) {
+    const key = handle.kind === "file" && keyFromFileName(name);
+    if (key) index.set(key, [...(index.get(key) || []), handle]);
+  }
+  return index;
+}
+
+// Only files whose names match are stat'ed; empty leftovers don't count as present.
+async function alreadyHave(index, key) {
+  const entry = index.get(key);
+  if (entry === true) return true;
+  for (const handle of entry || []) if ((await handle.getFile()).size > 0) return true;
+  return false;
+}
+
+async function save(dir, item) {
+  let handle = null;
+  try {
+    handle = await dir.getFileHandle(item.name);
+    if ((await handle.getFile()).size > 0) return "skipped"; // never overwrite
+  } catch (e) {
+    if (e.name !== "NotFoundError") throw e;
+  }
+  const res = await fetch(item.url);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const type = res.headers.get("content-type") || "";
+  if (!/^(image|video)\//.test(type)) throw new Error(`unexpected content type "${type}"`);
+  const blob = await res.blob();
+  if (!blob.size) throw new Error("empty response");
+  // Created only after a good download, so failures leave no empty files.
+  handle = handle || (await dir.getFileHandle(item.name, { create: true }));
+  const w = await handle.createWritable();
+  await w.write(blob);
+  await w.close();
+  return "saved";
+}
+
+async function saveItems(dir, index, items, job) {
+  for (const item of items) {
+    if (await alreadyHave(index, item.key)) {
+      job.skipped++;
+    } else {
+      try {
+        job[await save(dir, item)]++;
+        index.set(item.key, true);
+      } catch (e) {
+        job.failed++;
+        job.failures.push(`${item.name}: ${e.message}`);
+      }
+    }
+    job.progress();
+  }
+}
+
 // ---- read-only collection check ----
 
 async function checkFolder(dir, label, report, onFile) {
