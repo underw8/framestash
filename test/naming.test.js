@@ -138,6 +138,25 @@ for (const [path, route] of [
   ["/", null], ["/explore/", null], ["/direct/inbox/", null], ["/reels/", null], ["/stories/", null], ["/stories/highlights/", null],
 ]) assert.deepEqual(n.routeFromPath(path), route, path);
 
+// actionBarSpot: feed rows put the icon after the bookmark (rightmost), reel columns after
+// save (second-to-last by y, More is last). Input order is document order, not screen order.
+{
+  const at = (x, y) => ({ x, y, w: 40, h: 40 });
+  assert.deepEqual(n.actionBarSpot([at(0, 500), at(40, 500), at(80, 500), at(430, 500)]), { dir: "row", after: 3 });
+  // With repost; the bookmark first in document order still wins by position; a 3 px wobble is aligned.
+  assert.deepEqual(n.actionBarSpot([at(430, 500), at(0, 502), at(40, 499), at(80, 500), at(120, 503)]), { dir: "row", after: 0 });
+  // Reel column: like, comment, share, save, more.
+  assert.deepEqual(n.actionBarSpot([at(900, 300), at(900, 380), at(900, 460), at(900, 540), at(900, 620)]), { dir: "column", after: 3 });
+  // With repost, plus an off-line audio thumbnail that isn't counted.
+  assert.deepEqual(n.actionBarSpot([at(900, 300), at(900, 380), at(901, 460), at(899, 540), at(900, 620), at(900, 700), at(700, 760)]),
+    { dir: "column", after: 4 });
+  assert.equal(n.actionBarSpot([at(0, 500), at(40, 500), at(80, 500)]), null); // fewer than 4
+  assert.equal(n.actionBarSpot([at(0, 0), at(100, 50), at(200, 120), at(300, 200), at(10, 300)]), null); // scattered
+  assert.equal(n.actionBarSpot([at(0, 500), at(40, 500), at(80, 500), at(900, 100), at(900, 200), at(900, 300)]), null); // 3 + 3
+  assert.equal(n.actionBarSpot([at(0, 500), at(40, 500), at(80, 510), at(120, 500)]), null); // one off the line
+  assert.equal(n.actionBarSpot([]), null);
+}
+
 // Folder owner by majority of "_<ownerId>" suffixes; names without a suffix don't vote.
 assert.deepEqual(n.inferOwner([
   "u_1789389655_100000000000000001_42.jpg", "u_1789389655_100000000000000002_42.jpg",

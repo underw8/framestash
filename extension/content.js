@@ -122,11 +122,14 @@ function addItemButton(host, shortcode, slide = false) {
   host.append(button);
 }
 
+const linkCode = (a) => shortcodeFromPath(new URL(a.href, location.origin).pathname);
+const articleCode = (article) => [...article.querySelectorAll(POST_LINK)].map(linkCode).find(Boolean);
+
 function scanItems() {
   // Grid tiles: the link itself wraps the thumbnail.
   for (const a of document.querySelectorAll(POST_LINK)) {
     if (hasItemButton(a)) continue;
-    const shortcode = shortcodeFromPath(new URL(a.href, location.origin).pathname);
+    const shortcode = linkCode(a);
     if (shortcode && a.querySelector("img, video")) addItemButton(a, shortcode);
   }
   // Feed posts and opened posts: an <article> whose links include the post's permalink.
@@ -134,9 +137,7 @@ function scanItems() {
   // A carousel is an article whose large media sit in 2+ distinct frames (a video and
   // its poster share one); its frames also get a one-slide button.
   for (const article of document.querySelectorAll("article")) {
-    const link = [...article.querySelectorAll(POST_LINK)]
-      .map((a) => shortcodeFromPath(new URL(a.href, location.origin).pathname))
-      .find(Boolean);
+    const link = articleCode(article);
     if (!link) continue;
     const large = [...article.querySelectorAll("img, video")]
       .map((media) => [media, media.getBoundingClientRect()])
@@ -165,14 +166,115 @@ function mediaFrame(media, stop) {
   return frame;
 }
 
+// ---- native-style buttons: a download icon in each post's or reel's action icons ----
+// Action bars are found by structure (4+ aligned ~24 px icon buttons), never by class
+// names or English labels; actionBarSpot picks the row or column and the slot.
+
+function iconButtons(root) {
+  const found = new Set();
+  for (const svg of root.querySelectorAll("svg")) {
+    const r = svg.getBoundingClientRect();
+    if (Math.abs(r.width - 24) > 4 || Math.abs(r.height - 24) > 4) continue;
+    const b = svg.closest('button, [role="button"]');
+    if (b && root.contains(b) && !b.classList.contains("igd-act")) found.add(b);
+  }
+  return [...found];
+}
+
+// The bar's own post link; "" when none or ambiguous (a reels feed), resolved from the URL on click.
+function barShortcode(bar, host) {
+  for (let e = bar; e; e = e === host ? null : e.parentElement) {
+    const codes = new Set([...e.querySelectorAll(POST_LINK)].map(linkCode).filter(Boolean));
+    if (codes.size) return codes.size === 1 ? [...codes][0] : "";
+  }
+  return "";
+}
+
+function scanActionBars(host, shortcode) {
+  const buttons = iconButtons(host);
+  const bars = new Map(); // closest ancestor holding 4+ icon buttons -> its buttons
+  for (const b of buttons) {
+    for (let e = b.parentElement; e && host.contains(e); e = e.parentElement) {
+      const inside = buttons.filter((x) => e.contains(x));
+      if (inside.length >= 4) { bars.set(e, inside); break; }
+    }
+  }
+  // Inner bars first, so an outer group that holds the same row is then skipped.
+  for (const [bar, own] of [...bars].sort((a, b) => a[1].length - b[1].length)) {
+    if (bar.querySelector(".igd-act")) continue;
+    const spot = actionBarSpot(own.map((b) => { const r = b.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height }; }));
+    if (!spot) continue;
+    // Insert after the icon's own wrapper (the highest one holding no other icon), so the
+    // new icon becomes a sibling in the row or column.
+    let slot = own[spot.after];
+    while (slot.parentElement !== bar && own.filter((x) => slot.parentElement.contains(x)).length === 1) slot = slot.parentElement;
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "igd-act";
+    button.title = "Save this post (igd)";
+    button.setAttribute("aria-label", button.title);
+    button.innerHTML = icon("download");
+    button.dataset.shortcode = shortcode || barShortcode(bar, host);
+    slot.insertAdjacentElement("afterend", button);
+  }
+}
+
+function scanNative() {
+  for (const article of document.querySelectorAll("article")) {
+    const code = articleCode(article);
+    if (code && !article.querySelector(".igd-act")) scanActionBars(article, code);
+  }
+  const route = routeFromPath(location.pathname);
+  const main = document.querySelector("main");
+  if (route && route.kind === "post" && main && !main.querySelector("article")) scanActionBars(main, "");
+}
+
+// "Download all" beside the username in the profile header, matched by its visible text.
+function placeProfileButton() {
+  const route = routeFromPath(location.pathname);
+  const username = route && route.kind === "profile" ? route.username : null;
+  for (const b of document.querySelectorAll(".igd-profile")) if (b.dataset.username !== username) b.remove();
+  const header = username && document.querySelector("main header");
+  if (!header || header.querySelector(".igd-profile")) return;
+  const isName = (e) => e.textContent.trim().toLowerCase() === username;
+  let el = [...header.querySelectorAll("*")].find(isName);
+  if (!el) return;
+  for (let c; (c = [...el.children].find(isName)); ) el = c;
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "igd-profile";
+  button.textContent = "Download all";
+  button.title = `Download all posts by @${username} (igd)`;
+  button.setAttribute("aria-label", button.title);
+  button.dataset.username = username;
+  (el.closest("h1, h2, a") || el).insertAdjacentElement("afterend", button);
+}
+
+const onScreen = (el) => {
+  const r = el.getBoundingClientRect();
+  return r.width > 0 && r.bottom > 0 && r.top < innerHeight;
+};
+
+// The bottom-right go button is the fallback while the page's native button isn't visible.
+function syncFallback() {
+  const route = routeFromPath(location.pathname);
+  goButton.hidden = !route || (route.kind === "profile"
+    ? [...document.querySelectorAll(".igd-profile")].some(onScreen)
+    : route.kind === "post" && [...document.querySelectorAll(".igd-act")]
+      .some((b) => (b.dataset.shortcode || route.shortcode) === route.shortcode && onScreen(b)));
+}
+
 // Capture phase, so the tile's link never navigates and Instagram's handlers never see the click.
 document.addEventListener("click", (e) => {
-  const button = e.target instanceof Element && e.target.closest(".igd-item");
+  const button = e.target instanceof Element && e.target.closest(".igd-item, .igd-act, .igd-profile");
   if (!button) return;
   e.preventDefault();
   e.stopPropagation();
   if (!e.isTrusted) return;
-  const shortcode = button.dataset.shortcode;
+  if (button.classList.contains("igd-profile")) return send({ kind: "profile", username: button.dataset.username });
+  const route = routeFromPath(location.pathname);
+  const shortcode = button.dataset.shortcode || (route && route.kind === "post" ? route.shortcode : "");
+  if (!shortcode) return setStatus("igd couldn't tell which post this is. Open the post and try again.", "warn");
   const frame = button.parentElement;
   if (!button.classList.contains("igd-slide")) return send({ kind: "post", shortcode });
   // Read at click time: Instagram reuses slide frames for other slides.
@@ -215,7 +317,6 @@ function updateForPage() {
   shownPath = location.pathname;
   const route = routeFromPath(location.pathname);
   setStatus("");
-  goButton.hidden = !route;
   storiesButton.hidden = !route || route.kind !== "profile";
   if (route) {
     goLabel.textContent = {
@@ -230,7 +331,7 @@ function updateForPage() {
 // Each step is isolated: a failure in one (e.g. an unexpected page structure while
 // scanning) must not stop the page's buttons from updating.
 setInterval(() => {
-  for (const step of [() => { if (!panel.isConnected) document.body.append(panel); }, updateForPage, placePanel, scanItems]) {
+  for (const step of [() => { if (!panel.isConnected) document.body.append(panel); }, updateForPage, placePanel, scanItems, scanNative, placeProfileButton, syncFallback]) {
     try { step(); } catch (e) { console.warn("[igd]", e); }
   }
 }, 500);

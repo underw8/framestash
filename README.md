@@ -16,12 +16,13 @@
    - **Queue profiles:** paste usernames or profile URLs, one per line. Choose Posts and/or Stories & highlights, then **Add to queue**. A re-run of a profile that was fully listed before stops after 12 posts in a row you already have; turn on **List every post** to force a full pass. An interrupted profile run, full or not, continues from the page where it stopped. A queued profile with a saved position also shows **Start over**, which lists it from the newest post instead. Jobs run one after another, using any open, logged-in Instagram tab. The running job has a **Stop** button and queued jobs a **Remove** button; **Clear queue** removes every queued job and the finished rows, leaving the running one; files already saved are kept.
    - **Check collection:** a read-only report, shown in the panel. It lists duplicates, empty files, saved error pages, unrecognised names, and accounts split across folders.
    - **Closing the panel pauses the queue.** Queued and interrupted jobs come back when it reopens; any igd button in Instagram reopens it. A restarted profile job continues listing from the page where it stopped; files already saved are skipped.
-3. **Download from Instagram.** igd adds buttons in the bottom-right corner, above Instagram's Messages button:
-   - **Profile:** **Download @user** saves every post. **Stories** saves the active stories plus every highlight.
-   - **Post or reel page** (`/p/…`, `/reel/…`, `/reels/…`): **Save post** saves every slide into `<root>/<owner>/`.
+3. **Download from Instagram.** igd adds buttons that look like Instagram's own, plus a panel in the bottom-right corner, above Instagram's Messages button:
+   - **Profile:** a **Download all** button beside the username saves every post. In the corner, **Stories** saves the active stories plus every highlight.
+   - **Feed posts, post pages and reels:** a download icon right after the save (bookmark) icon, in the post's action row or the reel's side column, saves the whole post into `<root>/<owner>/`.
+   - **Fallback:** the corner's **Download @user** (profile) or **Save post** (`/p/…`, `/reel/…`, `/reels/…`) button appears only when igd can't find that native spot or it is off screen.
    - **Story page** (`/stories/<user>/`) or **highlight page** (`/stories/highlights/<id>/`): saves those stories. Stories go to `<root>/<user>/stories/`; with **Highlights in their own folders** on, each highlight goes to `stories/<highlight title or id>/`. Downloading never marks a story as seen.
    - **Grid tiles and home-feed posts:** a round download button appears on hover and saves the whole post without opening it. On a carousel in the feed or on a post page, a second button beside it saves only the visible slide.
-   - **Panel icon:** opens the side panel, or closes it if it is already open. The collection check is in the panel.
+   - **Panel icon** (corner): opens the side panel, or closes it if it is already open. The collection check is in the panel.
 
    Every button sends a job to the panel's queue, opening the panel first if it's closed, and the status card shows the job's progress.
 4. **Re-run any time.** A job run again only fetches what's missing. A profile re-run stops listing after 12 already-saved posts in a row (pinned posts aside), once a previous run of it listed to the end; posts deleted from disk below that point come back only with **List every post**. An interrupted profile (Stop, closed panel, error) picks up its listing where it stopped instead of starting again from page 1. Failed items are listed in the panel's DevTools console.
@@ -68,6 +69,7 @@ Plan, Build and Review run on the session's model, because they carry the securi
 ## Look and feel
 
 - **In-page buttons and status card:** they read Instagram's own theme variables, so they follow its light and dark modes. They match its floating Messages button: raised surface, hairline edge, shadow, pill shape and the `--hover-overlay` hover.
+- **Native-spot buttons:** the profile's Download all copies Instagram's primary (Follow) button, and the post and reel icon copies its action icons (24 px stroke, text colour, same hover). Grid-tile buttons keep igd's own round style.
 - **Side panel:** modelled on Instagram's Settings pages (measured live), following the system light or dark setting.
 - **Wordmark igd.:** heavy sans-serif with a warm-to-violet gradient dot.
   - The toolbar icon is a near-black rounded square, so it isn't mistaken for Instagram's app icon.

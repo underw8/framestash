@@ -136,6 +136,22 @@ function shortcodeFromPath(path) {
   return m ? m[1] : null;
 }
 
+// Where a download icon goes in a group of Instagram's action icons, from their document-order
+// rects {x, y, w, h}. A row (feed post: like, comment, share ... save) -> after the rightmost,
+// the bookmark. A column (reel: like, comment, [repost], share, save, more) -> after the
+// second-to-last by y, because More is always last. 4+ icons must share a centre line (±4 px).
+function actionBarSpot(rects) {
+  const c = (rects || []).map((r, i) => ({ i, x: r.x + r.w / 2, y: r.y + r.h / 2 }));
+  for (const [dir, axis, along] of [["row", "y", "x"], ["column", "x", "y"]]) {
+    const line = c.map((p) => c.filter((q) => Math.abs(q[axis] - p[axis]) <= 4))
+      .reduce((a, b) => (b.length > a.length ? b : a), []);
+    if (line.length < 4) continue;
+    const sorted = [...line].sort((a, b) => a[along] - b[along]);
+    return { dir, after: sorted[dir === "row" ? sorted.length - 1 : sorted.length - 2].i };
+  }
+  return null;
+}
+
 const RESERVED = new Set([
   "explore", "reels", "direct", "accounts", "stories", "p", "reel", "tv", "about", "legal",
   "developer", "web", "challenge", "emails", "session", "archive", "your_activity", "create",
@@ -263,7 +279,7 @@ function wait(ms, signal) {
 if (typeof module !== "undefined") {
   module.exports = {
     bestMedia, extensionOf, fileName, keyFromFileName, parseFileName, inferOwner, sniffMedia,
-    itemsFromNode, highlightFolder, mediaNameOf, slideOnly, MEDIA_NAME_RE, shortcodeFromPath, routeFromPath, queueEntry, unfinished, clearQueue, visibleJobs, wait, USERNAME_RE,
+    itemsFromNode, highlightFolder, mediaNameOf, slideOnly, MEDIA_NAME_RE, shortcodeFromPath, actionBarSpot, routeFromPath, queueEntry, unfinished, clearQueue, visibleJobs, wait, USERNAME_RE,
     pinnedFlags, knownStreak, pageStreak, stopListing, resumeFrom, cursorOnFailure, cursorRecord, backfillUsername, startOverShown, KNOWN_STOP,
   };
 }

@@ -189,7 +189,7 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - [ ] Click the slide button on a video slide inside a carousel. Note whether the video is saved or the 'couldn't tell which slide' warning appears.
 
 ## T12 · Native-style buttons on profiles, posts and reels
-- status: todo
+- status: needs-check
 - why: buttons that look like part of Instagram read better than floating pills. The user wants a native look for profile and post actions; the round grid-tile buttons stay as they are.
 - done when:
   - **Profile header:** a "Download all" button beside the profile's username, styled like Instagram's own primary button (its primary-button colour from the theme variables, 32 px tall, radius 8, 14 px semibold). It starts the same profile job as Download @user today.
@@ -201,3 +201,11 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - every new button requires event.isTrusted, has a title and aria-label, is keyboard-reachable, and follows Instagram's light and dark themes.
   - no flicker or duplicate buttons as Instagram re-renders or the user scrolls the feed; the existing 500 ms scan handles placement.
   - README describes the new buttons; the existing test suites pass, and any new pure logic is unit-tested.
+- live checks:
+  - [ ] Reload igd and the Instagram tab. On a profile, a blue "Download all" button sits beside the username, in Instagram's button style; clicking it queues the profile, and the bottom-right Download @user is hidden while the header button is on screen.
+  - [ ] Scroll the profile down until the header is off screen: the bottom-right Download @user comes back.
+  - [ ] Home feed: each post's like / comment / share / save row has a download icon right after the bookmark, matching Instagram's icons. Clicking it saves that post. Scroll a long way: no duplicate icons and no flicker.
+  - [ ] Post page (/p/…): the action row has the icon and the bottom-right Save post is hidden.
+  - [ ] Reels (/reels/…): the side column has the icon; clicking it saves the reel shown.
+  - [ ] Grid tiles and the one-slide carousel button look and work as before.
+  - [ ] Tab to each new button: it is reachable, has a focus ring, and VoiceOver reads its label. Check light and dark mode.

@@ -78,3 +78,23 @@
 .igd-item svg { width: 18px; height: 18px; }
 .igd-item:hover { transform: scale(1.08); background: rgba(0, 0, 0, .7); }
 :hover > .igd-item, .igd-item:focus-visible { opacity: 1; }
+
+/* Native-style buttons placed among Instagram's own controls. The icon takes the row's
+   text colour (Instagram's icons use currentColor), so it follows light and dark themes. */
+.igd-act {
+  display: flex; align-items: center; justify-content: center; padding: 8px;
+  border: 0; background: none; color: inherit; cursor: pointer; transition: opacity .1s linear;
+}
+.igd-act svg { width: 24px; height: 24px; }
+.igd-act:hover { opacity: .5; }
+.igd-act:focus-visible, .igd-profile:focus-visible {
+  outline: 2px solid rgb(var(--ig-primary-button, 0, 149, 246)); outline-offset: 2px;
+}
+/* Instagram's primary button (Follow): 32 px, radius 8, 14 px semibold. */
+.igd-profile {
+  display: inline-flex; align-items: center; height: 32px; margin-left: 8px; padding: 0 16px;
+  border: 0; border-radius: 8px; cursor: pointer; white-space: nowrap; vertical-align: middle;
+  background: rgb(var(--ig-primary-button, 0, 149, 246)); color: #fff;
+  font: 600 14px/18px -apple-system, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+.igd-profile:hover { background: rgb(var(--ig-primary-button-hover, 24, 119, 242)); }
