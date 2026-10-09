@@ -281,6 +281,7 @@ function updateForPage() {
   shownPath = location.pathname;
   const route = routeFromPath(location.pathname);
   setStatus("");
+  goButton.hidden = !route;
   storiesButton.hidden = !route || route.kind !== "profile";
   if (route) {
     goLabel.textContent = {
