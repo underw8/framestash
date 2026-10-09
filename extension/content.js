@@ -229,7 +229,7 @@ function scanNative() {
   if (route && route.kind === "post" && main && !main.querySelector("article")) scanActionBars(main, "");
 }
 
-// "Download all" beside the username in the profile header, matched by its visible text.
+// "Download @user" beside the username in the profile header, matched by its visible text.
 function placeProfileButton() {
   const route = routeFromPath(location.pathname);
   const username = route && route.kind === "profile" ? route.username : null;
@@ -243,7 +243,7 @@ function placeProfileButton() {
   const button = document.createElement("button");
   button.type = "button";
   button.className = "igd-profile";
-  button.textContent = "Download all";
+  button.textContent = `Download @${username}`;
   button.title = `Download all posts by @${username} (igd)`;
   button.setAttribute("aria-label", button.title);
   button.dataset.username = username;

@@ -17,7 +17,7 @@
    - **Check collection:** a read-only report, shown in the panel. It lists duplicates, empty files, saved error pages, unrecognised names, and accounts split across folders.
    - **Closing the panel pauses the queue.** Queued and interrupted jobs come back when it reopens; any igd button in Instagram reopens it. A restarted profile job continues listing from the page where it stopped; files already saved are skipped.
 3. **Download from Instagram.** igd adds buttons that look like Instagram's own, plus a panel in the bottom-right corner, above Instagram's Messages button:
-   - **Profile:** a **Download all** button beside the username saves every post. In the corner, **Stories** saves the active stories plus every highlight.
+   - **Profile:** a **Download @user** button beside the username saves every post. In the corner, **Stories** saves the active stories plus every highlight.
    - **Feed posts, post pages and reels:** a download icon right after the save (bookmark) icon, in the post's action row or the reel's side column, saves the whole post into `<root>/<owner>/`.
    - **Fallback:** the corner's **Download @user** (profile) or **Save post** (`/p/…`, `/reel/…`, `/reels/…`) button appears only when igd can't find that native spot or it is off screen.
    - **Story page** (`/stories/<user>/`) or **highlight page** (`/stories/highlights/<id>/`): saves those stories. Stories go to `<root>/<user>/stories/`; with **Highlights in their own folders** on, each highlight goes to `stories/<highlight title or id>/`. Downloading never marks a story as seen.
