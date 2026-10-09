@@ -43,18 +43,17 @@
 .igd-panel svg { width: 20px; height: 20px; flex: none; }
 
 .igd-card {
-  display: flex; align-items: center; gap: 10px; max-width: 420px; padding: 12px 16px;
+  position: relative; display: flex; align-items: center; gap: 10px; max-width: 420px; padding: 12px 16px;
   background: var(--igd-bg); color: var(--igd-text); border: 1px solid var(--igd-edge); border-radius: 16px;
   box-shadow: var(--igd-shadow);
 }
 .igd-card:has(.igd-status:empty) { display: none; }
+/* Always-visible dismiss badge on the card's top-left corner. */
 .igd-panel .igd-card button.igd-close {
-  width: 24px; height: 24px; padding: 0; margin: -4px -6px -4px 0; border: 0; box-shadow: none;
-  background: transparent; color: var(--igd-muted); opacity: 0; transition: opacity .15s;
+  position: absolute; top: -8px; left: -8px; width: 22px; height: 22px; padding: 0;
+  color: var(--igd-text); box-shadow: 0 2px 6px rgba(0, 0, 0, .2);
 }
-.igd-panel .igd-card button.igd-close svg { width: 16px; height: 16px; }
-.igd-panel .igd-card:hover button.igd-close, .igd-panel .igd-card button.igd-close:focus-visible { opacity: 1; }
-.igd-panel .igd-card button.igd-close:hover { color: var(--igd-text); }
+.igd-panel .igd-card button.igd-close svg { width: 14px; height: 14px; }
 .igd-status { font-size: 13px; line-height: 17px; }
 .igd-card:has(.igd-status[data-kind="warn"]) { border-color: var(--igd-warn); }
 .igd-card:has(.igd-status[data-kind="error"]) { border-color: var(--igd-error); }

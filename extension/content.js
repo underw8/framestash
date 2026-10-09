@@ -37,7 +37,7 @@ const ICONS = {
   download: '<path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/>',
   check: '<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/>',
   panel: '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M15 4v16"/>',
-  close: '<path d="M7 7l10 10M17 7L7 17"/>',
+  dismiss: '<path d="M7 12h10"/>',
   slide: '<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 8v7M9 12.5l3 3 3-3"/>',
 };
 const icon = (name) =>
@@ -55,7 +55,7 @@ panel.innerHTML = `
     <button class="igd-open igd-icon" type="button" title="Open the igd panel" aria-label="Open the igd panel">${icon("panel")}</button>
   </div>
   <div class="igd-card"><span class="igd-wordmark">igd<i></i></span><span class="igd-status" aria-live="polite"></span>
-    <button class="igd-close" type="button" title="Dismiss" aria-label="Dismiss">${icon("close")}</button></div>`;
+    <button class="igd-close" type="button" title="Dismiss" aria-label="Dismiss">${icon("dismiss")}</button></div>`;
 const goButton = panel.querySelector(".igd-go");
 const goLabel = goButton.querySelector("span");
 const storiesButton = panel.querySelector(".igd-stories");
