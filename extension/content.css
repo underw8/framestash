@@ -23,7 +23,9 @@
   position: fixed; right: 24px; bottom: 100px;
   display: flex; flex-direction: column-reverse; align-items: flex-end; gap: 8px;
 }
+/* column-reverse: the first row (download actions) sits lowest, next to Instagram's button. */
 .igd-row { display: flex; gap: 8px; }
+.igd-row:not(:has(> button:not([hidden]))) { display: none; }
 .igd-panel button {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   height: 44px; padding: 0 20px; border: 1px solid var(--igd-edge); border-radius: 999px; cursor: pointer; white-space: nowrap;

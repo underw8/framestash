@@ -47,6 +47,8 @@ panel.innerHTML = `
   <div class="igd-row">
     <button class="igd-go" type="button">${icon("download")}<span></span></button>
     <button class="igd-stories" type="button" title="Active stories and all highlights" hidden>${icon("download")}Stories</button>
+  </div>
+  <div class="igd-row">
     <button class="igd-check igd-icon" type="button" title="Check collection (read-only)" aria-label="Check collection">${icon("check")}</button>
     <button class="igd-open igd-icon" type="button" title="Open the igd panel" aria-label="Open the igd panel">${icon("panel")}</button>
   </div>
