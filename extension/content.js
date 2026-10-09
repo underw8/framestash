@@ -85,16 +85,10 @@ async function send(job) {
   }
 }
 
-function jobForRoute(route) {
-  if (route.kind === "profile") return { kind: "profile", username: route.username };
-  if (route.kind === "post") return { kind: "post", shortcode: route.shortcode };
-  if (route.kind === "stories") return { kind: "stories", username: route.username, withHighlights: false };
-  return { kind: "highlight", id: route.id };
-}
-
+// A route already has the shape of a job ({kind, username | shortcode | id}).
 onUserClick(goButton, () => {
   const route = routeFromPath(location.pathname);
-  if (route) send(jobForRoute(route));
+  if (route) send(route);
 });
 
 onUserClick(storiesButton, () => {
@@ -117,8 +111,9 @@ onUserClick(panel.querySelector(".igd-open"), async () => {
 
 const POST_LINK = 'a[href*="/p/"], a[href*="/reel/"]';
 
+const hasItemButton = (host) => host.querySelector(":scope > .igd-item");
+
 function addItemButton(host, shortcode, top) {
-  if (host.querySelector(":scope > .igd-item")) return;
   if (getComputedStyle(host).position === "static") host.classList.add("igd-host");
   const button = document.createElement("button");
   button.type = "button";
@@ -133,11 +128,13 @@ function addItemButton(host, shortcode, top) {
 function scanItems() {
   // Grid tiles: the link itself wraps the thumbnail.
   for (const a of document.querySelectorAll(POST_LINK)) {
+    if (hasItemButton(a)) continue;
     const shortcode = shortcodeFromPath(new URL(a.href, location.origin).pathname);
     if (shortcode && a.querySelector("img, video")) addItemButton(a, shortcode);
   }
   // Feed posts: an <article> whose links include the post's permalink.
   for (const article of document.querySelectorAll("article")) {
+    if (hasItemButton(article)) continue; // checked before any layout measurement
     const link = [...article.querySelectorAll(POST_LINK)]
       .map((a) => shortcodeFromPath(new URL(a.href, location.origin).pathname))
       .find(Boolean);
@@ -157,15 +154,6 @@ document.addEventListener("click", (e) => {
   e.stopPropagation();
   if (e.isTrusted) send({ kind: "post", shortcode: button.dataset.shortcode });
 }, true);
-
-let scanTimer = 0;
-new MutationObserver((records) => {
-  // Ignore our own insertions so adding buttons doesn't retrigger the scan.
-  if (records.every((r) => [...r.addedNodes].every((n) => n.classList && n.classList.contains("igd-item")))) return;
-  clearTimeout(scanTimer);
-  scanTimer = setTimeout(scanItems, 300);
-}).observe(document.body, { childList: true, subtree: true });
-scanItems();
 
 // Instagram's floating Messages button opens into a 360 px panel in the same corner.
 // Find whichever is there (the fixed element under a point near the corner) and sit
@@ -189,24 +177,27 @@ function placePanel() {
   }
 }
 
-// ponytail: polling the URL is simpler than hooking history; 500 ms is plenty for a button.
+// ponytail: one 500 ms poll for URL changes, new tiles/posts and placement; simpler than
+// history hooks plus a MutationObserver. Ceiling: a selector pass per tick on very long feeds.
 // The panel stays on every page so jobs started from tiles can report; the main
 // button only shows on profile, post and story pages.
 let shownPath = null;
 setInterval(() => {
   if (!panel.isConnected) document.body.append(panel);
   placePanel();
+  scanItems();
   if (shownPath === location.pathname) return;
   shownPath = location.pathname;
   const route = routeFromPath(location.pathname);
   setStatus("");
   goButton.hidden = !route;
   storiesButton.hidden = !route || route.kind !== "profile";
-  const labels = {
-    profile: () => `Download @${route.username}`,
-    post: () => "Save post",
-    stories: () => `Save @${route.username}'s stories`,
-    highlight: () => "Save highlight",
-  };
-  if (route) goLabel.textContent = labels[route.kind]();
+  if (route) {
+    goLabel.textContent = {
+      profile: `Download @${route.username}`,
+      post: "Save post",
+      stories: `Save @${route.username}'s stories`,
+      highlight: "Save highlight",
+    }[route.kind];
+  }
 }, 500);

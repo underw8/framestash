@@ -4,17 +4,28 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-`igd/` is a **clean-room rebuild** of the *a reference extension* browser extension. The original sits at the repository root (`../`) and is unlicensed. v0.6 lives in `extension/` (plain MV3, no build step). It does profile download, single-post download, per-item ⬇ buttons on grid tiles and feed posts, stories and highlights, and a read-only collection check. All saving runs in a side panel (`manager.html`) with a queue. See `README.md` for the requirements and status, and `docs/README.md` for the study notes.
+`igd/` is a **clean-room rebuild** of the *a reference extension* browser extension. The original sits at the repository root (`../`) and is unlicensed. The extension lives in `extension/` (plain MV3, no build step; the version is in `manifest.json`). See `README.md` for features and `docs/README.md` for the study notes.
 
-- `extension/naming.js`: file names and dedup keys. It must stay compatible with the old collections, so run `node test/naming.test.js` after any change.
-- `extension/page.js`: page-world GraphQL calls (`PolarisProfilePostsQuery`, `PolarisPostRootQuery`, `PolarisAPITopsearchQuery` for username → id, `PolarisProfileStoryHighlightsTrayContentQuery`, `PolarisStoriesV3ReelPageStandaloneQuery`). Each request gets exactly one reply on its port. Never call the story "seen" mutations.
-- `extension/naming.js` also holds `routeFromPath`, `shortcodeFromPath`, `parseFileName`, `inferOwner` and `sniffMedia`, so they are unit-tested.
-- `extension/collection.js`: `.igd.json` markers, `resolveAccountDir`, and the read-only `checkCollection`. Tested offline against an in-memory folder tree in `test/collection.test.js`.
-- Security invariants: the folder handle lives only in the panel's extension-origin IndexedDB, never in instagram.com storage, where page scripts could use it. Treat page-bridge replies as untrusted: the panel runs `itemsFromNode`, which validates usernames, IDs and CDN URLs, and `validJob` checks jobs arriving from content scripts. Every igd button handler requires `event.isTrusted`: page scripts can click our buttons, and the panel's folder is already granted. Live tests therefore can't start jobs with a script `.click()`.
-- `extension/manager.js` (side panel): folder, queue, job runner. It asks an Instagram tab to list records (`bridge` → `chrome.tabs.sendMessage`), pinging tabs because ones opened before an igd update have no live script.
-- `extension/background.js`: every job goes through it. It calls `sidePanel.open` before awaiting anything, because that needs the user's click. It then forwards the job to the panel, or holds it until the panel asks (`managerReady`). The panel accepts jobs only from the background, with the tab URL as reported by Chrome.
-- `extension/content.js`: buttons, per-item buttons, and the relay panel → page world. It never saves. The buttons find posts through their `/p/` or `/reel/` links (`shortcodeFromPath`), never through Instagram class names. Clicks are handled in the capture phase, so the tile link never navigates.
-- `extension/collection.js` is shared by the panel: markers, folder resolution, saving, and the check.
+- `extension/naming.js`: pure helpers shared by the content script and panel, unit-tested in `test/naming.test.js`:
+  - file names, dedup keys, `parseFileName`, `inferOwner`, `sniffMedia`
+  - `itemsFromNode`, which validates records
+  - `routeFromPath`, `shortcodeFromPath`, `queueEntry`
+
+  Naming must stay compatible with the old collections; run the test after any change.
+- `extension/collection.js`: `.igd.json` markers, `resolveAccountDir`, saving, and the read-only `checkCollection`. Used by the panel; tested offline against an in-memory folder tree in `test/collection.test.js`.
+- `extension/page.js`: page-world GraphQL calls (`PolarisProfilePostsQuery`, `PolarisPostRootQuery`, `PolarisAPITopsearchQuery` for username → id, `PolarisProfileStoryHighlightsTrayContentQuery`, `PolarisStoriesV3ReelPageStandaloneQuery`).
+  - Query flags ("provided variables") are read from each query's definition.
+  - Each request gets exactly one reply on its port.
+  - Never call the story "seen" mutations.
+- `extension/manager.js` (side panel): folder, queue, job runner. It asks an Instagram tab to list records (`bridge` → `chrome.tabs.sendMessage`). It pings tabs first, because tabs opened before an igd update have no live script.
+- `extension/background.js`: every job goes through it. It calls `sidePanel.open` before awaiting anything, because that needs the user's click. Then it forwards the job to the panel, or holds it until the panel asks (`managerReady`).
+- `extension/content.js`: buttons, per-item buttons, the relay from panel to page world, and placement next to Instagram's Messages button. It never saves. Posts are found through their `/p/` or `/reel/` links (`shortcodeFromPath`), never through Instagram class names. Clicks are handled in the capture phase, so the tile link never navigates.
+
+**Security invariants:**
+- The folder handle lives only in the panel's extension-origin IndexedDB, never in instagram.com storage, where page scripts could use it.
+- Page-bridge replies are untrusted, so `itemsFromNode` validates them.
+- The panel accepts jobs only from the background, with the tab URL as Chrome reports it, and checks them with `validJob`.
+- Every igd button handler requires `event.isTrusted`: page scripts can click our buttons, and the panel's folder is already granted. Live tests therefore can't start jobs with a script `.click()`.
 
 ## Clean-room rules
 
@@ -25,12 +36,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Compatibility with existing collections (do not break)
 
-- Identity: the dedup key is the media **pk** only. Account folders are tied to user IDs by `.igd.json` (`collection.js`, `resolveAccountDir`). Never rename existing folders, and never let two user IDs share a folder.
-- Migration rules: report first (🔍 is read-only). Never delete: anything removed goes to `<root>/.igd-trash/<date>/`. Steps that move files need the user's confirmation.
-
 - Layout: `<root>/<username>/<username>_<taken_at>_<id>.<ext>`. The only cleaning step strips `< > : " / \ | ? *`.
 - Dedup key: **`pk`**. Never key on the full name, the username, or a name prefix that includes `taken_at`.
+- Account folders are tied to user IDs by `.igd.json` (`resolveAccountDir`). Never rename existing folders, and never let two user IDs share a folder.
 - Never overwrite. Open with `create: false` first, because creating and then writing truncates the file.
+- Migration rules: report first (the collection check is read-only). Never delete: anything removed goes to `<root>/.igd-trash/<date>/`. Steps that move files need the user's confirmation.
 - Full rules: `docs/04-download-and-storage.md`, section "Compatibility checklist".
 
 ## Instagram facts drift

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "igd: Instagram downloader",
-  "version": "0.7.7",
+  "version": "0.8.0",
   "description": "Download Instagram profiles, posts and stories into a local collection, skipping media you already have.",
   "permissions": [
     "sidePanel"
@@ -15,11 +15,7 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "Open igd",
-    "default_icon": {
-      "16": "icons/icon-16.png",
-      "32": "icons/icon-32.png"
-    }
+    "default_title": "Open igd"
   },
   "side_panel": {
     "default_path": "manager.html"

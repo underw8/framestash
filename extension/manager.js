@@ -81,7 +81,7 @@ const jobs = [];
 let busy = false;
 
 function alertLine(text) {
-  jobs.push({ id: crypto.randomUUID(), label: text, state: "error", detail: "" });
+  jobs.push({ label: text, state: "error", detail: "" });
   renderJobs();
 }
 
@@ -93,28 +93,15 @@ const STATE_ICONS = {
   error: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v5.5M12 16.4v.1"/>',
 };
 
+// Labels and details carry usernames, so they go in with textContent only.
 function renderJobs() {
   $("empty").hidden = jobs.length > 0;
   $("jobs").replaceChildren(...jobs.slice(-50).reverse().map((j) => {
-    const li = document.createElement("li");
-    li.dataset.state = j.state;
-    li.title = j.state;
-    const icon = document.createElement("span");
-    icon.className = "job-icon";
-    icon.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${STATE_ICONS[j.state]}</svg>`;
-    const text = document.createElement("span");
-    text.className = "job-text";
-    const label = document.createElement("span");
-    label.className = "job-label";
-    label.textContent = j.label;
-    text.append(label);
-    if (j.detail) {
-      const d = document.createElement("span");
-      d.className = "job-detail";
-      d.textContent = j.detail;
-      text.append(d);
-    }
-    li.append(icon, text);
+    const li = $("jobRow").content.firstElementChild.cloneNode(true);
+    li.dataset.state = li.title = j.state;
+    li.querySelector("svg").innerHTML = STATE_ICONS[j.state];
+    li.querySelector(".job-label").textContent = j.label;
+    li.querySelector(".job-detail").textContent = j.detail;
     return li;
   }));
 }
@@ -123,16 +110,6 @@ function update(job, detail, kind = "") {
   job.detail = detail;
   renderJobs();
   if (job.tabId) chrome.tabs.sendMessage(job.tabId, { type: "status", text: detail, kind }).catch(() => {});
-}
-
-function describe(job) {
-  return {
-    profile: () => `@${job.username} posts`,
-    stories: () => `@${job.username} ${job.withHighlights ? "stories & highlights" : "stories"}`,
-    post: () => `post ${job.shortcode}`,
-    highlight: () => `highlight ${job.id}`,
-    check: () => "collection check",
-  }[job.kind]();
 }
 
 // Jobs arrive from content scripts; only well-formed ones are accepted.
@@ -147,8 +124,7 @@ function validJob(j) {
 }
 
 function enqueue(job) {
-  const entry = { ...job, id: crypto.randomUUID(), label: describe(job), state: "queued", detail: "" };
-  jobs.push(entry);
+  jobs.push(queueEntry(job));
   renderJobs();
   pump();
   return jobs.filter((j) => j.state === "queued" || j.state === "running").length;
@@ -164,8 +140,7 @@ async function pump() {
       try {
         await run(job);
         job.state = "done";
-        renderJobs();
-        if (job.tabId) chrome.tabs.sendMessage(job.tabId, { type: "status", text: job.detail, kind: "ok" }).catch(() => {});
+        update(job, job.detail, "ok");
       } catch (e) {
         job.state = "error";
         update(job, e.message, "error");
@@ -285,8 +260,9 @@ function finish(job, c, where) {
 // Jobs reach the panel only through background.js, which adds the sending tab's
 // id and URL as reported by Chrome (not by the page).
 function acceptDelivery(d) {
-  if (!d || d.type !== "job" || !String(d.url).startsWith("https://www.instagram.com/")) return { queued: false, reason: "igd: invalid request" };
-  if (!validJob(d.job)) return { queued: false, reason: "igd: invalid request" };
+  if (!d || d.type !== "job" || !String(d.url).startsWith("https://www.instagram.com/") || !validJob(d.job)) {
+    return { queued: false, reason: "igd: invalid request" };
+  }
   return { queued: true, position: enqueue({ ...d.job, tabId: d.tabId }) };
 }
 

@@ -80,6 +80,10 @@ async function resolveAccountDir(root, username, userId) {
   const name = plain ? `${username}_${userId}` : username;
   const dir = await root.getDirectoryHandle(name, { create: true });
   const existing = await readMarker(dir);
+  // Never let two accounts share a folder, even one named after this account's id.
+  if (existing && String(existing.userId) !== String(userId)) {
+    throw new Error(`Folder "${name}" belongs to another account (user ${existing.userId}). Rename it, then retry.`);
+  }
   if (!existing) await writeMarker(dir, userId, username, null);
   return { dir, name, note: plain ? ` (@${username} folder belongs to another account)` : "" };
 }
@@ -145,7 +149,7 @@ async function saveItems(dir, index, items, job) {
 
 // ---- read-only collection check ----
 
-async function checkFolder(dir, label, report, onFile) {
+async function checkFolder(dir, onFile) {
   const byPk = new Map();
   const out = { files: 0, media: 0, empty: [], errorTxt: 0, unparsed: [], notMedia: [], duplicates: [] };
   for await (const [name, handle] of dir.entries()) {
@@ -162,7 +166,6 @@ async function checkFolder(dir, label, report, onFile) {
     byPk.set(parsed.pk, [...(byPk.get(parsed.pk) || []), name]);
   }
   for (const names of byPk.values()) if (names.length > 1) out.duplicates.push(names);
-  report[label] = out;
   return out;
 }
 
@@ -174,9 +177,8 @@ async function checkCollection(root, onProgress) {
     const marker = await readMarker(dir);
     const names = await fileNames(dir);
     const inferred = inferOwner(names);
-    const folders = {};
-    await checkFolder(dir, "posts", folders, tick);
-    try { await checkFolder(await dir.getDirectoryHandle("stories"), "stories", folders, tick); } catch (e) { if (e.name !== "NotFoundError") throw e; }
+    const folders = { posts: await checkFolder(dir, tick) };
+    try { folders.stories = await checkFolder(await dir.getDirectoryHandle("stories"), tick); } catch (e) { if (e.name !== "NotFoundError") throw e; }
     const prefixes = new Map();
     for (const n of names) { const p = parseFileName(n); if (p) prefixes.set(p.username, (prefixes.get(p.username) || 0) + 1); }
     const topPrefix = [...prefixes].sort((a, b) => b[1] - a[1])[0];

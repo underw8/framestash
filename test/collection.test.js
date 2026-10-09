@@ -70,6 +70,13 @@ const marker = async (dir) => JSON.parse(await (await (await dir.getFileHandle("
   assert.equal(r.name, "fresh");
   assert.equal((await marker(r.dir)).userId, "99");
 
+  // 5b. "<username>_<userId>" already owned by yet another account: refuse rather than share it.
+  (await root.getDirectoryHandle("dup", { create: true })).file(media("dup", "100000000000000030", "61"));
+  const squatter = await root.getDirectoryHandle("dup_62", { create: true });
+  await (await squatter.getFileHandle(".igd.json", { create: true })).createWritable().then(async (w) => { await w.write(JSON.stringify({ version: 1, userId: "63", usernames: ["x"] })); await w.close(); });
+  await assert.rejects(ctx.resolveAccountDir(root, "dup", "62"), /belongs to another account/);
+  assert.equal((await marker(squatter)).userId, "63");
+
   // 6. No user id available: legacy behaviour, by name, no marker.
   r = await ctx.resolveAccountDir(root, "noid", null);
   assert.equal(r.name, "noid");

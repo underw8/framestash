@@ -3,7 +3,7 @@
 :root {
   --bg: #fff; --card: #efefef; --text: #000; --muted: #737373; --line: #dbdbdb;
   --primary: #4a5df9; --primary-hover: #4150f7; --secondary: #efefef; --secondary-hover: #dbdbdb;
-  --field-line: #dbdbdb; --track-off: #dbdbdb; --error: #ed4956; --ok: #58c322;
+  --field-line: #dbdbdb; --track-off: #dbdbdb; --error: #ed4956;
   --dot: linear-gradient(45deg, #ff9a3c, #ff3d7f 50%, #7a5cff);
 }
 @media (prefers-color-scheme: dark) {
@@ -39,7 +39,6 @@ button:hover { background: var(--secondary-hover); }
 button.primary { background: var(--primary); color: #fff; }
 button.primary:hover { background: var(--primary-hover); }
 button.wide { display: block; width: 100%; }
-button:disabled { opacity: .5; cursor: default; }
 :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 .card button { background: var(--bg); }
 .card button:hover { background: var(--secondary); }
@@ -95,6 +94,7 @@ textarea:focus { border-color: var(--muted); outline: none; }
 .job-text { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .job-label { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .job-detail { color: var(--muted); font-size: 12px; line-height: 16px; overflow-wrap: anywhere; }
+.job-detail:empty { display: none; }
 li[data-state="running"] .job-icon { color: var(--primary); }
 li[data-state="running"] .job-icon svg { animation: spin 1s linear infinite; }
 li[data-state="done"] .job-icon { color: var(--text); }

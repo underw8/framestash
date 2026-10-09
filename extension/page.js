@@ -2,6 +2,17 @@
 // query IDs are readable. Answers requests from content.js on a private port.
 
 (() => {
+  // Relay "provided variables" (feature flags) the query expects; sent as false, as
+  // Instagram does for these queries. Read from the query's definition so new flags are covered.
+  function providedFalse(R, operation) {
+    try {
+      const q = R(`${operation}.graphql`);
+      return Object.fromEntries(Object.keys((q.params || q).providedVariables || {}).map((k) => [k, false]));
+    } catch {
+      return {}; // definition not loaded on this page: send none rather than fail
+    }
+  }
+
   // Calls one of Instagram's own persisted GraphQL queries the way its web app does.
   // Query IDs and tokens are read at call time, never hardcoded.
   async function graphql(operation, variables, rootField) {
@@ -14,12 +25,12 @@
       headers: {
         "content-type": "application/x-www-form-urlencoded",
         "x-csrftoken": (document.cookie.match(/(?:^|; )csrftoken=([^;]+)/) || [])[1] || "",
-        "x-ig-app-id": sessionStorage.getItem("__ig_app_id") || R("PolarisConfig").getIGAppID(),
+        "x-ig-app-id": R("PolarisConfig").getIGAppID(),
         "x-fb-lsd": lsd,
       },
       body: new URLSearchParams({
         doc_id: R(`${operation}_instagramRelayOperation`),
-        variables: JSON.stringify(variables),
+        variables: JSON.stringify({ ...providedFalse(R, operation), ...variables }),
         lsd,
         fb_dtsg: R("DTSGInitialData").token,
       }),
@@ -43,9 +54,6 @@
         count: 12, include_reel_media_seen_timestamp: true, include_relationship_info: true,
         latest_besties_reel_media: true, latest_reel_media: true,
       },
-      __relay_internal__pv__PolarisMultiCaptionCarouselEnabledrelayprovider: false,
-      __relay_internal__pv__PolarisShortDramaEnabledrelayprovider: false,
-      __relay_internal__pv__PolarisReelsRecoDebugOverlayEnabledrelayprovider: false,
     }, "xdt_api__v1__feed__user_timeline_graphql_connection");
     if (r.error) return r;
     return {
@@ -55,11 +63,7 @@
   }
 
   async function post(shortcode) {
-    const r = await graphql("PolarisPostRootQuery", {
-      shortcode,
-      __relay_internal__pv__PolarisShortDramaEnabledrelayprovider: false,
-      __relay_internal__pv__PolarisMultiCaptionCarouselEnabledrelayprovider: false,
-    }, "xdt_api__v1__media__shortcode__web_info");
+    const r = await graphql("PolarisPostRootQuery", { shortcode }, "xdt_api__v1__media__shortcode__web_info");
     if (r.error) return r;
     return r.data.items && r.data.items.length ? { nodes: r.data.items } : { error: "post not found" };
   }
@@ -80,13 +84,10 @@
 
   // Reads reels without marking anything as seen (that is a separate mutation we never call).
   async function reels(ids, isHighlight) {
-    const R = window.require;
-    const provided = Object.keys(R("PolarisStoriesV3ReelPageStandaloneQuery.graphql").params.providedVariables || {});
     const nodes = [];
     for (let i = 0; i < ids.length; i += 20) {
       const r = await graphql("PolarisStoriesV3ReelPageStandaloneQuery", {
         reel_ids_arr: ids.slice(i, i + 20), is_highlight: isHighlight, media_id: null,
-        ...Object.fromEntries(provided.map((k) => [k, false])),
       }, "xdt_api__v1__feed__reels_media");
       if (r.error) return r;
       // Story items carry no owner of their own; the reel does.
@@ -118,7 +119,7 @@
     if (hl.error) return hl;
     const saved = hl.ids.length ? await reels(hl.ids, true) : { nodes: [] };
     if (saved.error) return saved;
-    return { nodes: [...active.nodes, ...saved.nodes], highlights: hl.ids.length };
+    return { nodes: [...active.nodes, ...saved.nodes] };
   }
 
   const OPS = {

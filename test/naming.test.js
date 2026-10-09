@@ -83,8 +83,8 @@ for (const [path, route] of [
 assert.deepEqual(n.inferOwner([
   "u_1789389655_100000000000000001_42.jpg", "u_1789389655_100000000000000002_42.jpg",
   "u_1789389655_100000000000000003_99.jpg", "u_1789389655_100000000000000004.jpg", ".igd.json",
-]), { ownerId: "42", share: 2 / 3, total: 3, owners: 2 });
-assert.deepEqual(n.inferOwner([]), { ownerId: null, share: 0, total: 0, owners: 0 });
+]), { ownerId: "42", share: 2 / 3, owners: 2 });
+assert.deepEqual(n.inferOwner([]), { ownerId: null, share: 0, owners: 0 });
 
 // Media sniffing by content.
 const bytes = (...xs) => Uint8Array.from(xs.flatMap((x) => typeof x === "string" ? [...x].map((c) => c.charCodeAt(0)) : [x]));
@@ -93,5 +93,12 @@ assert.equal(n.sniffMedia(bytes(0, 0, 0, 0x18, "ftypisom", 0, 0, 0, 0)), "mp4/he
 assert.equal(n.sniffMedia(bytes("RIFF", 0, 0, 0, 0, "WEBP")), "webp");
 assert.equal(n.sniffMedia(bytes("<!DOCTYPE ht")), null); // error page saved under a media name
 assert.equal(n.sniffMedia(new Uint8Array(0)), null);
+
+// Queue entries keep the job's own fields: a highlight's id must survive queueing.
+const hl = n.queueEntry({ kind: "highlight", id: "18000000000000040", tabId: 7 });
+assert.equal(hl.id, "18000000000000040");
+assert.equal(hl.label, "highlight 18000000000000040");
+assert.equal(hl.state, "queued");
+assert.equal(n.queueEntry({ kind: "stories", username: "a.b" }).label, "@a.b stories"); // withHighlights unset = active only
 
 console.log("naming: all checks passed");

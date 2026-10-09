@@ -8,7 +8,6 @@
   --igd-shadow: 0 4px 12px rgba(0, 0, 0, .2);
   --igd-text: rgb(var(--ig-primary-text, 0, 0, 0));
   --igd-muted: rgb(var(--ig-secondary-text, 115, 115, 115));
-  --igd-line: rgb(var(--ig-elevated-separator, 219, 219, 219));
   --igd-primary: rgb(var(--ig-primary-button, 74, 93, 249));
   --igd-error: rgb(var(--ig-error-or-destructive, 237, 73, 86));
   --igd-warn: #f5a623;
@@ -29,7 +28,7 @@
   position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   height: 44px; padding: 0 20px; border: 1px solid var(--igd-edge); border-radius: 999px; cursor: pointer; white-space: nowrap;
   background: var(--igd-bg); color: var(--igd-text); font: inherit; font-weight: 600;
-  box-shadow: var(--igd-shadow); transition: background-color .15s;
+  box-shadow: var(--igd-shadow);
 }
 /* Hover like Instagram's own buttons: the background stays, and a full-size layer
    of its --hover-overlay colour fades in over 0.1 s. */
@@ -51,13 +50,12 @@
 .igd-card:has(.igd-status:empty) { display: none; }
 .igd-panel .igd-card button.igd-close {
   width: 24px; height: 24px; padding: 0; margin: -4px -6px -4px 0; border: 0; box-shadow: none;
-  background: transparent; color: var(--igd-muted); opacity: 0; transition: opacity .15s, background-color .15s;
+  background: transparent; color: var(--igd-muted); opacity: 0; transition: opacity .15s;
 }
 .igd-panel .igd-card button.igd-close svg { width: 16px; height: 16px; }
 .igd-panel .igd-card:hover button.igd-close, .igd-panel .igd-card button.igd-close:focus-visible { opacity: 1; }
 .igd-panel .igd-card button.igd-close:hover { color: var(--igd-text); }
 .igd-status { font-size: 13px; line-height: 17px; }
-.igd-status[data-kind="ok"] { color: var(--igd-text); }
 .igd-card:has(.igd-status[data-kind="warn"]) { border-color: var(--igd-warn); }
 .igd-card:has(.igd-status[data-kind="error"]) { border-color: var(--igd-error); }
 

@@ -23,11 +23,6 @@ function fileName(username, takenAt, id, ext) {
   return `${username}_${takenAt}_${id}.${ext}`.replace(/[<>:"/\\|?*]/g, "");
 }
 
-// A media pk is unique across Instagram and never reused, unlike usernames.
-function mediaKey(pk) {
-  return String(pk);
-}
-
 // username may contain "_" and digits, so anchor on the numeric tail:
 // taken_at is 9-10 digits (Unix seconds), pk is 12+ digits, owner id optional.
 const NAME_RE = /^(.+)_(\d{9,10})_(\d{12,})(?:_(\d+))?\.([A-Za-z0-9]+)$/;
@@ -37,9 +32,10 @@ function parseFileName(name) {
   return m ? { username: m[1], takenAt: Number(m[2]), pk: m[3], ownerId: m[4] || null, ext: m[5] } : null;
 }
 
+// Dedup key: the media pk, unique across Instagram and never reused (unlike usernames).
 function keyFromFileName(name) {
   const parsed = parseFileName(name);
-  return parsed ? mediaKey(parsed.pk) : null;
+  return parsed ? parsed.pk : null;
 }
 
 // Which account a folder belongs to, judged from the "_<ownerId>" suffix in its file names.
@@ -56,7 +52,7 @@ function inferOwner(names) {
   let ownerId = null;
   let top = 0;
   for (const [id, n] of counts) if (n > top) [ownerId, top] = [id, n];
-  return { ownerId, share: total ? top / total : 0, total, owners: counts.size };
+  return { ownerId, share: total ? top / total : 0, owners: counts.size };
 }
 
 // Identifies a media file by its first bytes, not its name.
@@ -97,7 +93,7 @@ function itemsFromNode(node) {
     if (!MEDIA_ID_RE.test(id) || !/^\d+$/.test(pk) || !Number.isInteger(takenAt)) continue;
     items.push({
       url: best.url,
-      key: mediaKey(pk),
+      key: pk,
       name: fileName(owner, takenAt, id, extensionOf(best.url, best.video)),
       owner,
       ownerId: ownerIdOf(node),
@@ -131,9 +127,21 @@ function routeFromPath(path) {
   return null;
 }
 
+// Queue entry for a job. Must keep the job's own fields: a highlight job's `id` is the highlight id.
+function queueEntry(job) {
+  const label = {
+    profile: `@${job.username} posts`,
+    stories: `@${job.username} ${job.withHighlights ? "stories & highlights" : "stories"}`,
+    post: `post ${job.shortcode}`,
+    highlight: `highlight ${job.id}`,
+    check: "collection check",
+  }[job.kind];
+  return { ...job, label, state: "queued", detail: "" };
+}
+
 if (typeof module !== "undefined") {
   module.exports = {
     bestMedia, extensionOf, fileName, keyFromFileName, parseFileName, inferOwner, sniffMedia,
-    itemsFromNode, mediaKey, shortcodeFromPath, routeFromPath, USERNAME_RE,
+    itemsFromNode, shortcodeFromPath, routeFromPath, queueEntry, USERNAME_RE,
   };
 }
