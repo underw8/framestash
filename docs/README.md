@@ -23,6 +23,7 @@ These notes explain how the a reference extension Chrome extension (v4.12.16) wo
 | 9 | [UX surface](09-ux-surface.md) | Toasts, every message text, options UI, theming, browsers |
 | 10 | [Dead and legacy code](10-dead-and-legacy-code.md) | What not to copy, and the local files that aren't part of the shipped extension |
 | 11 | [Investigation playbook](11-investigation-playbook.md) | Our own console probes for re-checking Instagram's APIs, the extension state and an existing collection |
+| 12 | [DASH video](12-dash-video.md) | Whether to save videos from the DASH manifest: parsing, merging tracks, costs, the decision |
 | — | [Verification evidence](verification/README.md) | Raw agent reports behind docs 1–10, and the claims that were overruled |
 
 **If you only read three:** 4 (to avoid damaging existing collections), 3 (how to get the data), and 6 (what goes wrong). **Before you start building:** run playbook steps 5–6 to check that Instagram's current queries still match doc 3, and step 9 to audit the existing collection.

@@ -71,11 +71,16 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - [ ] Move a file from `stories/<title>/` up into `stories/` and re-run. It should count as 'already had' and not be downloaded into the highlight folder again.
 
 ## T5 · DASH video quality
-- status: todo
+- status: needs-check
 - why: Instagram's GraphQL nodes carry `video_dash_manifest` with higher qualities than the progressive MP4 igd saves today (`docs/03`).
 - done when:
   - there's a design note in `docs/` covering manifest parsing and how to combine the video and audio tracks in the browser, with what it costs;
   - there's a go/no-go decision. If go, it's an opt-in setting, and files stay named the same so dedup still holds.
+- notes: design note is `docs/12-dash-video.md`; decision is no-go until the probe shows a real gain. No code changes.
+- live checks:
+  - [ ] On a logged-in instagram.com tab, run the probe in docs/12 ("Probe: how much higher is DASH?") on a few profiles, including one that posts reels. Record `videos`, `withManifest`, `dashTaller` and `dashUnknown` in docs/12.
+  - [ ] If `withManifest` is 0, retry with `PolarisPostRootQuery` on a single reel and note in docs/12 which query carries the manifest. Clear the 'to verify' points in docs/12 from `firstRep`.
+  - [ ] Only when `dashUnknown` is 0: confirm no-go if `dashTaller` is under about a quarter of the videos sampled; otherwise reopen T5 as a 'go' per the docs/12 decision section.
 
 ## T6 · Stop a running job, remove queued ones
 - status: needs-check
