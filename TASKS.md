@@ -107,8 +107,8 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - Stop still takes effect within a second during any wait.
   - the pure logic (jittered delays, budget windows, error classification, cool-down growth) is unit-tested; the existing test suites pass.
 - live checks:
-  - [ ] Reload igd at chrome://extensions. Queue a large profile and watch the job detail: page requests should be 3–6 s apart, and the file count should climb about one file per 0.3–1 s.
-  - [ ] Queue two profiles. After the first finishes, the second should show a 30–90 s wait before its first request.
+  - [x] Reload igd at chrome://extensions. Queue a large profile and watch the job detail: page requests should be 3–6 s apart, and the file count should climb about one file per 0.3–1 s.
+  - [x] Queue two profiles. After the first finishes, the second should show a 30–90 s wait before its first request.
   - [ ] Open the Pacing settings, set the hourly budget to 3 and run a profile. After 3 requests, the panel should say the queue is holding until a time about an hour after the first request. Close and reopen the panel (or restart Chrome): the hold and its time should still be shown. Reset to defaults afterwards.
   - [ ] Click Stop during each kind of wait (API gap, job gap, budget hold, breaker hold). The job should end as 'Stopped' within a second.
   - [ ] Breaker, timed: if a real 429 or 'please wait' happens (or simulate one by temporarily returning {error:'HTTP 429',status:429} from page.js), the panel should show the reason and a resume time 30 min out. No retry should happen before then, and a second trip should show 60 min.
