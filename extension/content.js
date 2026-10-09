@@ -53,6 +53,10 @@ function setStatus(text, kind = "") {
 
 const panelHint = "Open the igd panel (toolbar icon or 📁), then try again.";
 
+// Page scripts can call .click() on our buttons; only real user clicks may start
+// downloads, or any script on instagram.com could fill the collection.
+const onUserClick = (el, handler) => el.addEventListener("click", (e) => { if (e.isTrusted) handler(e); });
+
 async function send(job) {
   // After igd is updated, scripts already in this tab are cut off from it.
   if (!chrome.runtime || !chrome.runtime.id) return setStatus("igd was updated: reload this page.", "warn");
@@ -73,19 +77,19 @@ function jobForRoute(route) {
   return { kind: "highlight", id: route.id };
 }
 
-goButton.addEventListener("click", () => {
+onUserClick(goButton, () => {
   const route = routeFromPath(location.pathname);
   if (route) send(jobForRoute(route));
 });
 
-storiesButton.addEventListener("click", () => {
+onUserClick(storiesButton, () => {
   const route = routeFromPath(location.pathname);
   if (route && route.kind === "profile") send({ kind: "stories", username: route.username, withHighlights: true });
 });
 
-panel.querySelector(".igd-check").addEventListener("click", () => send({ kind: "check" }));
+onUserClick(panel.querySelector(".igd-check"), () => send({ kind: "check" }));
 
-panel.querySelector(".igd-open").addEventListener("click", async () => {
+onUserClick(panel.querySelector(".igd-open"), async () => {
   const r = await chrome.runtime.sendMessage({ type: "openPanel" }).catch(() => null);
   if (!r || !r.ok) setStatus("Click the igd icon in the toolbar to open the panel.", "warn");
 });
@@ -134,7 +138,7 @@ document.addEventListener("click", (e) => {
   if (!button) return;
   e.preventDefault();
   e.stopPropagation();
-  send({ kind: "post", shortcode: button.dataset.shortcode });
+  if (e.isTrusted) send({ kind: "post", shortcode: button.dataset.shortcode });
 }, true);
 
 let scanTimer = 0;

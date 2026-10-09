@@ -54,6 +54,7 @@ What it does, and which doc each rule comes from:
 - Writes each page as it arrives, waits 1.5 s between pages, and backs off 60 / 120 / 300 s on HTTP 429 [3, 6].
 - Keeps the folder in the extension's own storage, inside the panel. Pages on instagram.com can't reach it; storing it on instagram.com would let any page script write into your collection [6]. Re-asks if the folder was moved or deleted.
 - Instagram tabs only list posts and stories; the panel validates the records and does all fetching and writing.
+- igd buttons only respond to real user clicks (`isTrusted`). Otherwise any script on instagram.com could call `.click()` and fill the collection.
 - Treats replies from the page as untrusted, because any page script can answer them. Only Instagram-shaped usernames and IDs and Instagram CDN URLs are accepted.
 - No telemetry and no web-accessible resources [5]. Permissions: `sidePanel`, plus host access to instagram.com and Instagram's CDN, so the panel can fetch media.
 
