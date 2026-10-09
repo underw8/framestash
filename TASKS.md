@@ -74,3 +74,37 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - [ ] Re-queue the stopped profile. Files saved before the stop count as 'already had', and the account folder has no 0-byte or .crswap leftovers.
   - [ ] If you hit a 429 ('Instagram is rate-limiting; waiting … s'), click Stop. The job should stop within a second instead of waiting out the back-off.
   - [ ] Keyboard only: Tab to the Stop or Remove button while a job is making progress. Focus should stay on it as the progress text updates, Enter/Space should activate it, and a screen reader (VoiceOver) should read 'Stop @user posts' or 'Remove @user posts'. Check the look in both light and dark mode.
+
+## T7 · Rate-limit guard
+- status: todo
+- why: Instagram blocks accounts ("action blocked", checkpoint or login challenges) that make sustained, regular, high-volume requests. Today igd waits a fixed 1.5 s between profile pages, doesn't pause between downloads or jobs, and keeps retrying after a 429.
+- done when:
+  - one shared pacer in the panel paces every Instagram request (bridge calls) and every CDN download, with random jitter: API calls 3–6 s apart, CDN downloads 0.3–1 s apart, 30–90 s between jobs, and a 5–10 min break about every 150 API calls.
+  - API calls are counted against an hourly and a daily budget (defaults 200 per hour and 1,500 per day), kept in the extension's storage so closing the panel or restarting Chrome doesn't reset them. When a budget runs out, the queue holds and the panel says when it resumes.
+  - circuit breaker: a 429, a "please wait" / feedback_required / checkpoint / challenge reply, a redirect to a login or challenge page, or a reply that isn't the expected data holds the whole queue instead of retrying. The panel explains why. The cool-down is at least 30 min and doubles on repeated trips. A challenge or login problem never resumes by itself: the panel shows a Resume button for the user.
+  - the existing 60/120/300 s retry is replaced by the breaker.
+  - the pacing numbers and budgets are settings in the panel, with these defaults.
+  - Stop still takes effect within a second during any wait.
+  - the pure logic (jittered delays, budget windows, error classification, cool-down growth) is unit-tested; the existing test suites pass.
+
+## T8 · Incremental re-runs
+- status: todo
+- why: re-running a profile lists every page again, even when only a few posts are new. That's the largest source of avoidable Instagram requests.
+- done when:
+  - Instagram lists posts newest first, so a profile run stops listing after 12 posts in a row that are already in the collection.
+  - pinned posts at the top of a profile (old posts listed first) don't count towards the 12 and don't end the run.
+  - early stop only applies when an earlier run of that account listed to the end; the account's "listed to the end" state is kept in the extension's storage. A first run, or a run after an interrupted one, lists to the end.
+  - there's an explicit way to force a full listing for a profile.
+  - stories and single posts are unchanged.
+  - the stop rule is unit-tested; the existing test suites pass.
+
+## T9 · Pause and resume the queue
+- status: todo
+- why: Stop drops a job. Sometimes you want to halt everything for a while and continue later from the same place.
+- done when:
+  - the panel has one Pause button for the whole queue. The running job halts at its next safe point (the same points Stop uses) and keeps its position. Nothing new starts while paused.
+  - Resume continues the running job from where it halted, then the rest of the queue.
+  - paused is kept in the extension's storage: after the panel closes or Chrome restarts, the queue comes back paused, and a profile job continues from its saved listing position (T2).
+  - pause shares the hold state of the T7 circuit breaker, so a breaker hold and a user pause show and resume the same way.
+  - the controls are real buttons, keyboard-reachable and labelled, and match the panel's style.
+  - pure logic is unit-tested; the existing test suites pass.

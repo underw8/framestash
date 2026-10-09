@@ -131,7 +131,10 @@ ${taskText}`,
 )
 if (!plan) return { picked: task.id, error: 'plan agent failed' }
 if (plan.blocked) {
-  await agent(`In ${REPO}, set task ${task.id}'s status in TASKS.md to "blocked" and add a bullet "- notes: ${plan.blocked.replace(/"/g, "'")}". Do not commit.`, { label: 'mark blocked' })
+  await agent(`In ${REPO}, set task ${task.id}'s status in TASKS.md to "blocked" and add a bullet "- notes: ${plan.blocked.replace(/"/g, "'")}". Commit only TASKS.md with the subject "chore: ${task.id} blocked on a decision", ending the message with these two lines exactly:
+Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PEGtRT8fAMDQtihDDzxb6t
+Do not push.`, { label: 'mark blocked' })
   return { picked: task.id, status: 'blocked', question: plan.blocked }
 }
 const planText = `Summary: ${plan.summary}\nSteps:\n- ${plan.steps.join('\n- ')}\nFiles: ${plan.files.join(', ')}\nTests: ${plan.tests.join('; ')}\nRisks: ${(plan.risks || []).join('; ')}`
