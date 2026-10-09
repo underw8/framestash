@@ -157,3 +157,23 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - [ ] While paused, click Stop on the running job. It should show Stopped within a second.
   - [ ] Keyboard only: Tab to 'Pause queue' and press Enter. Focus should move to Resume. Press Enter again: focus should go back to Pause. VoiceOver should read the hold text. Check light and dark mode.
   - [ ] If a breaker cool-down happens (or you simulate a 429 as in T7), click Pause during it and then Resume before the cool-down ends. The timed hold with its original resume time should come back, not a direct restart.
+
+## T10 · Start over button for interrupted profiles
+- status: todo
+- why: "start over" for an interrupted profile is currently the List every post switch (T2), which mixes two things. The user chose a dedicated control.
+- done when:
+  - a profile job row whose account has a saved listing position shows a **Start over** button. It clears that account's saved position, and the job lists from the newest post.
+  - List every post only turns off the early stop (T8). It no longer clears or ignores the saved position, so a full listing still resumes.
+  - Start over works for jobs queued from the panel and from the in-page Download button.
+  - the button is a real button, keyboard-reachable and labelled, and matches the panel's style.
+  - README describes the new control; the existing test suites pass, and new pure logic is unit-tested.
+
+## T11 · Second button for one carousel slide
+- status: todo
+- why: saving one slide with Alt-click (T3) is hard to discover. The user chose a visible second button.
+- done when:
+  - on a carousel post, a small second button next to the per-item download button saves only the visible slide. Single-image and video posts don't show it.
+  - the main button still saves the whole post. Alt-click is removed.
+  - the new button requires event.isTrusted, finds posts without Instagram class names, has a title and aria-label, and matches the existing per-item button style.
+  - saving, naming and dedup are unchanged (`<root>/<owner>/`, pk).
+  - README describes the new button; the existing test suites pass.
