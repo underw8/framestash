@@ -68,14 +68,15 @@
 /* Grid-tile buttons, centred just below the likes / comments counts Instagram shows on hover. */
 .igd-host { position: relative; }
 .igd-item {
-  position: absolute; top: calc(50% + 40px); left: calc(50% - 16px); z-index: 2;
-  display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 50%; cursor: pointer;
-  /* No backdrop-filter: one blurred layer per tile stalled Chrome's painting of long grids. */
-  background: rgba(0, 0, 0, .6); color: #fff;
+  position: absolute; top: calc(50% + 36px); left: calc(50% - 20px); z-index: 2;
+  display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 0; cursor: pointer;
+  /* Bare white icon like Instagram's hover counts; the shadow keeps it readable on light photos. */
+  background: none; color: #fff; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .5));
   opacity: 0; transition: opacity .15s, transform .15s;
 }
-.igd-item svg { width: 18px; height: 18px; }
-.igd-item:hover { transform: scale(1.08); background: rgba(0, 0, 0, .7); }
+.igd-item svg { width: 28px; height: 28px; stroke-width: 3; }
+.igd-item:hover { transform: scale(1.1); }
+.igd-item:focus-visible { outline: 2px solid #fff; outline-offset: 2px; border-radius: 8px; }
 :hover > .igd-item, .igd-item:focus-visible { opacity: 1; }
 
 /* Native-style buttons placed among Instagram's own controls. The icon takes the row's
