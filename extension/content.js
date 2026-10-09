@@ -143,7 +143,10 @@ function iconButtons(root) {
     const r = svg.getBoundingClientRect();
     if (Math.abs(r.width - 24) > 4 || Math.abs(r.height - 24) > 4) continue;
     const b = svg.closest('button, [role="button"]');
-    if (b && root.contains(b) && !b.classList.contains("igd-act")) found.add(b);
+    if (!b || !root.contains(b) || b.classList.contains("igd-act")) continue;
+    // Action icons are small; a whole grid tile can also be a button holding a 24 px badge.
+    const br = b.getBoundingClientRect();
+    if (br.width <= 64 && br.height <= 64) found.add(b);
   }
   return [...found];
 }
@@ -169,6 +172,9 @@ function scanActionBars(host, shortcode) {
   // Inner bars first, so an outer group that holds the same row is then skipped.
   for (const [bar, own] of [...bars].sort((a, b) => a[1].length - b[1].length)) {
     if (bar.querySelector(".igd-act")) continue;
+    // A row or column of icons is a thin strip; a grid row whose tiles carry badges is not.
+    const br = bar.getBoundingClientRect();
+    if (Math.min(br.width, br.height) > 96) continue;
     const spot = actionBarSpot(own.map((b) => { const r = b.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height }; }));
     if (!spot) continue;
     // Insert after the icon's own wrapper (the highest one holding no other icon), so the
@@ -191,9 +197,10 @@ function scanNative() {
     const code = articleCode(article);
     if (code && !article.querySelector(".igd-act")) scanActionBars(article, code);
   }
+  // A post opened from a grid is a dialog over the page; only the dialog holds its action row.
   const route = routeFromPath(location.pathname);
-  const main = document.querySelector("main");
-  if (route && route.kind === "post" && main && !main.querySelector("article")) scanActionBars(main, "");
+  const host = document.querySelector('[role="dialog"]') || document.querySelector("main");
+  if (route && route.kind === "post" && host && !host.querySelector("article")) scanActionBars(host, "");
 }
 
 // Capture phase, so the tile's link never navigates and Instagram's handlers never see the click.
