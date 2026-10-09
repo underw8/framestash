@@ -36,7 +36,7 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
 - live checks:
   - [ ] Reload igd at chrome://extensions and reload the Instagram tab. Queue a large profile and click Stop after page 3 or so. Queue it again: its first request should be page 4, the row should end with 'resumed from page 3', and it should not list page 1 again (check the page counter in the job detail).
   - [ ] Let a resumed run finish, then queue the same profile again. It should start from page 1 (and stop early under the T8 rule), not resume.
-  - [ ] Stop a profile midway, turn on 'List every post' and queue it. It should start from page 1 and list to the end. A later normal queue of that profile should not resume.
+  - [ ] Superseded by T10: 'List every post' now resumes, and Start over is the way to list from page 1. See T10's checks.
   - [ ] Stop a profile midway, then close the panel or restart Chrome, reopen it and re-queue the profile. It should still resume from the saved page.
   - [ ] Stop a profile midway, choose a different collection folder, then queue it. It should start from page 1.
 
@@ -89,11 +89,11 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - the controls are real buttons, keyboard-reachable and labelled, and match the panel's style.
   - the existing test suites pass, and new pure logic is unit-tested.
 - live checks:
-  - [ ] Reload igd at chrome://extensions. Queue 2 profiles, and click Stop on the running one partway through. It should end as 'Stopped · new N · already had M · failed 0' and the second profile should start by itself.
-  - [ ] Click Remove on a queued job. It should disappear. Then close and reopen the side panel: neither the stopped nor the removed job comes back, and only the others are listed.
-  - [ ] Re-queue the stopped profile. Files saved before the stop count as 'already had', and the account folder has no 0-byte or .crswap leftovers.
+  - [x] Reload igd at chrome://extensions. Queue 2 profiles, and click Stop on the running one partway through. It should end as 'Stopped · new N · already had M · failed 0' and the second profile should start by itself.
+  - [x] Click Remove on a queued job. It should disappear. Then close and reopen the side panel: neither the stopped nor the removed job comes back, and only the others are listed.
+  - [x] Re-queue the stopped profile. Files saved before the stop count as 'already had', and the account folder has no 0-byte or .crswap leftovers.
   - [ ] If you hit a 429 ('Instagram is rate-limiting; waiting … s'), click Stop. The job should stop within a second instead of waiting out the back-off.
-  - [ ] Keyboard only: Tab to the Stop or Remove button while a job is making progress. Focus should stay on it as the progress text updates, Enter/Space should activate it, and a screen reader (VoiceOver) should read 'Stop @user posts' or 'Remove @user posts'. Check the look in both light and dark mode.
+  - [x] Keyboard only: Tab to the Stop or Remove button while a job is making progress. Focus should stay on it as the progress text updates, Enter/Space should activate it, and a screen reader (VoiceOver) should read 'Stop @user posts' or 'Remove @user posts'. Check the look in both light and dark mode.
 
 ## T7 · Rate-limit guard
 - status: needs-check
@@ -144,10 +144,10 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - the controls are real buttons, keyboard-reachable and labelled, and match the panel's style.
   - pure logic is unit-tested; the existing test suites pass.
 - live checks:
-  - [ ] Reload igd at chrome://extensions. Queue a large profile and click 'Pause queue' while it lists. Within one request or download gap, the file count should stop. The hold card should read 'You paused the queue. Click Resume to continue.', and the job row should stay Running with the same text.
+  - [x] Reload igd at chrome://extensions. Queue a large profile and click 'Pause queue' while it lists. Within one request or download gap, the file count should stop. The hold card should read 'You paused the queue. Click Resume to continue.', and the job row should stay Running with the same text.
   - [ ] While paused, queue another job. It should stay Queued and not start.
-  - [ ] Click Resume. The same job should continue from the same page, with no counts reset and no repeated page, and then the queued job should run.
-  - [ ] Pause, then close the side panel and reopen it. The hold card should still say paused, and the job should be back in the list as Queued. Click Resume: the profile should continue with 'resumed from page N'.
+  - [x] Click Resume. The same job should continue from the same page, with no counts reset and no repeated page, and then the queued job should run.
+  - [x] Pause, then close the side panel and reopen it. The hold card should still say paused, and the job should be back in the list as Queued. Click Resume: the profile should continue with 'resumed from page N'.
   - [ ] Pause, quit and restart Chrome, then open the panel. It should still be paused. Resume should continue from the saved page.
   - [ ] While paused, click Stop on the running job. It should show Stopped within a second.
   - [ ] Keyboard only: Tab to 'Pause queue' and press Enter. Focus should move to Resume. Press Enter again: focus should go back to Pause. VoiceOver should read the hold text. Check light and dark mode.
