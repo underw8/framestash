@@ -239,11 +239,11 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - the card matches the panel's style, is keyboard-reachable and labelled, and works in light and dark mode.
   - pure logic, if any, is unit-tested; the existing test suites pass.
 - live checks:
-  - First run: reload the unpacked extension, clear the panel's state (DevTools on the panel: Application > IndexedDB > igd > kv > delete 'accepted', or reinstall), then open the side panel. Only the header and the notice card show, and the 'I understand' button has focus.
-  - Keyboard: Tab or Shift+Tab reaches the button and Enter/Space dismisses the notice. A screen reader announces the region as 'Before you start'.
-  - Queue while waiting: with the notice still showing, click a Download button on an Instagram post. The panel opens with the notice and nothing downloads. Click 'I understand': the job appears and starts.
-  - Persistence: close and reopen the panel and reload the extension. The notice does not come back.
-  - Light and dark: switch the OS appearance and check that the card's contrast matches the other cards.
+  - [ ] First run: reload the unpacked extension, clear the panel's state (DevTools on the panel: Application > IndexedDB > igd > kv > delete 'accepted', or reinstall), then open the side panel. Only the header and the notice card show, and the 'I understand' button has focus.
+  - [ ] Keyboard: Tab or Shift+Tab reaches the button and Enter/Space dismisses the notice. A screen reader announces the region as 'Before you start'.
+  - [ ] Queue while waiting: with the notice still showing, click a Download button on an Instagram post. The panel opens with the notice and nothing downloads. Click 'I understand': the job appears and starts.
+  - [ ] Persistence: close and reopen the panel and reload the extension. The notice does not come back.
+  - [ ] Light and dark: switch the OS appearance and check that the card's contrast matches the other cards.
 
 ## T16 · Store package and listing draft
 - status: needs-check
@@ -253,6 +253,6 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - `docs/store-listing.md` drafts: the short description (at most 132 characters), the full description (what it does, how to use it, the not-affiliated line, the "Use responsibly" points), the single-purpose statement, a justification for each permission and host permission in the manifest, the data-use answers (no data collected), and the list of required images with sizes (128 px icon, 1280×800 screenshots, 440×280 small promo tile).
   - no claims in the listing that aren't true of the code.
 - live checks:
-  - Unzip dist/framestash-0.22.0.zip to a temp folder, load it via Load unpacked in chrome://extensions, and confirm the panel opens and one Save post works.
-  - Read docs/store-listing.md and confirm the wording, the single-purpose statement and the privacy-policy URL before pasting it into the Web Store dashboard.
-  - Make the 1280×800 screenshots and the 440×280 promo tile; they are listed but not produced by this task.
+  - [ ] Unzip dist/framestash-0.22.0.zip to a temp folder, load it via Load unpacked in chrome://extensions, and confirm the panel opens and one Save post works.
+  - [ ] Read docs/store-listing.md and confirm the wording, the single-purpose statement and the privacy-policy URL before pasting it into the Web Store dashboard.
+  - [ ] Make the 1280×800 screenshots and the 440×280 promo tile; they are listed but not produced by this task.

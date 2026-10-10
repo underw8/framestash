@@ -11,7 +11,7 @@ for (const id of ids) {
   log(`Starting ${id}`)
   let r
   try {
-    r = await workflow({ scriptPath: '/Users/underw8/testSpace/igd/.claude/workflows/igd-task.js' }, id)
+    r = await workflow({ scriptPath: '.claude/workflows/igd-task.js' }, id)
   } catch (e) {
     results.push({ task: id, error: String(e) })
     break

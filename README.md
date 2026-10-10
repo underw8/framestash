@@ -13,7 +13,6 @@ Framestash is not affiliated with, endorsed by or sponsored by Instagram or Meta
 
 [MIT licence](LICENSE) · [Privacy policy](docs/privacy.md) · [Security policy](SECURITY.md)
 
-![Framestash on instagram.com: download icon on grid tiles, corner buttons, the action-row icon, the side panel and the reel side column](design/hero/hero.png)
 
 **Status:** Framestash downloads profiles, single posts, grid and feed items, stories and highlights into an existing collection. All saving happens in a **Framestash side panel**, which holds the folder once for every tab and runs a **download queue**. The extension is in `extension/`; history and test results are in the git log. Specs are in `docs/`.
 
@@ -89,7 +88,7 @@ Plan, Build and Review run on the session's model, because they carry the securi
   - The toolbar icon is a near-black rounded square, so it isn't mistaken for Instagram's app icon.
   - Icons are stroke SVGs drawn for Framestash.
   - The logo sources are in `design/`; `render-icons.sh` rebuilds the PNGs, including the light and dark wordmarks at the top of this README. `wordmark.svg` is the brand master; the panel and the status card draw the wordmark in CSS.
-  - The cover image above is `design/hero/hero.png`: real screenshots in `design/hero/shots/`, laid out by `hero.html` and rendered with `design/hero/render.sh`.
+  - The README cover is laid out by `design/hero/hero.html`: put screenshots you have the rights to in `design/hero/shots/` and run `design/hero/render.sh`.
 
 ## Checks
 
