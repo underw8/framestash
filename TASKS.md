@@ -300,7 +300,8 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - CLAUDE.md keeps the overview and security invariants and points to the rules instead of repeating their details.
   - **`.claude/settings.json`** (project, committed):
     - `permissions.deny` for Edit, Write and Bash on the user's collection `/Users/underw8/Downloads/IG/**` (and `~/Downloads/IG/**`), so no agent writes there; only the extension does.
-    - `permissions.allow` for the routine checks: `node test/*`, `node --check *`, `node scripts/check-manifest.js`, `sh scripts/package.sh`, `git status`, `git diff*`, `git log*`.
+    - no `permissions.allow`: allowing repo scripts or git without a prompt equals allowing any code an agent has edited (and git runs programs from `.git/config`). The session's own permission mode decides prompts.
+    - the `Bash` deny on `~/Downloads/IG` is best-effort; a command can reach the folder without naming it. The Edit/Write denies are the reliable part.
     - a `PostToolUse` hook on Edit|Write that runs `node --check` on the edited file when it is `extension/*.js` and reports a syntax error back (exit code 2), using a small script under `.claude/hooks/`.
     - a `Stop`/`SubagentStop` check is optional; add it only if it can't loop or slow every turn; otherwise skip and say why.
   - the hook script works when run by hand on a good and a broken file; settings.json is valid JSON; the existing test suites pass.
