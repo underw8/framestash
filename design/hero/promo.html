@@ -1,0 +1,14 @@
+<!doctype html>
+<!-- Chrome Web Store small promo tile, 440×280. Render: render.sh promo. Position from the left: headless Chrome lays out at least 500 px wide. -->
+<meta charset="utf-8">
+<style>
+  html, body { margin: 0; width: 440px; height: 280px; overflow: hidden; background: #0c1014; font-family: -apple-system, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  .bg { position: absolute; inset: -40px; background: url(shots/tile2.png) center / cover; filter: blur(40px) brightness(.35) saturate(1.5); }
+  .shot { position: absolute; left: 248px; top: 30px; width: 168px; height: 220px; background: url(shots/tile.png) center / cover; border-radius: 10px; box-shadow: 0 16px 40px rgba(0, 0, 0, .55); }
+  .text { position: absolute; left: 28px; top: 78px; color: #fff; }
+  .text img { height: 34px; display: block; }
+  .text p { margin: 14px 0 0; width: 210px; font-size: 15px; line-height: 20px; font-weight: 600; color: rgba(255, 255, 255, .85); }
+</style>
+<div class="bg"></div>
+<div class="shot"></div>
+<div class="text"><img src="../wordmark-dark.png" alt="framestash."><p>Save posts, stories and highlights into your own folder.</p></div>
