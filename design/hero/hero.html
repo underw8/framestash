@@ -6,7 +6,10 @@
   .bg { position: absolute; inset: -80px; background: url(shots/tile.png) center / cover; filter: blur(70px) brightness(.22) saturate(1.4); }
   .vignette { position: absolute; inset: 0; background: radial-gradient(ellipse at center, transparent 30%, rgba(0, 0, 0, .75) 100%); }
   .grid { position: absolute; left: 104px; top: 50px; display: grid; grid-template-columns: repeat(3, 316px); grid-template-rows: 316px 316px; gap: 56px 62px; }
-  .tile { overflow: hidden; background: #000 center / cover no-repeat; box-shadow: 0 24px 60px rgba(0, 0, 0, .55); }
+  .grid { isolation: isolate; }
+  .tile { position: relative; background-color: #000; background-repeat: no-repeat; background-size: cover; background-position: center; }
+  /* Glow: a blurred, saturated copy of the tile's own image behind it. */
+  .tile::before { content: ""; position: absolute; inset: -24px; z-index: -1; background: inherit; filter: blur(44px) saturate(1.8) brightness(.85); opacity: .6; }
   .tall { grid-row: span 2; }
   .wordmark { position: absolute; left: 104px; bottom: 26px; height: 36px; }
 </style>
