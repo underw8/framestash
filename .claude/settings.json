@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node test/*)",
+      "Bash(node --check *)",
+      "Bash(node scripts/check-manifest.js)",
+      "Bash(sh scripts/package.sh)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)"
+    ],
+    "deny": [
+      "Edit(//Users/underw8/Downloads/IG/**)",
+      "Write(//Users/underw8/Downloads/IG/**)",
+      "Edit(~/Downloads/IG/**)",
+      "Write(~/Downloads/IG/**)",
+      "Bash(*Downloads/IG*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/check-syntax.js" }
+        ]
+      }
+    ]
+  }
+}

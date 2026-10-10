@@ -7,13 +7,12 @@ export const meta = {
     { title: 'Plan', detail: 'design against CLAUDE.md and docs/' },
     { title: 'Build', detail: 'implement and add tests' },
     { title: 'Review', detail: 'security, compatibility, correctness lenses; up to 2 reviewed fix rounds' },
-    { title: 'Finish', detail: 'tests, one commit, task status, live checks', model: 'sonnet' },
+    { title: 'Finish', detail: 'tests, one commit, task status, live checks' },
   ],
 }
 
 // Paths are relative to the igd repo root (the folder holding TASKS.md and CLAUDE.md).
 const REPO = 'the repository root (the folder that contains TASKS.md, CLAUDE.md and extension/)'
-const TESTS = 'node test/naming.test.js && node test/collection.test.js, plus `node --check` on every changed extension/*.js'
 
 const TASK = {
   type: 'object',
@@ -84,23 +83,11 @@ const FINISH = {
   required: ['commit', 'status', 'liveChecks'],
 }
 
-const LENSES = [
-  {
-    key: 'security',
-    prompt: 'Security invariants from CLAUDE.md: folder handle only in the panel\'s extension IndexedDB; page-bridge replies validated (itemsFromNode); jobs only via background + validJob; every in-page button handler requires event.isTrusted; postMessage origin checks; no new web-accessible resources, permissions or telemetry without a stated reason.',
-  },
-  {
-    key: 'compatibility',
-    prompt: 'Compatibility with existing collections (CLAUDE.md): naming <root>/<username>/<username>_<taken_at>_<id>.<ext>; dedup by pk only; never overwrite a non-empty file; .igd.json identity rules; never rename folders or let two user ids share one; never delete user files.',
-  },
-  {
-    key: 'correctness',
-    prompt: 'Correctness and regressions: does the change meet every "done when" item; edge cases (empty results, 429 backoff, panel closed, stale tabs, URLs with or without trailing slash); tests actually cover the new logic; no dead code or stale comments left behind.',
-  },
-]
+// Lens key -> reviewer agent in .claude/agents/; each agent holds its checklist.
+const LENSES = ['security', 'compat', 'correctness']
 
-// Plan, Build and Review inherit the session model: they carry the security and
-// compatibility invariants. Pick, mark-blocked and Finish are mechanical.
+// Plan, Build and Review run as the fs-* agents in .claude/agents/, which set
+// their own tools, model and rules. Pick and mark-blocked are mechanical.
 
 // ---- Pick ----
 phase('Pick')
@@ -123,14 +110,11 @@ const taskText = `${task.id} · ${task.title}\nWhy: ${task.why}\nDone when:\n- $
 // ---- Plan ----
 phase('Plan')
 const plan = await agent(
-  `Plan this igd task in ${REPO}. Read CLAUDE.md, README.md, the relevant extension/ files and docs/ before deciding.
-If Instagram data is involved, say which query/fields you rely on and whether docs/instagram-api.md already documents them.
-Prefer the smallest change that meets every "done when" item; reuse existing helpers (naming.js, collection.js) instead of adding new layers.
-If the task cannot be done without a product decision from the user, set "blocked" to the question and keep the rest of the plan minimal.
+  `Plan this task in ${REPO}.
 
 Task:
 ${taskText}`,
-  { label: 'plan', schema: PLAN },
+  { label: 'plan', schema: PLAN, agentType: 'fs-planner' },
 )
 if (!plan) return { picked: task.id, error: 'plan agent failed' }
 if (plan.blocked) {
@@ -145,14 +129,14 @@ const planText = `Summary: ${plan.summary}\nSteps:\n- ${plan.steps.join('\n- ')}
 // ---- Build ----
 phase('Build')
 let build = await agent(
-  `Implement this plan in ${REPO}. Match the surrounding code style (plain MV3 JavaScript, no build step, comments only for non-obvious constraints). Add or extend the automated tests listed. Bump the patch or minor version in extension/manifest.json as fits the change. Run ${TESTS} and fix failures until they pass. Do not commit.
+  `Implement this plan in ${REPO}.
 
 Task:
 ${taskText}
 
 Plan:
 ${planText}`,
-  { label: 'build', schema: BUILD },
+  { label: 'build', schema: BUILD, agentType: 'fs-builder' },
 )
 if (!build) return { picked: task.id, error: 'build agent failed' }
 
@@ -162,21 +146,20 @@ let blocking = []
 for (let round = 1; round <= 3; round++) {
   const reviews = await parallel(LENSES.map((lens) => () =>
     agent(
-      `Review the uncommitted changes in ${REPO} (\`git diff\` and new files) for task ${task.id} through one lens only. ${lens.prompt}
-Report only real problems you can point to in the diff, each with a concrete fix. "blocker" = breaks an invariant or a done-when item; "major" = likely bug or missing test; "minor" = nice to have. Return an empty list if the change is sound.
+      `Review the uncommitted changes in ${REPO} for task ${task.id}.
 
 Task:
 ${taskText}`,
-      { label: `review ${lens.key} #${round}`, phase: 'Review', schema: REVIEW },
+      { label: `review ${lens} #${round}`, phase: 'Review', schema: REVIEW, agentType: `fs-reviewer-${lens}` },
     )))
   const findings = reviews.filter(Boolean).flatMap((r) => r.findings || [])
   blocking = findings.filter((f) => f.severity !== 'minor')
   log(`Review round ${round}: ${blocking.length} blocking/major, ${findings.length - blocking.length} minor`)
   if (!blocking.length || round === 3) break
   build = await agent(
-    `Fix these review findings in ${REPO} for task ${task.id}, then run ${TESTS} until they pass. Do not commit.
+    `Fix these review findings in ${REPO} for task ${task.id}.
 ${blocking.map((f, i) => `${i + 1}. [${f.severity}] ${f.file || ''} ${f.issue} → ${f.fix || ''}`).join('\n')}`,
-    { label: `fix round ${round}`, phase: 'Review', schema: BUILD },
+    { label: `fix round ${round}`, phase: 'Review', schema: BUILD, agentType: 'fs-builder' },
   ) || build
 }
 if (blocking.length) log(`Unresolved after 2 fix rounds: ${blocking.length} finding(s); they are listed in the result and on the task`)
@@ -185,14 +168,11 @@ if (blocking.length) log(`Unresolved after 2 fix rounds: ${blocking.length} find
 phase('Finish')
 const finish = await agent(
   `In ${REPO}, finish task ${task.id}:
-1. Run ${TESTS}. If they fail, do not commit; set the task status to "blocked" with a notes bullet saying which test fails, and return commit "".
-2. Update README.md only if user-visible behaviour changed (keep it describing current behaviour, no changelog).
-3. In TASKS.md set the task's status to "needs-check" and add a "- live checks:" bullet listing these, so the user can tick them off: ${plan.liveChecks.join('; ') || 'none'}. If there are no live checks, set status "done".
-4. Make one git commit with all changes. Message: a conventional-commit subject for the task, a short body (what changed, why, how it was verified), and end with these two lines exactly:
+- Live checks: ${plan.liveChecks.join('; ') || 'none'}${blocking.length ? `\n- Also add a "- open review findings:" bullet to the task with: ${blocking.map((f) => f.issue).join('; ')}` : ''}
+- End the commit message with these two lines exactly:
 Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>
-Claude-Session: https://claude.ai/code/session_01PEGtRT8fAMDQtihDDzxb6t
-Do not push.${blocking.length ? `\nAlso add a "- open review findings:" bullet to the task with: ${blocking.map((f) => f.issue).join('; ')}` : ''}`,
-  { label: 'finish', schema: FINISH, model: 'sonnet', effort: 'low' },
+Claude-Session: https://claude.ai/code/session_01PEGtRT8fAMDQtihDDzxb6t`,
+  { label: 'finish', schema: FINISH, agentType: 'fs-finisher' },
 )
 
 return {

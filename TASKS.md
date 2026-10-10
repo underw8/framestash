@@ -278,7 +278,12 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - the workflow YAML files parse (check them locally with a YAML parser if one is available, otherwise by careful review), and the local test suites still pass.
 
 ## T18 · Claude Code agents, rules and hooks for the task workflows
-- status: todo
+- status: needs-check
+- live checks:
+  - Open /agents in Claude Code in this repo and confirm all six fs-* agents are listed with the expected tools and model.
+  - Run /permissions (or try an Edit under ~/Downloads/IG) and confirm the deny rules are active and the routine node/git checks run without a prompt.
+  - Make a deliberate syntax error in an extension/*.js file through Claude, and confirm the PostToolUse hook reports it back.
+  - Run the igd-task workflow on a small todo task and confirm each step shows its fs-* agent, reviewers make no edits, and the finisher makes exactly one commit.
 - why: workflow steps restate the project rules in every prompt, reviewers could edit files, and a Finish step once refused to commit after misreading its context. Custom agents, path-scoped rules and hooks make each step narrow and enforce the rules mechanically.
 - done when:
   - **Agents** in `.claude/agents/` (frontmatter: name, description, tools, model, effort as fits; plain-English system prompt below it):

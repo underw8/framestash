@@ -17,13 +17,11 @@ Framestash (repo and internal ids: igd) is a Chrome extension that downloads Ins
 - `extension/collection.js`: `.igd.json` markers, `resolveAccountDir`, saving, and the read-only `checkCollection`. Used by the panel; tested offline against an in-memory folder tree in `test/collection.test.js`.
 - `extension/pacer.js`: pure pacing and circuit-breaker rules (jitter, the rest after a job scaled by its request count, settings, hourly/daily budget, reply classification, cool-down growth), tested in `test/pacer.test.js`. `manager.js` sends every bridge call through `paceApi` and every download through `paceCdn`; a block signal holds the whole queue instead of retrying, and login/challenge holds wait for the user's Resume. Pause is one more manual hold (`pauseHold`/`resumeHold`) that keeps any running timed hold for after Resume.
 - `extension/page.js`: page-world GraphQL calls (`PolarisProfilePostsQuery`, `PolarisPostRootQuery`, `PolarisAPITopsearchQuery` for username → id, `PolarisProfileStoryHighlightsTrayContentQuery`, `PolarisStoriesV3ReelPageStandaloneQuery`).
-  - Query flags ("provided variables") are read from each query's definition.
-  - Each request gets exactly one reply on its port.
-  - Each reply carries `requests` (GraphQL requests made) for the budget, and Instagram's JSON block replies are passed through as `login` / `checkpoint` / `spam` flags.
-  - Never call the story "seen" mutations.
 - `extension/manager.js` (side panel): folder, queue, job runner. It asks an Instagram tab to list records (`bridge` → `chrome.tabs.sendMessage`). It pings tabs first, because tabs opened before an igd update have no live script. `pump()` waits for the first-run notice (`kv("accepted")`).
 - `extension/background.js`: every job goes through it. It calls `sidePanel.open` before awaiting anything, because that needs the user's click. Then it forwards the job to the panel, or holds it until the panel asks (`managerReady`). Each open panel holds a `panel:<windowId>` port, so the in-page panel button can close an open panel (`closePanel`) instead of opening it.
-- `extension/content.js`: the Download, Stories and panel buttons, grid-tile buttons, the download icon in post and reel action rows, the relay from panel to page world, and placement next to Instagram's Messages button. It never saves. Posts are found through their `/p/` or `/reel/` links (`shortcodeFromPath`), never through Instagram class names. Clicks are handled in the capture phase, so the tile link never navigates.
+- `extension/content.js`: the Download, Stories and panel buttons, grid-tile buttons, the download icon in post and reel action rows, the relay from panel to page world, and placement next to Instagram's Messages button.
+
+Path-scoped rules in `.claude/rules/` load with the files they cover; agents in `.claude/agents/` run the igd-task steps.
 
 **Security invariants:**
 - The folder handle lives only in the panel's extension-origin IndexedDB, never in instagram.com storage, where page scripts could use it.
@@ -49,9 +47,9 @@ for f in extension/*.js; do node --check "$f"; done
 ## Compatibility with existing collections (do not break)
 
 - Layout: `<root>/<username>/<username>_<taken_at>_<id>.<ext>`. The only cleaning step strips `< > : " / \ | ? *`.
-- Dedup key: **`pk`**. Never key on the full name, the username, or a name prefix that includes `taken_at`.
+- Dedup key: **`pk`** only, never the full name, the username, or a prefix that includes `taken_at`.
 - Account folders are tied to user IDs by `.igd.json` (`resolveAccountDir`). Never rename existing folders, and never let two user IDs share a folder.
-- Never overwrite. Open with `create: false` first, because creating and then writing truncates the file.
+- Never overwrite: open with `create: false` first; creating then writing truncates.
 - Migration rules: report first (the collection check is read-only). Never delete: anything removed goes to `<root>/.igd-trash/<date>/`. Steps that move files need the user's confirmation.
 - Full rules: `docs/collection-format.md`.
 
