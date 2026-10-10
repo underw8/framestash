@@ -8,5 +8,6 @@
 | [dash-video.md](dash-video.md) | Whether to save DASH video instead of progressive MP4: design, costs, decision |
 | [privacy.md](privacy.md) | Privacy policy, published as-is on GitHub Pages |
 | [store-listing.md](store-listing.md) | Chrome Web Store listing draft: descriptions, permission justifications, data use, required images |
+| [releasing.md](releasing.md) | Release flow (tag → GitHub Release with the zip) and the one-time setup for Chrome Web Store publishing |
 
 Instagram details drift. Before relying on [instagram-api.md](instagram-api.md), re-check it with playbook steps 1–5.

@@ -258,7 +258,14 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - [ ] Make the 1280×800 screenshots and the 440×280 promo tile; they are listed but not produced by this task.
 
 ## T17 · GitHub workflows: CI, release, CodeQL, Dependabot, store publish
-- status: todo
+- status: needs-check
+- live checks:
+  - After pushing, the CI run on GitHub's Actions tab is green and has a framestash-zip artifact; a PR also triggers CI and CodeQL.
+  - If the repo has CodeQL 'default setup' turned on under Settings > Code security, switch it to advanced (or delete codeql.yml), or the uploads conflict.
+  - Settings > Actions > General allows GitHub-owned actions and the workflows aren't rejected
+  - Dependabot shows a github-actions entry under Insights > Dependency graph > Dependabot.
+  - Optional: push a test tag that doesn't match the manifest (e.g. v0.0.1) and confirm release.yml fails, then delete the tag. Pushing v0.22.0 should create a Release with the zip.
+  - publish.yml does nothing on its own. After the first manual store submission and the secrets are added, follow docs/releasing.md to uncomment the release trigger.
 - why: the repo is public and headed for the Chrome Web Store. Pushes and pull requests need automatic checks, tags need a release with the zip, and store updates should not be manual uploads.
 - done when:
   - only GitHub-owned actions are used (`actions/*`, `github/codeql-action`), pinned to a full commit SHA with the version in a comment, because the repo allows GitHub-owned actions only. Every workflow sets `permissions:` explicitly, least privilege (contents: read unless a job needs more).

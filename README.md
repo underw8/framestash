@@ -11,7 +11,7 @@ Save profiles, posts, stories and highlights from instagram.com into a local col
 
 Framestash is not affiliated with, endorsed by or sponsored by Instagram or Meta.
 
-[MIT licence](LICENSE) · [Privacy policy](docs/privacy.md) · [Security policy](SECURITY.md)
+[MIT licence](LICENSE) · [Privacy policy](docs/privacy.md) · [Security policy](SECURITY.md) · [Releasing](docs/releasing.md)
 
 
 **Status:** Framestash downloads profiles, single posts, grid and feed items, stories and highlights into an existing collection. All saving happens in a **Framestash side panel**, which holds the folder once for every tab and runs a **download queue**. The extension is in `extension/`; history and test results are in the git log. Specs are in `docs/`.
@@ -107,8 +107,9 @@ igd/
 ├── extension/      the MV3 extension (load unpacked)
 ├── design/         logo sources + render-icons.sh; hero/ holds the README cover
 ├── test/           node checks (naming, collection, pacer)
-├── scripts/        package.sh: runs the checks, then zips extension/ into dist/
+├── scripts/        package.sh: runs the checks, then zips extension/ into dist/; check-manifest.js validates the manifest
 ├── docs/           collection format, Instagram API, probes, design notes, privacy policy
+├── .github/        CI, release, CodeQL, Dependabot, store publish (docs/releasing.md)
 ├── TASKS.md        open work, consumed by the igd-task workflow
 ├── .claude/workflows/   igd-task.js (one task), igd-tasks.js (several in order)
 ├── README.md       this file

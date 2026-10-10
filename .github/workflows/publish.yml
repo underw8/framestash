@@ -1,0 +1,69 @@
+name: Publish to Chrome Web Store
+
+# The automatic trigger stays off until the first store submission has been
+# made by hand (see docs/releasing.md). To enable it, uncomment the
+# workflow_run block below. Until then the workflow only runs when started by
+# hand. It follows the Release workflow rather than `release: published`,
+# because releases created with GITHUB_TOKEN trigger no workflows.
+on:
+#  workflow_run:
+#    workflows: [Release]
+#    types: [completed]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag whose zip to publish, e.g. v0.22.0
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ inputs.tag || github.event.workflow_run.head_branch }}
+    steps:
+      - name: Download release zip
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release download "$TAG" --repo "$GITHUB_REPOSITORY" -p 'framestash-*.zip' -D dist
+      - name: Upload and submit for review
+        env:
+          CWS_CLIENT_ID: ${{ secrets.CWS_CLIENT_ID }}
+          CWS_CLIENT_SECRET: ${{ secrets.CWS_CLIENT_SECRET }}
+          CWS_REFRESH_TOKEN: ${{ secrets.CWS_REFRESH_TOKEN }}
+          CWS_PUBLISHER_ID: ${{ secrets.CWS_PUBLISHER_ID }}
+          CWS_EXTENSION_ID: ${{ secrets.CWS_EXTENSION_ID }}
+        run: |
+          set -eu
+          # Fails unless the reply is 2xx; prints the body, never the token.
+          call() {
+            code=$(curl -sS -o reply.json -w '%{http_code}' "$@") || { cat reply.json 2>/dev/null; exit 1; }
+            case "$code" in 2??) ;; *) echo "::error::HTTP $code"; cat reply.json; exit 1 ;; esac
+          }
+          call -X POST https://oauth2.googleapis.com/token \
+            -d client_id="$CWS_CLIENT_ID" -d client_secret="$CWS_CLIENT_SECRET" \
+            -d refresh_token="$CWS_REFRESH_TOKEN" -d grant_type=refresh_token
+          tok=$(jq -r .access_token reply.json)
+          echo "::add-mask::$tok"
+          rm reply.json
+          item="https://chromewebstore.googleapis.com/upload/v2/publishers/$CWS_PUBLISHER_ID/items/$CWS_EXTENSION_ID"
+          zip=$(ls dist/framestash-*.zip)
+          api="https://chromewebstore.googleapis.com/v2/publishers/$CWS_PUBLISHER_ID/items/$CWS_EXTENSION_ID"
+          call -X POST -H "Authorization: Bearer $tok" -T "$zip" "$item:upload"
+          cat reply.json
+          # A 2xx upload can still be FAILED or IN_PROGRESS; publish only on SUCCEEDED.
+          state=$(jq -r .uploadState reply.json)
+          for _ in $(seq 30); do
+            [ "$state" = IN_PROGRESS ] || break
+            sleep 10
+            call -H "Authorization: Bearer $tok" "$api:fetchStatus"
+            state=$(jq -r .lastAsyncUploadState reply.json)
+          done
+          if [ "$state" != SUCCEEDED ]; then
+            echo "::error::Upload state $state"; cat reply.json; exit 1
+          fi
+          call -X POST -H "Authorization: Bearer $tok" "$api:publish"
+          cat reply.json
