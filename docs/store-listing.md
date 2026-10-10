@@ -66,7 +66,7 @@ Certify all three:
 - I do not use or transfer user data for purposes that are unrelated to my item's single purpose.
 - I do not use or transfer user data to determine creditworthiness or for lending purposes.
 
-Privacy policy URL: the published copy of [privacy.md](privacy.md) (URL to fill in).
+Privacy policy URL: https://underw8.github.io/framestash/privacy (the published copy of [privacy.md](privacy.md)).
 
 ## Required images
 
