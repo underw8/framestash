@@ -81,6 +81,7 @@ $("grant").addEventListener("click", async () => {
 
 const jobs = [];
 let busy = false;
+let accepted = false; // first-run notice; the queue waits for it
 // One job runs at a time; its controller stays off the job, which is structured-cloned into IndexedDB.
 let stopper = null;
 let counts = null;
@@ -224,7 +225,7 @@ function enqueue(job) {
 }
 
 async function pump() {
-  if (busy || !ownsQueue) return;
+  if (busy || !ownsQueue || !accepted) return;
   busy = true;
   try {
     await paceLoaded;
@@ -639,7 +640,22 @@ $("check").addEventListener("click", () => enqueue({ kind: "check" }));
 kv("highlightFolders").then((on) => { $("highlightFolders").checked = !!on; }).catch(() => {});
 $("highlightFolders").addEventListener("change", (e) => kv("highlightFolders", e.target.checked).catch(() => {}));
 
+$("accept").addEventListener("click", async (e) => {
+  if (!e.isTrusted) return;
+  await kv("accepted", true);
+  accepted = true;
+  document.body.classList.remove("first-run");
+  $("notice").hidden = true;
+  pump();
+});
+
 (async () => {
+  accepted = !!(await kv("accepted").catch(() => false));
+  if (!accepted) {
+    document.body.classList.add("first-run");
+    $("notice").hidden = false;
+    $("accept").focus();
+  }
   root = (await kv("root")) || null;
   await renderFolder();
   await restored; // also waits for queue ownership

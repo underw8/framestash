@@ -231,13 +231,19 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - README links the licence, the privacy policy and the security policy, and has a short "Use responsibly" section: personal backup of content you have the right to keep, respect creators' rights, bulk downloading can get an Instagram account rate-limited or blocked.
 
 ## T15 · First-run notice
-- status: todo
+- status: needs-check
 - why: users must understand the intended use and the account risk before the first download, as the store listing and the "Use responsibly" section say.
 - done when:
   - the first time the side panel opens, it shows a notice card before anything else can run: personal use only, respect creators' rights and Instagram's terms, bulk downloading can get your Instagram account limited or blocked, nothing leaves your device. One "I understand" button dismisses it.
   - acceptance is kept in the extension's storage; the notice doesn't come back after that, and jobs that arrive before acceptance stay queued until it's accepted.
   - the card matches the panel's style, is keyboard-reachable and labelled, and works in light and dark mode.
   - pure logic, if any, is unit-tested; the existing test suites pass.
+- live checks:
+  - First run: reload the unpacked extension, clear the panel's state (DevTools on the panel: Application > IndexedDB > igd > kv > delete 'accepted', or reinstall), then open the side panel. Only the header and the notice card show, and the 'I understand' button has focus.
+  - Keyboard: Tab or Shift+Tab reaches the button and Enter/Space dismisses the notice. A screen reader announces the region as 'Before you start'.
+  - Queue while waiting: with the notice still showing, click a Download button on an Instagram post. The panel opens with the notice and nothing downloads. Click 'I understand': the job appears and starts.
+  - Persistence: close and reopen the panel and reload the extension. The notice does not come back.
+  - Light and dark: switch the OS appearance and check that the card's contrast matches the other cards.
 
 ## T16 · Store package and listing draft
 - status: todo

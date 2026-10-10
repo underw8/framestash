@@ -21,7 +21,7 @@ Framestash (repo and internal ids: igd) is a Chrome extension that downloads Ins
   - Each request gets exactly one reply on its port.
   - Each reply carries `requests` (GraphQL requests made) for the budget, and Instagram's JSON block replies are passed through as `login` / `checkpoint` / `spam` flags.
   - Never call the story "seen" mutations.
-- `extension/manager.js` (side panel): folder, queue, job runner. It asks an Instagram tab to list records (`bridge` → `chrome.tabs.sendMessage`). It pings tabs first, because tabs opened before an igd update have no live script.
+- `extension/manager.js` (side panel): folder, queue, job runner. It asks an Instagram tab to list records (`bridge` → `chrome.tabs.sendMessage`). It pings tabs first, because tabs opened before an igd update have no live script. `pump()` waits for the first-run notice (`kv("accepted")`).
 - `extension/background.js`: every job goes through it. It calls `sidePanel.open` before awaiting anything, because that needs the user's click. Then it forwards the job to the panel, or holds it until the panel asks (`managerReady`). Each open panel holds a `panel:<windowId>` port, so the in-page panel button can close an open panel (`closePanel`) instead of opening it.
 - `extension/content.js`: the Download, Stories and panel buttons, grid-tile buttons, the download icon in post and reel action rows, the relay from panel to page world, and placement next to Instagram's Messages button. It never saves. Posts are found through their `/p/` or `/reel/` links (`shortcodeFromPath`), never through Instagram class names. Clicks are handled in the capture phase, so the tile link never navigates.
 

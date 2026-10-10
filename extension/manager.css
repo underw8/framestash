@@ -123,3 +123,9 @@ li[data-state="stopped"] .job-icon, li[data-state="stopping"] .job-icon { color:
 .hold-text { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 details summary { cursor: pointer; font-weight: 600; }
 pre { margin: 10px 0 0; max-height: 50vh; overflow: auto; white-space: pre-wrap; font: 11px/16px ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--muted); }
+
+/* First run: only the notice is reachable until it is accepted. */
+body.first-run > :not(header, #notice, template, script) { display: none !important; }
+.notice { margin-top: 16px; }
+.notice h2 { margin: 0 0 10px; }
+.notice ul { margin: 0 0 14px; padding-left: 18px; display: flex; flex-direction: column; gap: 8px; }
