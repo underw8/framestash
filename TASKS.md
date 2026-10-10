@@ -35,9 +35,9 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - a completed run clears the cursor;
   - there's an explicit way to start over.
 - live checks:
-  - [ ] Reload igd at chrome://extensions and reload the Instagram tab. Queue a large profile and click Stop after page 3 or so. Queue it again: its first request should be page 4, the row should end with 'resumed from page 3', and it should not list page 1 again (check the page counter in the job detail).
-  - [ ] Let a resumed run finish, then queue the same profile again. It should start from page 1 (and stop early under the T8 rule), not resume.
-  - [ ] Superseded by T10: 'List every post' now resumes, and Start over is the way to list from page 1. See T10's checks.
+  - [x] Reload igd at chrome://extensions and reload the Instagram tab. Queue a large profile and click Stop after page 3 or so. Queue it again: its first request should be page 4, the row should end with 'resumed from page 3', and it should not list page 1 again (check the page counter in the job detail).
+  - [x] Let a resumed run finish, then queue the same profile again. It should start from page 1 (and stop early under the T8 rule), not resume.
+  - [x] Superseded by T10: 'List every post' now resumes, and Start over is the way to list from page 1. See T10's checks.
   - [ ] Stop a profile midway, then close the panel or restart Chrome, reopen it and re-queue the profile. It should still resume from the saved page.
   - [ ] Stop a profile midway, choose a different collection folder, then queue it. It should start from page 1.
 
@@ -125,11 +125,11 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - stories and single posts are unchanged.
   - the stop rule is unit-tested; the existing test suites pass.
 - live checks:
-  - [ ] Reload igd at chrome://extensions and reload the Instagram tab. Queue a profile you have never fully run: it lists to the last page.
-  - [ ] Queue the same profile again: it stops after the first page or two with 'stopped early', and the request count in the panel is small.
+  - [x] Reload igd at chrome://extensions and reload the Instagram tab. Queue a profile you have never fully run: it lists to the last page.
+  - [x] Queue the same profile again: it stops after the first page or two with 'stopped early', and the request count in the panel is small.
   - [ ] On a profile with pinned posts that are already saved, run it twice and confirm the second run doesn't stop because of the pinned posts. If you can, also confirm in DevTools that pinned nodes come first with older `taken_at`, as docs/instagram-api.md now says.
-  - [ ] Stop a profile run mid-way, then queue it again: it lists to the end.
-  - [ ] Turn on 'List every post' and queue a fully listed profile: it lists every page and the row reads '@x posts (full)'.
+  - [x] Stop a profile run mid-way, then queue it again: it lists to the end.
+  - [x] Turn on 'List every post' and queue a fully listed profile: it lists every page and the row reads '@x posts (full)'.
   - [ ] Save a single post and a story: both behave as before.
 
 ## T9 · Pause and resume the queue
@@ -162,12 +162,12 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - the button is a real button, keyboard-reachable and labelled, and matches the panel's style.
   - README describes the new control; the existing test suites pass, and new pure logic is unit-tested.
 - live checks:
-  - [ ] Reload igd at chrome://extensions and reload the Instagram tab. Queue a large profile from the panel and Stop it after page 3. Queue it again: the queued row shows Start over. Click it, and the job should list from page 1 with no 'resumed from page' note.
-  - [ ] Repeat with the in-page Download @user button instead of the panel: the queued row shows Start over and it works the same.
-  - [ ] Stop a profile midway, turn on List every post and queue it. It should resume from the saved page (no Start over clicked), list to the end, and not stop early.
+  - [x] Reload igd at chrome://extensions and reload the Instagram tab. Queue a large profile from the panel and Stop it after page 3. Queue it again: the queued row shows Start over. Click it, and the job should list from page 1 with no 'resumed from page' note.
+  - [x] Repeat with the in-page Download @user button instead of the panel: the queued row shows Start over and it works the same.
+  - [x] Stop a profile midway, turn on List every post and queue it. It should resume from the saved page (no Start over clicked), list to the end, and not stop early.
   - [ ] Click Start over on a queued row, then close and reopen the panel before it runs. It should still start from page 1.
   - [ ] Keyboard only: Tab to Start over and press Enter. Focus should land on Remove, and VoiceOver should read 'Start over @user posts'. Check light and dark mode.
-  - [ ] A queued profile with no saved position (or a story/post job) shows no Start over button.
+  - [x] A queued profile with no saved position (or a story/post job) shows no Start over button.
 
 ## T11 · Second button for one carousel slide
 - status: dropped
