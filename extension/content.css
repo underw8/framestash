@@ -73,9 +73,11 @@
   /* Bare white icon like Instagram's hover counts, over the dark layer Instagram adds on hover.
      No filter or backdrop-filter: one per tile makes Chrome paint long grids black. */
   background: none; color: #fff;
-  opacity: 0; transition: opacity .15s;
+  opacity: 0; transition: opacity .15s, transform .15s ease-out;
 }
 .igd-item svg { width: 28px; height: 28px; stroke-width: 3; }
+/* Instagram's own icon hover: scale 1.07 over 0.15 s, no fade. */
+.igd-item:hover, .igd-act:hover { transform: scale(1.07); }
 .igd-item:focus-visible { outline: 2px solid #fff; outline-offset: 2px; border-radius: 8px; }
 :hover > .igd-item, .igd-item:focus-visible { opacity: 1; }
 
@@ -83,10 +85,9 @@
    text colour (Instagram's icons use currentColor), so it follows light and dark themes. */
 .igd-act {
   display: flex; align-items: center; justify-content: center; padding: 8px;
-  border: 0; background: none; color: inherit; cursor: pointer; transition: opacity .1s linear;
+  border: 0; background: none; color: inherit; cursor: pointer; transition: transform .15s ease-out;
 }
-.igd-act svg { width: 24px; height: 24px; }
-.igd-act:hover { opacity: .5; }
+.igd-act svg { width: 24px; height: 24px; stroke-width: 2.5; }
 .igd-act:focus-visible {
   outline: 2px solid rgb(var(--ig-primary-button, 0, 149, 246)); outline-offset: 2px;
 }
