@@ -194,7 +194,12 @@ function scanActionBars(host, shortcode) {
     button.setAttribute("aria-label", button.title);
     button.innerHTML = icon("download");
     button.dataset.shortcode = shortcode || barShortcode(bar, host);
-    slot.insertAdjacentElement("afterend", button);
+    // A grid row (narrow post pages) would wrap a new item onto its own line, so the
+    // icon joins the bookmark's cell instead, laid out as a row.
+    if (getComputedStyle(bar).display.endsWith("grid")) {
+      slot.classList.add("igd-actcell");
+      slot.append(button);
+    } else slot.insertAdjacentElement("afterend", button);
   }
 }
 
