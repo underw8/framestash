@@ -30,4 +30,4 @@ Any change to this policy updates the effective date above.
 
 ## Contact
 
-Open an issue at <https://github.com/underw8/igd/issues>.
+Open an issue at <https://github.com/underw8/framestash/issues>.

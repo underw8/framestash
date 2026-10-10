@@ -2,7 +2,7 @@
 
 ## Reporting a vulnerability
 
-Please report vulnerabilities privately through GitHub private vulnerability reporting: the **Report a vulnerability** button on the repository's Security tab, or <https://github.com/underw8/igd/security/advisories/new>.
+Please report vulnerabilities privately through GitHub private vulnerability reporting: the **Report a vulnerability** button on the repository's Security tab, or <https://github.com/underw8/framestash/security/advisories/new>.
 
 Don't open a public issue for a vulnerability.
 
