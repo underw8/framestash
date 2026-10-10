@@ -117,10 +117,12 @@ for (const [path, route] of [
   // With repost, plus an off-line audio thumbnail that isn't counted.
   assert.deepEqual(n.actionBarSpot([at(900, 300), at(900, 380), at(901, 460), at(899, 540), at(900, 620), at(900, 700), at(700, 760)]),
     { dir: "column", after: 4 });
-  assert.equal(n.actionBarSpot([at(0, 500), at(40, 500), at(80, 500)]), null); // fewer than 4
+  // Your own posts: Like, Comment, Save only.
+  assert.deepEqual(n.actionBarSpot([at(0, 500), at(40, 500), at(430, 500)]), { dir: "row", after: 2 });
+  assert.equal(n.actionBarSpot([at(0, 500), at(40, 500)]), null); // fewer than 3
   assert.equal(n.actionBarSpot([at(0, 0), at(100, 50), at(200, 120), at(300, 200), at(10, 300)]), null); // scattered
-  assert.equal(n.actionBarSpot([at(0, 500), at(40, 500), at(80, 500), at(900, 100), at(900, 200), at(900, 300)]), null); // 3 + 3
-  assert.equal(n.actionBarSpot([at(0, 500), at(40, 500), at(80, 510), at(120, 500)]), null); // one off the line
+  assert.equal(n.actionBarSpot([at(0, 500), at(40, 500), at(900, 100), at(900, 200)]), null); // 2 + 2
+  assert.equal(n.actionBarSpot([at(0, 500), at(40, 510), at(120, 500)]), null); // one off the line
   assert.equal(n.actionBarSpot([]), null);
 }
 

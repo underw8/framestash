@@ -134,7 +134,7 @@ function scanItems() {
 }
 
 // ---- native-style buttons: a download icon in each post's or reel's action icons ----
-// Action bars are found by structure (4+ aligned ~24 px icon buttons), never by class
+// Action bars are found by structure (3+ aligned ~24 px icon buttons; your own posts show only Like, Comment, Save), never by class
 // names or English labels; actionBarSpot picks the row or column and the slot.
 
 function iconButtons(root) {
@@ -163,11 +163,11 @@ function barShortcode(bar, host) {
 function scanActionBars(host, shortcode) {
   const buttons = iconButtons(host);
   const thin = (e) => { const r = e.getBoundingClientRect(); return Math.min(r.width, r.height) <= 96; };
-  const bars = new Map(); // closest ancestor holding 4+ icon buttons -> its buttons
+  const bars = new Map(); // closest ancestor holding 3+ icon buttons -> its buttons
   for (const b of buttons) {
     for (let e = b.parentElement; e && host.contains(e); e = e.parentElement) {
       let inside = buttons.filter((x) => e.contains(x));
-      if (inside.length < 4) continue;
+      if (inside.length < 3) continue;
       // Grow to the whole strip: post pages split the row into Like…Share and a separate bookmark group.
       for (let p = e.parentElement; p && host.contains(p) && thin(p); p = p.parentElement) {
         const more = buttons.filter((x) => p.contains(x));
