@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-igd is a Chrome extension that downloads Instagram profiles, posts, stories and highlights into a local collection. The extension lives in `extension/` (plain MV3, no build step; the version is in `manifest.json`). See `README.md` for features and `docs/README.md` for the specs.
+Framestash (repo and internal ids: igd) is a Chrome extension that downloads Instagram profiles, posts, stories and highlights into a local collection. The extension lives in `extension/` (plain MV3, no build step; the version is in `manifest.json`). See `README.md` for features and `docs/README.md` for the specs. For compatibility, `igd-*` identifiers, `.igd.json`, `.igd-trash`, the IndexedDB `"igd"`, the `"igd"` ping reply and the `{igd: 1}` postMessage tag keep their names.
 
 - `extension/naming.js`: pure helpers shared by the content script and panel, unit-tested in `test/naming.test.js`:
   - file names, dedup keys, `parseFileName`, `inferOwner`, `sniffMedia`

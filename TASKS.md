@@ -201,7 +201,13 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - [ ] Tab to each new button: it is reachable, has a focus ring, and VoiceOver reads its label. Check light and dark mode.
 
 ## T13 · Rename to Framestash
-- status: todo
+- status: needs-check
+- live checks:
+  - [ ] Reload the unpacked extension at chrome://extensions. The card shows the name Framestash, the new description and the "f." icon. The toolbar tooltip reads "Open Framestash".
+  - [ ] Open the side panel. The tab title reads Framestash and the header shows "framestash." with the gradient dot, fitting in light and dark mode at the normal panel width.
+  - [ ] On instagram.com, reload the tab. Hover a grid tile or the action-row icon to see "Save this post (Framestash)". Start a download and check that the status card shows the "framestash." wordmark and the Framestash status texts.
+  - [ ] With an existing collection folder already chosen before the update, the panel still has the folder (no re-pick needed), and downloading a profile you already saved skips existing files and reuses the account folder (.igd.json still honoured).
+  - [ ] Look at the 16/32 px toolbar icon: the "f." should be legible and the dot visible.
 - why: store policy and Instagram's brand rules forbid "Instagram", "IG", "Insta" and "Gram" in a product name, so "igd: Instagram downloader" can't be published. The user chose the name Framestash.
 - done when:
   - every user-visible name reads **Framestash**: the manifest `name` and `action.default_title`, the side panel title and header, the in-page status card wordmark, tooltips and labels ("Save this post (Framestash)"), status texts, README and docs. The wordmark is "framestash." with the same gradient dot.

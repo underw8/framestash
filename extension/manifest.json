@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "igd: Instagram downloader",
-  "version": "0.20.8",
-  "description": "Download Instagram profiles, posts and stories into a local collection, skipping media you already have.",
+  "name": "Framestash",
+  "version": "0.21.0",
+  "description": "Save profiles, posts, stories and highlights from instagram.com into a local folder, skipping media you already have.",
+  "minimum_chrome_version": "116",
   "permissions": [
     "sidePanel"
   ],
@@ -15,7 +16,7 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "Open igd"
+    "default_title": "Open Framestash"
   },
   "side_panel": {
     "default_path": "manager.html"

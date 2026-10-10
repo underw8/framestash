@@ -1,24 +1,28 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="design/wordmark-dark.png">
-    <img src="design/wordmark-light.png" alt="igd." width="150">
+    <img src="design/wordmark-light.png" alt="framestash." width="280">
   </picture>
 </p>
 
-# igd: an Instagram downloader
+# Framestash
 
-![igd on Instagram: download icon on grid tiles, corner buttons, the action-row icon, the side panel and the reel side column](design/hero/hero.png)
+Save profiles, posts, stories and highlights from instagram.com into a local collection.
 
-**Status:** igd downloads profiles, single posts, grid and feed items, stories and highlights into an existing collection. All saving happens in an **igd side panel**, which holds the folder once for every tab and runs a **download queue**. The extension is in `extension/`; history and test results are in the git log. Specs are in `docs/`.
+Framestash is not affiliated with, endorsed by or sponsored by Instagram or Meta.
 
-## Using igd
+![Framestash on instagram.com: download icon on grid tiles, corner buttons, the action-row icon, the side panel and the reel side column](design/hero/hero.png)
 
-1. **Install.** Go to `chrome://extensions`, turn on Developer mode, click **Load unpacked**, and choose the `extension/` folder. Pin igd to the toolbar.
-2. **Choose the folder.** Click the igd icon to open the **side panel**, then **Choose** and pick the **root** folder of your collection: the one that contains the account folders, e.g. `IG`. It's remembered across tabs and restarts. After a browser restart, one click on **Allow access** restores it.
+**Status:** Framestash downloads profiles, single posts, grid and feed items, stories and highlights into an existing collection. All saving happens in a **Framestash side panel**, which holds the folder once for every tab and runs a **download queue**. The extension is in `extension/`; history and test results are in the git log. Specs are in `docs/`.
+
+## Using Framestash
+
+1. **Install.** Go to `chrome://extensions`, turn on Developer mode, click **Load unpacked**, and choose the `extension/` folder. Pin Framestash to the toolbar.
+2. **Choose the folder.** Click the Framestash icon to open the **side panel**, then **Choose** and pick the **root** folder of your collection: the one that contains the account folders, e.g. `IG`. It's remembered across tabs and restarts. After a browser restart, one click on **Allow access** restores it.
    - **Queue profiles:** paste usernames or profile URLs, one per line. Choose Posts and/or Stories & highlights, then **Add to queue**. A re-run of a profile that was fully listed before stops after 12 posts in a row you already have; turn on **List every post** to force a full pass. An interrupted profile run, full or not, continues from the page where it stopped. A queued profile with a saved position also shows **Start over**, which lists it from the newest post instead. Jobs run one after another, using any open, logged-in Instagram tab. The running job has a **Stop** button and queued jobs a **Remove** button; **Clear queue** removes every queued job and the finished rows, leaving the running one; files already saved are kept.
    - **Check collection:** a read-only report, shown in the panel. It lists duplicates, empty files, saved error pages, unrecognised names, and accounts split across folders.
-   - **Closing the panel pauses the queue.** Queued and interrupted jobs come back when it reopens; any igd button in Instagram reopens it. A restarted profile job continues listing from the page where it stopped; files already saved are skipped.
-3. **Download from Instagram.** igd adds buttons in the bottom-right corner, above Instagram's Messages button, plus a download icon in Instagram's own action rows:
+   - **Closing the panel pauses the queue.** Queued and interrupted jobs come back when it reopens; any Framestash button in Instagram reopens it. A restarted profile job continues listing from the page where it stopped; files already saved are skipped.
+3. **Download from Instagram.** Framestash adds buttons in the bottom-right corner, above Instagram's Messages button, plus a download icon in Instagram's own action rows:
    - **Profile:** **Download @user** saves every post. **Stories** saves the active stories plus every highlight.
    - **Post or reel page** (`/p/…`, `/reel/…`, `/reels/…`): **Save post** saves every slide into `<root>/<owner>/`.
    - **Feed posts, post pages and reels:** a download icon right after the save (bookmark) icon, in the post's action row or the reel's side column, also saves the whole post.
@@ -28,14 +32,14 @@
 
    Every button sends a job to the panel's queue, opening the panel first if it's closed, and the status card shows the job's progress.
 4. **Re-run any time.** A job run again only fetches what's missing. A profile re-run stops listing after 12 already-saved posts in a row (pinned posts aside), once a previous run of it listed to the end; posts deleted from disk below that point come back only with **List every post**. An interrupted profile (Stop, closed panel, error) picks up its listing where it stopped instead of starting again from page 1. Failed items are listed in the panel's DevTools console.
-5. **After updating igd**, reload open Instagram tabs. Chrome only adds the new scripts to pages loaded after the update, and igd tells you when this is needed.
+5. **After updating Framestash**, reload open Instagram tabs. Chrome only adds the new scripts to pages loaded after the update, and Framestash tells you when this is needed.
 
 ## What it does
 
 - **Data:** lists posts and stories with Instagram's own GraphQL queries, from the page world. Query IDs, tokens and query flags are read at runtime, never hardcoded ([instagram-api.md](docs/instagram-api.md)).
 - **Naming:** `<root>/<username>/<username>_<taken_at>_<id>.<ext>`, the format existing collections already use ([collection-format.md](docs/collection-format.md)).
 - **Duplicates:** media already present is skipped, matched on the media **pk** alone. A pk is unique across Instagram, so this survives renames and every name variant.
-- **Account folders** are tied to their owner's **user ID** through a hidden `.igd.json`, written the first time igd saves there.
+- **Account folders** are tied to their owner's **user ID** through a hidden `.igd.json`, written the first time Framestash saves there.
   - A renamed account keeps its old folder. Folders are never renamed, and new usernames are recorded as aliases.
   - Old folders without the file are recognised from the `_<ownerId>` in their file names.
   - A folder is never shared by two accounts. If a username now belongs to someone else, that account gets `<username>_<userId>/`.
@@ -47,7 +51,7 @@
   - The folder handle is stored only in the panel's own extension storage, which pages on instagram.com can't reach.
   - Instagram tabs only list posts and stories. The panel validates every record and does all fetching and writing.
   - Replies from the page are untrusted: only Instagram-shaped usernames and IDs, and Instagram CDN URLs, are accepted.
-  - igd buttons respond only to real user clicks (`isTrusted`), so page scripts can't trigger downloads.
+  - Framestash buttons respond only to real user clicks (`isTrusted`), so page scripts can't trigger downloads.
 - **Privacy:** no telemetry and no web-accessible resources. Permissions are `sidePanel`, plus host access to instagram.com and Instagram's CDN so the panel can fetch media.
 
 **Not yet:** DASH video quality ([dash-video.md](docs/dash-video.md)).
@@ -71,11 +75,11 @@ Plan, Build and Review run on the session's model, because they carry the securi
 ## Look and feel
 
 - **In-page buttons and status card:** they read Instagram's own theme variables, so they follow its light and dark modes. They match its floating Messages button: raised surface, hairline edge, shadow, pill shape and the `--hover-overlay` hover.
-- **Action-row icon:** the post and reel download icon copies Instagram's action icons (24 px stroke, text colour, same hover). Grid-tile buttons keep igd's own round style.
+- **Action-row icon:** the post and reel download icon copies Instagram's action icons (24 px stroke, text colour, same hover). Grid-tile buttons keep Framestash's own round style.
 - **Side panel:** modelled on Instagram's Settings pages (measured live), following the system light or dark setting.
-- **Wordmark igd.:** heavy sans-serif with a warm-to-violet gradient dot.
+- **Wordmark framestash.:** heavy sans-serif with a warm-to-violet gradient dot.
   - The toolbar icon is a near-black rounded square, so it isn't mistaken for Instagram's app icon.
-  - Icons are stroke SVGs drawn for igd.
+  - Icons are stroke SVGs drawn for Framestash.
   - The logo sources are in `design/`; `render-icons.sh` rebuilds the PNGs, including the light and dark wordmarks at the top of this README. `wordmark.svg` is the brand master; the panel and the status card draw the wordmark in CSS.
   - The cover image above is `design/hero/hero.png`: real screenshots in `design/hero/shots/`, laid out by `hero.html` and rendered with `design/hero/render.sh`.
 

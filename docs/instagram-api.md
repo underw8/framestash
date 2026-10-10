@@ -1,12 +1,12 @@
 # Instagram API
 
-What igd uses to list posts, stories and highlights. None of this is documented or stable; it was checked live in October 2026. Re-check with the [playbook](playbook.md) (steps 2–5) before relying on it, and update this file when something has changed.
+What Framestash uses to list posts, stories and highlights. None of this is documented or stable; it was checked live in October 2026. Re-check with the [playbook](playbook.md) (steps 2–5) before relying on it, and update this file when something has changed.
 
 All calls run in the **page world** (`extension/page.js`), because some tokens exist only there. The panel never talks to Instagram except to fetch CDN bytes.
 
 ## Session values
 
-The browser sends Instagram's cookies with same-origin requests, so igd never handles login. Per request, `page.js` reads:
+The browser sends Instagram's cookies with same-origin requests, so Framestash never handles login. Per request, `page.js` reads:
 
 | Value | Source |
 |---|---|
@@ -22,11 +22,11 @@ Nothing is hardcoded or stored. No `www-claim` header is needed.
 
 - `POST /api/graphql`, form-encoded: `doc_id`, `variables` (JSON), `lsd`, `fb_dtsg`.
 - `doc_id` is a persisted-query ID that rotates. Instagram's module loader exposes it under a stable operation name, so it is read at call time.
-- Queries also expect Relay "provided variables" (feature flags). igd reads their names from `require("<Operation>.graphql")` and sends them as `false`, as Instagram does.
+- Queries also expect Relay "provided variables" (feature flags). Framestash reads their names from `require("<Operation>.graphql")` and sends them as `false`, as Instagram does.
 - A body may start with `for (;;);`, which is stripped before parsing.
 - Some queries return data and a field-level error together. If the root field has data, it wins.
 
-## Queries igd uses
+## Queries Framestash uses
 
 | Purpose | Operation | Variables | Root field | Notes |
 |---|---|---|---|---|
@@ -38,14 +38,14 @@ Nothing is hardcoded or stored. No `www-claim` header is needed.
 
 ## Record shape
 
-Every node igd consumes has the v1 shape, because the GraphQL layer wraps the same backend objects:
+Every node Framestash consumes has the v1 shape, because the GraphQL layer wraps the same backend objects:
 
 | Field | Meaning |
 |---|---|
 | `pk` | numeric media key |
 | `id` | `<pk>_<owner user ID>` |
 | `user.username`, `user.pk` | owner |
-| `taken_at` | Unix seconds. Carousel children from the profile posts query lack it; igd uses the parent's |
+| `taken_at` | Unix seconds. Carousel children from the profile posts query lack it; Framestash uses the parent's |
 | `carousel_media[]` | carousel children, each with its own `pk`, `id` and media |
 | `image_versions2.candidates[]` | `{url, width, height}` |
 | `video_versions[]` | `{url, width, height}`, progressive MP4 with audio |
@@ -97,14 +97,14 @@ Post nodes may also carry `is_dash_eligible`, `number_of_qualities` and `video_d
 
 ## Headers
 
-| Call | Headers igd sets |
+| Call | Headers Framestash sets |
 |---|---|
 | `POST /api/graphql` | `content-type`, `x-csrftoken`, `x-ig-app-id`, `x-fb-lsd` |
 | CDN media bytes | none |
 
 ## Rate limiting and block signals
 
-Limits appear to apply per endpoint: the REST endpoints below returned 429 while `/api/graphql` worked. igd paces every call (`extension/pacer.js`) and treats these as block signals, holding the whole queue instead of retrying:
+Limits appear to apply per endpoint: the REST endpoints below returned 429 while `/api/graphql` worked. Framestash paces every call (`extension/pacer.js`) and treats these as block signals, holding the whole queue instead of retrying:
 
 - HTTP 429;
 - a followed redirect (`response.redirected`), e.g. to `/accounts/login/` or `/challenge/…`;

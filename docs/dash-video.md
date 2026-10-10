@@ -1,6 +1,6 @@
 # DASH video quality
 
-Should igd save videos from Instagram's DASH manifest instead of the largest progressive MP4? This note covers what the data looks like, how to parse it, how the video and audio tracks could be combined in the browser, and what that would cost. It ends with the decision.
+Should Framestash save videos from Instagram's DASH manifest instead of the largest progressive MP4? This note covers what the data looks like, how to parse it, how the video and audio tracks could be combined in the browser, and what that would cost. It ends with the decision.
 
 Today `bestMedia()` (`extension/naming.js`) picks the largest `video_versions` entry, a single progressive MP4 with audio. See [instagram-api.md](instagram-api.md), "Picking the rendition".
 
@@ -32,7 +32,7 @@ MPD
 With `SegmentBase` and one `BaseURL` per Representation, each track is a single fragmented-MP4 file that can be fetched in one request. Video and audio are separate files.
 
 **To verify:**
-- Whether the v1-shaped nodes igd actually consumes (`PolarisProfilePostsQuery`, `PolarisPostRootQuery`) carry `video_dash_manifest`. instagram-api.md only says "post nodes". If they don't, a "go" would need an extra query per post, which costs API budget.
+- Whether the v1-shaped nodes Framestash actually consumes (`PolarisProfilePostsQuery`, `PolarisPostRootQuery`) carry `video_dash_manifest`. instagram-api.md only says "post nodes". If they don't, a "go" would need an extra query per post, which costs API budget.
 - The exact element and attribute names above (`contentType` vs `mimeType`, whether `width`/`height` sit on the Representation, `SegmentBase` vs `SegmentTemplate`). The probe below prints them.
 
 ## Parsing
@@ -68,7 +68,7 @@ Size: about 150–250 lines of box parsing and writing, plus a small fixture pai
 - **`save()`** (`extension/collection.js`) fetches a URL and rejects anything that isn't `image/*` or `video/*`. A DASH path needs a variant that takes two fetches (accepting `audio/*` for the audio track) and writes a Blob. The never-overwrite check and the write-after-good-download rule have to stay.
 - **`sniffMedia()`** already accepts the output, because the merged file starts with `ftyp`.
 - **Drift:** one more undocumented format to track. If the manifest changes shape, the fallback keeps downloads working, at progressive quality.
-- **No upgrade for existing collections:** igd never overwrites and dedups on pk. Turning the setting on only affects files not already saved. Re-downloading would mean deleting files by hand.
+- **No upgrade for existing collections:** Framestash never overwrites and dedups on pk. Turning the setting on only affects files not already saved. Re-downloading would mean deleting files by hand.
 
 ## Decision: no-go (October 2026)
 
@@ -76,7 +76,7 @@ Size: about 150–250 lines of box parsing and writing, plus a small fixture pai
 - The cost is permanent: a binary-format merger to maintain, twice the CDN requests, and twice the peak memory.
 - Existing collections gain nothing (see above).
 
-**Reopen when** the probe shows that the top DASH video Representation is taller than the largest `video_versions` entry on a meaningful share of sampled videos (say, more than a quarter), and the v1-shaped nodes igd uses carry the manifest.
+**Reopen when** the probe shows that the top DASH video Representation is taller than the largest `video_versions` entry on a meaningful share of sampled videos (say, more than a quarter), and the v1-shaped nodes Framestash uses carry the manifest.
 
 **If we go:**
 - An opt-in setting, off by default, in the panel settings.

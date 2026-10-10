@@ -49,9 +49,9 @@ panel.innerHTML = `
   </div>
   <div class="igd-row">
     <button class="igd-stories" type="button" title="Active stories and all highlights" hidden>${icon("download")}Stories</button>
-    <button class="igd-open igd-icon" type="button" title="Open or close the igd panel" aria-label="Open or close the igd panel">${icon("panel")}</button>
+    <button class="igd-open igd-icon" type="button" title="Open or close the Framestash panel" aria-label="Open or close the Framestash panel">${icon("panel")}</button>
   </div>
-  <div class="igd-card"><span class="igd-wordmark">igd<i></i></span><span class="igd-status" aria-live="polite"></span>
+  <div class="igd-card"><span class="igd-wordmark">framestash<i></i></span><span class="igd-status" aria-live="polite"></span>
     <button class="igd-close" type="button" title="Dismiss" aria-label="Dismiss">${icon("dismiss")}</button></div>`;
 const goButton = panel.querySelector(".igd-go");
 const goLabel = goButton.querySelector("span");
@@ -63,7 +63,7 @@ function setStatus(text, kind = "") {
   statusLine.dataset.kind = kind;
 }
 
-const panelHint = "igd couldn't open its panel. Click the igd icon in the toolbar, then try again.";
+const panelHint = "Framestash couldn't open its panel. Click the Framestash icon in the toolbar, then try again.";
 
 // Page scripts can call .click() on our buttons; only real user clicks may start
 // downloads, or any script on instagram.com could fill the collection.
@@ -71,13 +71,13 @@ const onUserClick = (el, handler) => el.addEventListener("click", (e) => { if (e
 
 async function send(job) {
   // After igd is updated, scripts already in this tab are cut off from it.
-  if (!chrome.runtime || !chrome.runtime.id) return setStatus("igd was updated: reload this page.", "warn");
-  setStatus("Sending to igd…");
+  if (!chrome.runtime || !chrome.runtime.id) return setStatus("Framestash was updated: reload this page.", "warn");
+  setStatus("Sending to Framestash…");
   try {
     const r = await chrome.runtime.sendMessage({ type: "enqueue", job });
     if (!r || !r.queued) return setStatus((r && r.reason) || panelHint, "warn");
-    if (r.opening) return setStatus("Opening the igd panel…");
-    setStatus(r.position > 1 ? `Queued in igd (${r.position - 1} ahead)` : "Starting…");
+    if (r.opening) return setStatus("Opening the Framestash panel…");
+    setStatus(r.position > 1 ? `Queued in Framestash (${r.position - 1} ahead)` : "Starting…");
   } catch {
     setStatus(panelHint, "warn");
   }
@@ -98,7 +98,7 @@ onUserClick(panel.querySelector(".igd-close"), () => setStatus(""));
 
 onUserClick(panel.querySelector(".igd-open"), async () => {
   const r = await chrome.runtime.sendMessage({ type: "openPanel" }).catch(() => null);
-  if (!r || !r.ok) setStatus("Click the igd icon in the toolbar to open the panel.", "warn");
+  if (!r || !r.ok) setStatus("Click the Framestash icon in the toolbar to open the panel.", "warn");
 });
 
 // ---- per-item buttons on grid tiles and feed posts ----
@@ -114,7 +114,7 @@ function addItemButton(host, shortcode) {
   const button = document.createElement("button");
   button.type = "button";
   button.className = "igd-item";
-  button.title = "Save this post (igd)";
+  button.title = "Save this post (Framestash)";
   button.setAttribute("aria-label", button.title);
   button.innerHTML = icon("download");
   button.dataset.shortcode = shortcode;
@@ -190,7 +190,7 @@ function scanActionBars(host, shortcode) {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "igd-act";
-    button.title = "Save this post (igd)";
+    button.title = "Save this post (Framestash)";
     button.setAttribute("aria-label", button.title);
     button.innerHTML = icon("download");
     button.dataset.shortcode = shortcode || barShortcode(bar, host);
@@ -228,7 +228,7 @@ document.addEventListener("click", (e) => {
   if (!shortcode) {
     return setStatus(/^\/reels\/?$/.test(location.pathname)
       ? "Instagram hasn't put this reel's link in the address yet. Scroll to the next reel and back, then try again."
-      : "igd couldn't tell which post this is. Open the post and try again.", "warn");
+      : "Framestash couldn't tell which post this is. Open the post and try again.", "warn");
   }
   send({ kind: "post", shortcode });
 }, true);

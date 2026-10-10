@@ -7,6 +7,6 @@
     </linearGradient>
   </defs>
   <rect width="32" height="32" rx="8" fill="#0C1014"/>
-  <text x="8.5" y="25" font-family="Helvetica Neue" font-weight="800" font-size="24" fill="#fff">i</text>
-  <circle cx="19.6" cy="21.4" r="3.6" fill="url(#dot)"/>
+  <text x="7" y="25" font-family="Helvetica Neue" font-weight="800" font-size="24" fill="#fff">f</text>
+  <circle cx="21" cy="21.4" r="3.6" fill="url(#dot)"/>
 </svg>

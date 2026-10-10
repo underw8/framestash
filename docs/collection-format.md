@@ -1,6 +1,6 @@
 # Collection format
 
-igd reads and writes one on-disk format. Files already in a collection, including those written by other tools that use the same format, must keep working. `extension/naming.js` and `extension/collection.js` implement these rules; `test/naming.test.js` and `test/collection.test.js` check them.
+Framestash reads and writes one on-disk format. Files already in a collection, including those written by other tools that use the same format, must keep working. `extension/naming.js` and `extension/collection.js` implement these rules; `test/naming.test.js` and `test/collection.test.js` check them.
 
 ## Layout
 
@@ -31,7 +31,7 @@ sample.user_1789389655_3900000000000000071_31600000058.jpg
 sample.user_1789389000_3900000000000000071.JPG
 ```
 
-**Extension rule.** The extension is the first `.<letters or digits>` anywhere in the media URL (host, path or query) that is followed by `?`, `#` or the end of the URL, with its case kept. If nothing matches, igd uses `mp4` for video and `jpg` for images.
+**Extension rule.** The extension is the first `.<letters or digits>` anywhere in the media URL (host, path or query) that is followed by `?`, `#` or the end of the URL, with its case kept. If nothing matches, Framestash uses `mp4` for video and `jpg` for images.
 
 **Parsing.** `parseFileName` anchors on the numeric tail, because usernames may contain `_` and digits: `taken_at` is 9–10 digits, `pk` is 12 or more digits, the owner ID is optional. Names that don't fit are "unrecognised" in the collection check and never count as present. This includes story files whose ID slot holds a reel ID instead of a media pk.
 
@@ -49,7 +49,7 @@ A file counts as present only if it is non-empty. 0-byte files are treated as mi
 
 ## Account folders and `.igd.json`
 
-An account folder is tied to a user ID by a hidden marker `.igd.json`: `{ version: 1, userId, usernames: [...] }`. igd writes it the first time it saves into the folder and appends new usernames as aliases. Folders are never renamed.
+An account folder is tied to a user ID by a hidden marker `.igd.json`: `{ version: 1, userId, usernames: [...] }`. Framestash writes it the first time it saves into the folder and appends new usernames as aliases. Folders are never renamed. The marker keeps its `.igd.json` name (and the trash folder its `.igd-trash` name) from before the rename, so existing collections keep working.
 
 `resolveAccountDir(root, username, userId)` picks the folder in this order:
 
@@ -58,7 +58,7 @@ An account folder is tied to a user ID by a hidden marker `.igd.json`: `{ versio
 3. An unmarked folder whose file names say, by majority (≥ 50 %), that it belongs to this user ID. This finds accounts renamed before they had a marker.
 4. A new folder: `<username>`, or `<username>_<userId>` when the plain name belongs to another account. If that folder already carries another user's marker, the job fails instead of sharing it.
 
-Two user IDs never share a folder. Without a user ID, igd uses `<username>` as is.
+Two user IDs never share a folder. Without a user ID, Framestash uses `<username>` as is.
 
 ## Writing
 

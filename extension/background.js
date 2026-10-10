@@ -33,7 +33,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     chrome.sidePanel.open({ windowId: sender.tab.windowId }).catch(() => {});
     const delivery = { type: "job", job: msg.job, tabId: sender.tab.id, url: sender.url || "" };
     chrome.runtime.sendMessage(delivery)
-      .then((r) => sendResponse(r || { queued: false, reason: "igd panel did not answer" }))
+      .then((r) => sendResponse(r || { queued: false, reason: "Framestash panel did not answer" }))
       .catch(() => {
         pending.push(delivery);
         sendResponse({ queued: true, opening: true });

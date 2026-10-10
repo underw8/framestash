@@ -1,4 +1,4 @@
-/* igd in-page UI. Colours come from Instagram's own theme variables ("r, g, b"
+/* Framestash in-page UI. Colours come from Instagram's own theme variables ("r, g, b"
    triplets on <html>), so light and dark mode follow Instagram; fallbacks are its light theme. */
 .igd-panel, .igd-item {
   --igd-bg: rgb(var(--ig-elevated-background, 255, 255, 255));
@@ -58,7 +58,7 @@
 .igd-card:has(.igd-status[data-kind="warn"]) { border-color: var(--igd-warn); }
 .igd-card:has(.igd-status[data-kind="error"]) { border-color: var(--igd-error); }
 
-/* "igd." wordmark: heavy sans-serif with a gradient dot on the baseline. */
+/* "framestash." wordmark: heavy sans-serif with a gradient dot on the baseline. */
 .igd-wordmark { font-weight: 800; letter-spacing: -.04em; white-space: nowrap; }
 .igd-wordmark i {
   display: inline-block; width: .3em; height: .3em; margin-left: .06em; border-radius: 50%;

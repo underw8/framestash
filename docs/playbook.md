@@ -172,9 +172,9 @@ async function folderSummary(dir) {
 await folderSummary(await showDirectoryPicker({ mode: "read" }));
 ```
 
-## 7. Audit a collection outside igd
+## 7. Audit a collection outside Framestash
 
-The panel's **Check collection** is the normal report. This probe does a quick pass without igd: pick the **root** folder, the one that contains the account folders. It uses the same name pattern and pk key as [collection-format.md](collection-format.md).
+The panel's **Check collection** is the normal report. This probe does a quick pass without Framestash: pick the **root** folder, the one that contains the account folders. It uses the same name pattern and pk key as [collection-format.md](collection-format.md).
 
 ```js
 const root = await showDirectoryPicker({ mode: "read" });
@@ -201,5 +201,5 @@ for await (const [acct, dir] of root.entries()) {
 ```
 
 - `samePkManyNames`: one media item saved under several names (different `taken_at` or `id` variant).
-- `unexpectedNames`: names igd doesn't recognise, so they never count as present. If there are many, check them against [collection-format.md](collection-format.md) before writing to the collection.
-- `emptyFiles`: failed downloads. igd treats them as missing and downloads them again.
+- `unexpectedNames`: names Framestash doesn't recognise, so they never count as present. If there are many, check them against [collection-format.md](collection-format.md) before writing to the collection.
+- `emptyFiles`: failed downloads. Framestash treats them as missing and downloads them again.

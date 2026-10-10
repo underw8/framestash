@@ -40,10 +40,10 @@ async function renderFolder() {
 
 // Jobs only run with a granted, still-existing folder; asking needs a click in this panel.
 async function folderReady() {
-  if (!root) throw new Error("Choose your collection folder in the igd panel.");
+  if (!root) throw new Error("Choose your collection folder in the Framestash panel.");
   if ((await root.queryPermission({ mode: "readwrite" })) !== "granted") {
     await renderFolder();
-    throw new Error("Click “Allow access” in the igd panel.");
+    throw new Error("Click “Allow access” in the Framestash panel.");
   }
   try {
     await root.entries().next();
@@ -52,7 +52,7 @@ async function folderReady() {
     root = null;
     await kv("root", null);
     await renderFolder();
-    throw new Error("The collection folder was moved or deleted. Choose it again in the igd panel.");
+    throw new Error("The collection folder was moved or deleted. Choose it again in the Framestash panel.");
   }
   return root;
 }
@@ -99,7 +99,7 @@ const owned = new Promise((resolve) => {
     if (lock) return hold();
     ownsQueue = false;
     decide();
-    alertLine("Another igd panel is running the queue. This one takes over when that panel closes.");
+    alertLine("Another Framestash panel is running the queue. This one takes over when that panel closes.");
     return navigator.locks.request("igd-queue", hold);
   });
 });
@@ -250,7 +250,7 @@ async function pump() {
         job.state = "error";
         update(job, e.message, "error");
         // A folder problem stops the queue until the user fixes it here.
-        if (/igd panel/.test(e.message)) { job.state = "queued"; saveQueue(); renderJobs(); break; }
+        if (/Framestash panel/.test(e.message)) { job.state = "queued"; saveQueue(); renderJobs(); break; }
       } finally {
         if (apiThisJob) { pace.lastJobEnd = Date.now(); pace.jobGap = jobGap(apiThisJob, pacing); savePace(); }
         await loadCursors();
@@ -275,7 +275,7 @@ async function instagramTab(preferred) {
     } catch { /* no igd script in this tab */ }
   }
   throw new Error(tabs.length
-    ? "Reload your Instagram tab (igd was updated after it was opened), then retry."
+    ? "Reload your Instagram tab (Framestash was updated after it was opened), then retry."
     : "Open instagram.com in a tab (logged in), then retry.");
 }
 
@@ -371,7 +371,7 @@ async function paceApi(job) {
     const budget = budgetWait(pace.stamps, now, pacing);
     pace.stamps = budget.stamps;
     if (budget.resumeAt) {
-      const text = `igd used its request budget (${pacing.perHour} per hour, ${pacing.perDay} per day). The queue resumes at ${clock(budget.resumeAt)}.`;
+      const text = `Framestash used its request budget (${pacing.perHour} per hour, ${pacing.perDay} per day). The queue resumes at ${clock(budget.resumeAt)}.`;
       update(job, text, "warn");
       renderHold(text);
       await waitUntil(budget.resumeAt);
@@ -414,7 +414,7 @@ async function paceCdn(job) {
 const TRIP_TEXT = {
   rate: "Instagram is limiting requests",
   http: "Instagram answered with an error",
-  shape: "Instagram sent an unexpected reply; Instagram may have changed the query, and igd may need an update",
+  shape: "Instagram sent an unexpected reply; Instagram may have changed the query, and Framestash may need an update",
   login: "Instagram wants you to log in again. Log in on instagram.com.",
   challenge: "Instagram wants you to confirm your account. Clear the check on instagram.com.",
 };
@@ -469,7 +469,7 @@ async function run(job) {
     $("report").textContent = formatReport(report);
     $("reportBox").hidden = false;
     $("reportBox").open = true;
-    update(job, `Checked ${top.name}: nothing was changed. Report in the igd panel.`);
+    update(job, `Checked ${top.name}: nothing was changed. Report in the Framestash panel.`);
     return;
   }
 
@@ -584,7 +584,7 @@ function finish(job, c, where) {
 // id and URL as reported by Chrome (not by the page).
 function acceptDelivery(d) {
   if (!d || d.type !== "job" || !String(d.url).startsWith("https://www.instagram.com/") || !validJob(d.job)) {
-    return { queued: false, reason: "igd: invalid request" };
+    return { queued: false, reason: "Framestash: invalid request" };
   }
   return { queued: true, position: enqueue({ ...d.job, tabId: d.tabId }) };
 }

@@ -1,4 +1,4 @@
-/* igd panel, modelled on Instagram's Settings pages (measured October 2026) and
+/* Framestash panel, modelled on Instagram's Settings pages (measured October 2026) and
    following the system light/dark setting. */
 :root {
   --bg: #fff; --card: #efefef; --text: #000; --muted: #737373; --line: #dbdbdb;
