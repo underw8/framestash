@@ -11,6 +11,8 @@ Save profiles, posts, stories and highlights from instagram.com into a local col
 
 Framestash is not affiliated with, endorsed by or sponsored by Instagram or Meta.
 
+[MIT licence](LICENSE) · [Privacy policy](docs/privacy.md) · [Security policy](SECURITY.md)
+
 ![Framestash on instagram.com: download icon on grid tiles, corner buttons, the action-row icon, the side panel and the reel side column](design/hero/hero.png)
 
 **Status:** Framestash downloads profiles, single posts, grid and feed items, stories and highlights into an existing collection. All saving happens in a **Framestash side panel**, which holds the folder once for every tab and runs a **download queue**. The extension is in `extension/`; history and test results are in the git log. Specs are in `docs/`.
@@ -33,6 +35,12 @@ Framestash is not affiliated with, endorsed by or sponsored by Instagram or Meta
    Every button sends a job to the panel's queue, opening the panel first if it's closed, and the status card shows the job's progress.
 4. **Re-run any time.** A job run again only fetches what's missing. A profile re-run stops listing after 12 already-saved posts in a row (pinned posts aside), once a previous run of it listed to the end; posts deleted from disk below that point come back only with **List every post**. An interrupted profile (Stop, closed panel, error) picks up its listing where it stopped instead of starting again from page 1. Failed items are listed in the panel's DevTools console.
 5. **After updating Framestash**, reload open Instagram tabs. Chrome only adds the new scripts to pages loaded after the update, and Framestash tells you when this is needed.
+
+## Use responsibly
+
+- Framestash is for personal backup of content you have the right to keep.
+- Respect creators' rights: don't republish other people's work without their permission.
+- Bulk downloading can get your Instagram account rate-limited or blocked. Framestash paces its requests, but it can't prevent this.
 
 ## What it does
 
@@ -100,9 +108,11 @@ igd/
 ├── extension/      the MV3 extension (load unpacked)
 ├── design/         logo sources + render-icons.sh; hero/ holds the README cover
 ├── test/           node checks (naming, collection, pacer)
-├── docs/           collection format, Instagram API, probes, design notes
+├── docs/           collection format, Instagram API, probes, design notes, privacy policy
 ├── TASKS.md        open work, consumed by the igd-task workflow
 ├── .claude/workflows/   igd-task.js (one task), igd-tasks.js (several in order)
 ├── README.md       this file
+├── LICENSE         MIT licence
+├── SECURITY.md     how to report a vulnerability
 └── CLAUDE.md       ground rules for working here
 ```

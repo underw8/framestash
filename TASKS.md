@@ -218,7 +218,11 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - the existing test suites pass.
 
 ## T14 · Licence, security and privacy policy
-- status: todo
+- status: needs-check
+- live checks:
+  - [ ] On GitHub, enable Settings > Code security > Private vulnerability reporting for underw8/igd so the SECURITY.md link works.
+  - [ ] Enable GitHub Pages from the main branch /docs folder and confirm https://underw8.github.io/igd/privacy renders the policy with its effective date. Use that URL in the Chrome Web Store privacy field.
+  - [ ] Open README on GitHub and click the licence, privacy and security links.
 - why: the project is going open source and onto the Chrome Web Store, which requires a privacy policy for any extension that handles page content.
 - done when:
   - `LICENSE` holds the MIT licence, copyright "2026 underw8".
