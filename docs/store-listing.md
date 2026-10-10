@@ -73,5 +73,5 @@ Privacy policy URL: the published copy of [privacy.md](privacy.md) (URL to fill 
 | Image | Size | Status |
 |---|---|---|
 | Store icon | 128×128 PNG (96×96 artwork, 16 px transparent padding) | `extension/icons/icon-128.png` |
-| Screenshots | 1280×800, 1 to 5 | To make; `design/hero/shots/` has source captures |
-| Small promo tile | 440×280 | To make |
+| Screenshots | 1280×800, 1 to 5 | `design/hero/hero.png` (render more from `design/hero/shots/` if wanted) |
+| Small promo tile | 440×280 | `design/hero/promo.png` |
