@@ -108,6 +108,7 @@ igd/
 ├── extension/      the MV3 extension (load unpacked)
 ├── design/         logo sources + render-icons.sh; hero/ holds the README cover
 ├── test/           node checks (naming, collection, pacer)
+├── scripts/        package.sh: runs the checks, then zips extension/ into dist/
 ├── docs/           collection format, Instagram API, probes, design notes, privacy policy
 ├── TASKS.md        open work, consumed by the igd-task workflow
 ├── .claude/workflows/   igd-task.js (one task), igd-tasks.js (several in order)

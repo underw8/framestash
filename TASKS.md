@@ -246,9 +246,13 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - Light and dark: switch the OS appearance and check that the card's contrast matches the other cards.
 
 ## T16 · Store package and listing draft
-- status: todo
+- status: needs-check
 - why: the Chrome Web Store needs a zip of the extension and listing texts, including a justification for every permission.
 - done when:
   - `scripts/package.sh` builds `dist/framestash-<version>.zip` from `extension/` only (no tests, docs, design or dotfiles), runs the test suites first, and refuses to build if they fail. `dist/` is git-ignored.
   - `docs/store-listing.md` drafts: the short description (at most 132 characters), the full description (what it does, how to use it, the not-affiliated line, the "Use responsibly" points), the single-purpose statement, a justification for each permission and host permission in the manifest, the data-use answers (no data collected), and the list of required images with sizes (128 px icon, 1280×800 screenshots, 440×280 small promo tile).
   - no claims in the listing that aren't true of the code.
+- live checks:
+  - Unzip dist/framestash-0.22.0.zip to a temp folder, load it via Load unpacked in chrome://extensions, and confirm the panel opens and one Save post works.
+  - Read docs/store-listing.md and confirm the wording, the single-purpose statement and the privacy-policy URL before pasting it into the Web Store dashboard.
+  - Make the 1280×800 screenshots and the 440×280 promo tile; they are listed but not produced by this task.
