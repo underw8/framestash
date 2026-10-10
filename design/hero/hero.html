@@ -5,20 +5,20 @@
   html, body { margin: 0; width: 1280px; height: 800px; overflow: hidden; background: #000; }
   .bg { position: absolute; inset: -80px; background: url(shots/tile.png) center / cover; filter: blur(70px) brightness(.22) saturate(1.4); }
   .vignette { position: absolute; inset: 0; background: radial-gradient(ellipse at center, transparent 30%, rgba(0, 0, 0, .75) 100%); }
-  .grid { position: absolute; left: 104px; top: 50px; display: grid; grid-template-columns: repeat(3, 316px); grid-template-rows: 316px 316px; gap: 56px 62px; }
+  .grid { position: absolute; left: 80px; top: 48px; display: grid; grid-template-columns: 300px 300px 434px; grid-template-rows: 300px 300px; gap: 56px; }
   .grid { isolation: isolate; }
   .tile { position: relative; background-color: #000; background-repeat: no-repeat; background-size: cover; background-position: center; }
   /* Glow: a blurred, saturated copy of the tile's own image behind it. */
   .tile::before { content: ""; position: absolute; inset: -24px; z-index: -1; background: inherit; filter: blur(44px) saturate(1.8) brightness(.85); opacity: .6; }
   .tall { grid-row: span 2; }
-  .wordmark { position: absolute; left: 104px; bottom: 26px; height: 36px; }
+  .wordmark { position: absolute; left: 80px; bottom: 30px; height: 34px; }
 </style>
 <div class="bg"></div><div class="vignette"></div>
 <div class="grid">
   <div class="tile" style="background-image: url(shots/tile.png)"></div>
-  <div class="tile" style="background-image: url(shots/profile.png); background-position: right center"></div>
-  <div class="tile tall" style="background-image: url(shots/reel.png)"></div>
+  <div class="tile" style="background-image: url(shots/profile.png); background-position: right bottom"></div>
+  <div class="tile tall" style="background-image: url(shots/panel.png); background-position: top left"></div>
   <div class="tile" style="background-image: url(shots/post.png); background-position: right bottom"></div>
-  <div class="tile" style="background-image: url(shots/panel.png); background-position: top left"></div>
+  <div class="tile" style="background-image: url(shots/tile2.png)"></div>
 </div>
 <img class="wordmark" src="../wordmark-dark.png" alt="framestash.">

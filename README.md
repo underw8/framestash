@@ -7,6 +7,8 @@
 
 # Framestash
 
+![Framestash on instagram.com: the download icon on grid tiles, the corner buttons, the icon in a post's action row, and the side panel](design/hero/hero.png)
+
 Save profiles, posts, stories and highlights from instagram.com into a local collection.
 
 Framestash is not affiliated with, endorsed by or sponsored by Instagram or Meta.
