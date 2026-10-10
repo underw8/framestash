@@ -199,3 +199,40 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - [ ] Reels (/reels/…): the side column has the icon; clicking it saves the reel shown.
   - [ ] Grid tiles look and work as before; feed posts and post pages have no buttons on the photos themselves.
   - [ ] Tab to each new button: it is reachable, has a focus ring, and VoiceOver reads its label. Check light and dark mode.
+
+## T13 · Rename to Framestash
+- status: todo
+- why: store policy and Instagram's brand rules forbid "Instagram", "IG", "Insta" and "Gram" in a product name, so "igd: Instagram downloader" can't be published. The user chose the name Framestash.
+- done when:
+  - every user-visible name reads **Framestash**: the manifest `name` and `action.default_title`, the side panel title and header, the in-page status card wordmark, tooltips and labels ("Save this post (Framestash)"), status texts, README and docs. The wordmark is "framestash." with the same gradient dot.
+  - the manifest has a `description` (at most 132 characters) that doesn't name Instagram as part of the product name, and `minimum_chrome_version` set to the lowest version the APIs in use need (sidePanel.open needs 116).
+  - icons are redrawn in `design/` for the new name ("f." at 16/32 px, a readable mark at 48/128 px), and `render-icons.sh` rebuilds the PNGs and the README wordmarks.
+  - internal identifiers that existing users' data depends on stay as they are, so nothing already saved breaks: the `.igd.json` account markers, the `.igd-trash` folder name, IndexedDB/storage names and keys. CSS classes and message names may stay `igd-*`. collection-format.md says the marker file keeps its `.igd.json` name for compatibility.
+  - the README states: "Framestash is not affiliated with, endorsed by or sponsored by Instagram or Meta." Instagram is only mentioned in plain text as the site it works on.
+  - the existing test suites pass.
+
+## T14 · Licence, security and privacy policy
+- status: todo
+- why: the project is going open source and onto the Chrome Web Store, which requires a privacy policy for any extension that handles page content.
+- done when:
+  - `LICENSE` holds the MIT licence, copyright "2026 underw8".
+  - `SECURITY.md` says how to report a vulnerability privately (GitHub private vulnerability reporting).
+  - `docs/privacy.md` is a plain privacy policy: Framestash collects, sends and sells no data; it has no analytics or telemetry; it reads Instagram pages and media only to save them into the folder the user picks; settings and the queue stay in the browser's extension storage; the only network requests go to instagram.com and Instagram's CDN, made as the logged-in user. It's written so it can be published as-is on GitHub Pages, with an "effective date".
+  - README links the licence, the privacy policy and the security policy, and has a short "Use responsibly" section: personal backup of content you have the right to keep, respect creators' rights, bulk downloading can get an Instagram account rate-limited or blocked.
+
+## T15 · First-run notice
+- status: todo
+- why: users must understand the intended use and the account risk before the first download, as the store listing and the "Use responsibly" section say.
+- done when:
+  - the first time the side panel opens, it shows a notice card before anything else can run: personal use only, respect creators' rights and Instagram's terms, bulk downloading can get your Instagram account limited or blocked, nothing leaves your device. One "I understand" button dismisses it.
+  - acceptance is kept in the extension's storage; the notice doesn't come back after that, and jobs that arrive before acceptance stay queued until it's accepted.
+  - the card matches the panel's style, is keyboard-reachable and labelled, and works in light and dark mode.
+  - pure logic, if any, is unit-tested; the existing test suites pass.
+
+## T16 · Store package and listing draft
+- status: todo
+- why: the Chrome Web Store needs a zip of the extension and listing texts, including a justification for every permission.
+- done when:
+  - `scripts/package.sh` builds `dist/framestash-<version>.zip` from `extension/` only (no tests, docs, design or dotfiles), runs the test suites first, and refuses to build if they fail. `dist/` is git-ignored.
+  - `docs/store-listing.md` drafts: the short description (at most 132 characters), the full description (what it does, how to use it, the not-affiliated line, the "Use responsibly" points), the single-purpose statement, a justification for each permission and host permission in the manifest, the data-use answers (no data collected), and the list of required images with sizes (128 px icon, 1280×800 screenshots, 440×280 small promo tile).
+  - no claims in the listing that aren't true of the code.
