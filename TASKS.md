@@ -305,3 +305,11 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
     - a `PostToolUse` hook on Edit|Write that runs `node --check` on the edited file when it is `extension/*.js` and reports a syntax error back (exit code 2), using a small script under `.claude/hooks/`.
     - a `Stop`/`SubagentStop` check is optional; add it only if it can't loop or slow every turn; otherwise skip and say why.
   - the hook script works when run by hand on a good and a broken file; settings.json is valid JSON; the existing test suites pass.
+
+## T19 · No Download button on Instagram's "page isn't available" screen
+- status: todo
+- why: `routeFromPath` treats any one-segment path as a profile, so a missing account (or any unknown page such as /under.w8x/) still shows "Download @name" in the corner. A job started there fails, which is harmless but confusing.
+- done when:
+  - the corner Download and Stories buttons stay hidden until the page shows the profile is real (for example its header with the username, found by structure as the profile routes already do), and come back when it is.
+  - real profiles, including ones with dots and underscores, keep their buttons; post, reel and story pages are unchanged.
+  - any new pure logic is unit-tested; the existing test suites pass.
