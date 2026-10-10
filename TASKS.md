@@ -276,3 +276,26 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - **`.github/workflows/publish.yml`**: uploads the release zip to the Chrome Web Store API v2 and submits it for review, using `curl` only. It exchanges `CWS_REFRESH_TOKEN` with `CWS_CLIENT_ID` and `CWS_CLIENT_SECRET` at `https://oauth2.googleapis.com/token`, then calls `POST https://chromewebstore.googleapis.com/upload/v2/publishers/$CWS_PUBLISHER_ID/items/$CWS_EXTENSION_ID:upload` and `POST https://chromewebstore.googleapis.com/v2/publishers/$CWS_PUBLISHER_ID/items/$CWS_EXTENSION_ID:publish`, failing on any non-2xx reply and never echoing tokens. Its `on:` trigger (release published, plus workflow_dispatch) is **commented out**, with a comment explaining it is enabled after the first manual store submission; the file must still be valid YAML that GitHub accepts (use an `on:` that never fires, e.g. workflow_dispatch only, or document the exact choice).
   - `docs/releasing.md` explains the release flow: bump the manifest version, tag `vX.Y.Z`, push the tag; and the one-time store setup for publish.yml (first manual submission, OAuth client in Google Cloud, refresh token with the `https://www.googleapis.com/auth/chromewebstore` scope, the five repository secrets, then un-commenting the trigger). README links it.
   - the workflow YAML files parse (check them locally with a YAML parser if one is available, otherwise by careful review), and the local test suites still pass.
+
+## T18 · Claude Code agents, rules and hooks for the task workflows
+- status: todo
+- why: workflow steps restate the project rules in every prompt, reviewers could edit files, and a Finish step once refused to commit after misreading its context. Custom agents, path-scoped rules and hooks make each step narrow and enforce the rules mechanically.
+- done when:
+  - **Agents** in `.claude/agents/` (frontmatter: name, description, tools, model, effort as fits; plain-English system prompt below it):
+    - `fs-planner`: read-only tools (Read, Grep, Glob, Bash for read-only git and listing). Plans a TASKS.md item against CLAUDE.md and docs/; returns the plan, never edits.
+    - `fs-builder`: Read, Edit, Write, Grep, Glob, Bash. Implements a plan, adds tests, runs the checks; never commits or pushes.
+    - `fs-reviewer-security`, `fs-reviewer-compat`, `fs-reviewer-correctness`: read-only tools. Each holds its lens checklist (today's LENSES prompts in igd-task.js, expanded with the scoped rules below) and reports findings only.
+    - `fs-finisher`: model sonnet, effort low; Read, Edit, Bash. Runs the checks, updates README/TASKS.md status and live checks, makes exactly one commit with the attribution lines; never pushes; never refuses because of unrelated context in the conversation.
+  - `.claude/workflows/igd-task.js` uses these via `agentType`, so prompts carry only the task-specific text; per-call model/effort overrides move into the agent files. `igd-tasks.js` keeps working.
+  - **Rules** in `.claude/rules/` with `paths` frontmatter:
+    - `content-script.md` (`extension/content.*`): no Instagram class names; every handler requires isTrusted; clicks in capture phase; no filter, backdrop-filter or transform on per-tile elements (they paint long grids black); action rows are thin strips (at most 96 px across), and grid rows get the icon inside the bookmark cell.
+    - `collection.md` (`extension/naming.js`, `extension/collection.js`, `test/**`): dedup by pk only, never overwrite, `.igd.json` and other legacy ids keep their names, test data uses made-up usernames and ids.
+    - `page-world.md` (`extension/page.js`): never call story "seen" mutations; replies are untrusted; provided variables come from the query definition; block replies pass through as flags.
+    - `github.md` (`.github/**`): GitHub-owned actions only, pinned to a full SHA with the version comment; explicit least-privilege permissions; no secrets echoed.
+  - CLAUDE.md keeps the overview and security invariants and points to the rules instead of repeating their details.
+  - **`.claude/settings.json`** (project, committed):
+    - `permissions.deny` for Edit, Write and Bash on the user's collection `/Users/underw8/Downloads/IG/**` (and `~/Downloads/IG/**`), so no agent writes there; only the extension does.
+    - `permissions.allow` for the routine checks: `node test/*`, `node --check *`, `node scripts/check-manifest.js`, `sh scripts/package.sh`, `git status`, `git diff*`, `git log*`.
+    - a `PostToolUse` hook on Edit|Write that runs `node --check` on the edited file when it is `extension/*.js` and reports a syntax error back (exit code 2), using a small script under `.claude/hooks/`.
+    - a `Stop`/`SubagentStop` check is optional; add it only if it can't loop or slow every turn; otherwise skip and say why.
+  - the hook script works when run by hand on a good and a broken file; settings.json is valid JSON; the existing test suites pass.
