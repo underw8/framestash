@@ -82,7 +82,7 @@ Post nodes may also carry `is_dash_eligible`, `number_of_qualities` and `video_d
 - Active stories: topsearch gives the user ID, then the reels query with `reel_ids_arr: [userId]`, `is_highlight: false`.
 - Highlights: the tray query lists `highlight:<id>` IDs (50 per page), then the reels query with those IDs, `is_highlight: true`, in batches of 20.
 - Items have their own `pk` and `<pk>_<ownerId>` IDs, but **`user` is empty on items**: take the owner from the reel.
-- A highlight reel's `id` is `highlight:<id>`, and its `title` is the highlight's display name (`title`: **to confirm**, playbook steps 2–5).
+- A highlight reel's `id` is `highlight:<id>`, and its `title` is the highlight's display name, the label shown under it on the profile (checked live, October 2026).
 - Reading reels doesn't mark stories as seen. Never call the "seen" mutations.
 
 ## ID formats
