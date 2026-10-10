@@ -162,19 +162,25 @@ function barShortcode(bar, host) {
 
 function scanActionBars(host, shortcode) {
   const buttons = iconButtons(host);
+  const thin = (e) => { const r = e.getBoundingClientRect(); return Math.min(r.width, r.height) <= 96; };
   const bars = new Map(); // closest ancestor holding 4+ icon buttons -> its buttons
   for (const b of buttons) {
     for (let e = b.parentElement; e && host.contains(e); e = e.parentElement) {
-      const inside = buttons.filter((x) => e.contains(x));
-      if (inside.length >= 4) { bars.set(e, inside); break; }
+      let inside = buttons.filter((x) => e.contains(x));
+      if (inside.length < 4) continue;
+      // Grow to the whole strip: post pages split the row into Like…Share and a separate bookmark group.
+      for (let p = e.parentElement; p && host.contains(p) && thin(p); p = p.parentElement) {
+        const more = buttons.filter((x) => p.contains(x));
+        if (more.length > inside.length) { e = p; inside = more; }
+      }
+      bars.set(e, inside);
+      break;
     }
   }
   // Inner bars first, so an outer group that holds the same row is then skipped.
   for (const [bar, own] of [...bars].sort((a, b) => a[1].length - b[1].length)) {
     if (bar.querySelector(".igd-act")) continue;
-    // A row or column of icons is a thin strip; a grid row whose tiles carry badges is not.
-    const br = bar.getBoundingClientRect();
-    if (Math.min(br.width, br.height) > 96) continue;
+    if (!thin(bar)) continue; // a grid row whose tiles carry badges is not an action strip
     const spot = actionBarSpot(own.map((b) => { const r = b.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height }; }));
     if (!spot) continue;
     // Insert after the icon's own wrapper (the highest one holding no other icon), so the
