@@ -206,7 +206,9 @@ function scanNative() {
   // A post opened from a grid is a dialog over the page; only the dialog holds its action row.
   const route = routeFromPath(location.pathname);
   const host = document.querySelector('[role="dialog"]') || document.querySelector("main");
-  if (route && route.kind === "post" && host && !host.querySelector("article")) scanActionBars(host, "");
+  // The reels feed starts at /reels/ and only gets /reels/<code>/ once the user scrolls.
+  const reelsFeed = /^\/reels\/?$/.test(location.pathname);
+  if ((reelsFeed || (route && route.kind === "post")) && host && !host.querySelector("article")) scanActionBars(host, "");
 }
 
 // Capture phase, so the tile's link never navigates and Instagram's handlers never see the click.
@@ -218,7 +220,11 @@ document.addEventListener("click", (e) => {
   if (!e.isTrusted) return;
   const route = routeFromPath(location.pathname);
   const shortcode = button.dataset.shortcode || (route && route.kind === "post" ? route.shortcode : "");
-  if (!shortcode) return setStatus("igd couldn't tell which post this is. Open the post and try again.", "warn");
+  if (!shortcode) {
+    return setStatus(/^\/reels\/?$/.test(location.pathname)
+      ? "Instagram hasn't put this reel's link in the address yet. Scroll to the next reel and back, then try again."
+      : "igd couldn't tell which post this is. Open the post and try again.", "warn");
+  }
   send({ kind: "post", shortcode });
 }, true);
 
