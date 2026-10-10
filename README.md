@@ -7,6 +7,8 @@
 
 # igd: an Instagram downloader
 
+![igd on Instagram: download icon on grid tiles, corner buttons, the action-row icon, the side panel and the reel side column](design/hero/hero.png)
+
 **Status:** igd downloads profiles, single posts, grid and feed items, stories and highlights into an existing collection. All saving happens in an **igd side panel**, which holds the folder once for every tab and runs a **download queue**. The extension is in `extension/`; history and test results are in the git log. Specs are in `docs/`.
 
 ## Using igd
@@ -75,6 +77,7 @@ Plan, Build and Review run on the session's model, because they carry the securi
   - The toolbar icon is a near-black rounded square, so it isn't mistaken for Instagram's app icon.
   - Icons are stroke SVGs drawn for igd.
   - The logo sources are in `design/`; `render-icons.sh` rebuilds the PNGs, including the light and dark wordmarks at the top of this README. `wordmark.svg` is the brand master; the panel and the status card draw the wordmark in CSS.
+  - The cover image above is `design/hero/hero.png`: real screenshots in `design/hero/shots/`, laid out by `hero.html` and rendered with `design/hero/render.sh`.
 
 ## Checks
 
@@ -91,7 +94,7 @@ node test/pacer.test.js        # pacing, budgets, block-signal classification an
 ```text
 igd/
 ├── extension/      the MV3 extension (load unpacked)
-├── design/         logo sources + render-icons.sh
+├── design/         logo sources + render-icons.sh; hero/ holds the README cover
 ├── test/           node checks (naming, collection, pacer)
 ├── docs/           collection format, Instagram API, probes, design notes
 ├── TASKS.md        open work, consumed by the igd-task workflow
