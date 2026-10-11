@@ -130,7 +130,7 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - [ ] On a profile with pinned posts that are already saved, run it twice and confirm the second run doesn't stop because of the pinned posts. If you can, also confirm in DevTools that pinned nodes come first with older `taken_at`, as docs/instagram-api.md now says.
   - [x] Stop a profile run mid-way, then queue it again: it lists to the end.
   - [x] Turn on 'List every post' and queue a fully listed profile: it lists every page and the row reads '@x posts (full)'.
-  - [ ] Save a single post and a story: both behave as before.
+  - [x] Save a single post and a story: both behave as before. (2026-10-12)
 
 ## T9 · Pause and resume the queue
 - status: needs-check
@@ -193,11 +193,11 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - no flicker or duplicate buttons as Instagram re-renders or the user scrolls the feed; the existing 500 ms scan handles placement.
   - README describes the new buttons; the existing test suites pass, and any new pure logic is unit-tested.
 - live checks:
-  - [ ] Reload igd and the Instagram tab. On a profile, the bottom-right Download @user, Stories and panel buttons look and work as before, and nothing is added beside the username.
-  - [ ] Home feed: each post's like / comment / share / save row has a download icon right after the bookmark, matching Instagram's icons. Clicking it saves that post. Scroll a long way: no duplicate icons and no flicker.
-  - [ ] Post page (/p/…): the action row has the icon and the bottom-right Save post is still shown.
-  - [ ] Reels (/reels/…): the side column has the icon; clicking it saves the reel shown.
-  - [ ] Grid tiles look and work as before; feed posts and post pages have no buttons on the photos themselves.
+  - [x] Reload igd and the Instagram tab. On a profile, the bottom-right Download @user, Stories and panel buttons look and work as before, and nothing is added beside the username.
+  - [x] Home feed: each post's like / comment / share / save row has a download icon right after the bookmark, matching Instagram's icons. Clicking it saves that post. Scroll a long way: no duplicate icons and no flicker. (2026-10-12: one icon per post after the bookmark, none on photos, after scrolling)
+  - [x] Post page (/p/…): the action row has the icon and the bottom-right Save post is still shown.
+  - [ ] Reels (/reels/…): the side column has the icon; clicking it saves the reel shown. (2026-10-12: icon placed after Save, before More; the click was not tried, to avoid saving a stranger's reel)
+  - [x] Grid tiles look and work as before; feed posts and post pages have no buttons on the photos themselves.
   - [ ] Tab to each new button: it is reachable, has a focus ring, and VoiceOver reads its label. Check light and dark mode.
 
 ## T13 · Rename to Framestash
@@ -205,8 +205,8 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
 - live checks:
   - [ ] Reload the unpacked extension at chrome://extensions. The card shows the name Framestash, the new description and the "f." icon. The toolbar tooltip reads "Open Framestash".
   - [ ] Open the side panel. The tab title reads Framestash and the header shows "framestash." with the gradient dot, fitting in light and dark mode at the normal panel width.
-  - [ ] On instagram.com, reload the tab. Hover a grid tile or the action-row icon to see "Save this post (Framestash)". Start a download and check that the status card shows the "framestash." wordmark and the Framestash status texts.
-  - [ ] With an existing collection folder already chosen before the update, the panel still has the folder (no re-pick needed), and downloading a profile you already saved skips existing files and reuses the account folder (.igd.json still honoured).
+  - [x] On instagram.com, reload the tab. Hover a grid tile or the action-row icon to see "Save this post (Framestash)". Start a download and check that the status card shows the "framestash." wordmark and the Framestash status texts. (2026-10-12: labels and the status card wordmark checked)
+  - [x] With an existing collection folder already chosen before the update, the panel still has the folder (no re-pick needed), and downloading a profile you already saved skips existing files and reuses the account folder (.igd.json still honoured). (2026-10-12: checked again during T20)
   - [ ] Look at the 16/32 px toolbar icon: the "f." should be legible and the dot visible.
 - why: store policy and Instagram's brand rules forbid "Instagram", "IG", "Insta" and "Gram" in a product name, so "igd: Instagram downloader" can't be published. The user chose the name Framestash.
 - done when:
@@ -220,9 +220,9 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
 ## T14 · Licence, security and privacy policy
 - status: needs-check
 - live checks:
-  - [ ] On GitHub, enable Settings > Code security > Private vulnerability reporting for underw8/framestash so the SECURITY.md link works.
-  - [ ] Enable GitHub Pages from the main branch /docs folder and confirm https://underw8.github.io/framestash/privacy renders the policy with its effective date. Use that URL in the Chrome Web Store privacy field.
-  - [ ] Open README on GitHub and click the licence, privacy and security links.
+  - [x] On GitHub, enable Settings > Code security > Private vulnerability reporting for underw8/framestash so the SECURITY.md link works. (2026-10-12: enabled)
+  - [x] Enable GitHub Pages from the main branch /docs folder and confirm https://underw8.github.io/framestash/privacy renders the policy with its effective date. Use that URL in the Chrome Web Store privacy field. (2026-10-12: built from main/docs; effective date shown)
+  - [x] Open README on GitHub and click the licence, privacy and security links. (2026-10-12: all return 200)
 - why: the project is going open source and onto the Chrome Web Store, which requires a privacy policy for any extension that handles page content.
 - done when:
   - `LICENSE` holds the MIT licence, copyright "2026 underw8".
@@ -254,8 +254,8 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - no claims in the listing that aren't true of the code.
 - live checks:
   - [ ] Unzip dist/framestash-0.22.0.zip to a temp folder, load it via Load unpacked in chrome://extensions, and confirm the panel opens and one Save post works.
-  - [ ] Read docs/store-listing.md and confirm the wording, the single-purpose statement and the privacy-policy URL before pasting it into the Web Store dashboard.
-  - [ ] Make the 1280×800 screenshots and the 440×280 promo tile; they are listed but not produced by this task.
+  - [x] Read docs/store-listing.md and confirm the wording, the single-purpose statement and the privacy-policy URL before pasting it into the Web Store dashboard. (submitted 2026-10-11)
+  - [x] Make the 1280×800 screenshots and the 440×280 promo tile; they are listed but not produced by this task. (design/hero/hero.png and promo.png)
 
 ## T17 · GitHub workflows: CI, release, CodeQL, Dependabot, store publish
 - status: needs-check
@@ -351,5 +351,6 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - clicks must stay in the capture phase (as for .framestash-act) so Instagram doesn't advance to the next item.
 - live checks: Reload the extension and the Instagram tab. On one of your own active stories (`/stories/<you>/<pk>/`), the download icon sits between pause and ⋯, is the same height and white, and clicking it doesn't advance or close the viewer.; Click the icon on story 2 of 3 or more of your own active stories: the panel saves exactly that pk into `<root>/<you>/stories/` and the job label shows that pk.; On your own highlight with 2 or more items, move to item 2 (pause it, then click): only item 2 is saved. Repeat with item 1 and the last item. This confirms that `reels_media.items` order matches the segments; then add that line to docs/instagram-api.md.; The corner 'Save highlight' / 'Save @you's stories' button still saves the whole reel.; With DevTools Network open, confirm that the clicks send only `PolarisStoriesV3ReelPageStandaloneQuery` (plus topsearch for stories) and no 'seen' mutation.; In the console, running `document.querySelector('.framestash-story').click()` starts no job (isTrusted check).
 - live results (2026-10-12): on the author's own one-item highlight, the icon sits between pause and ⋯ (34 px, white), clicking it keeps the viewer on the same item and paused, and the job 'highlight … item 1' ended 'new 0 · already had 1'. Seen-mutation check: page.js only calls read queries (posts, post root, topsearch, highlight tray, reels) and never a seen mutation (code check). The live Network check did not complete: a missed pause let Instagram's own viewer play on into other accounts' stories, and Instagram itself sent PolarisStoriesV3SeenMutation for them; Framestash sent nothing. In the narrow (mobile) story viewer the header has no pause button, so the icon is absent there; the corner button still saves the reel.
+- live results (2026-10-12, retry on the friend's 34-item highlight): paused (confirmed), then a request logger in the page saw nothing but Instagram's /ajax/bz analytics after the icon click; the job sat at 'Queued in Framestash (1 ahead)' for over a minute, so its listing request was never observed. The click itself sends no seen mutation.
 - live results (2026-10-12, a friend's 34-item highlight, with the user's consent): two bugs found and fixed (photo items have no mute button, so the icon was missing; only the active segment holds a fill element, so item 1 was always picked). After the fixes the icon shows on photo items, item 7 resolved to index 6, the viewer stayed paused on it, and the job ended 'new 1'. The user confirmed the saved files for items 7 and 15 match.
 - live results (2026-10-12, the same friend's active story, 3 items): paused on item 2, the URL held its pk, the icon saved it ('new 1') and the viewer stayed paused. Seen while testing: until playback starts the URL is /stories/<user>/ with no pk, so a click then gets the "couldn't tell which story" warning.
