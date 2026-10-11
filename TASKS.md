@@ -307,12 +307,19 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - the hook script works when run by hand on a good and a broken file; settings.json is valid JSON; the existing test suites pass.
 
 ## T19 · No Download button on Instagram's "page isn't available" screen
-- status: todo
+- status: needs-check
 - why: `routeFromPath` treats any one-segment path as a profile, so a missing account (or any unknown page such as /under.w8x/) still shows "Download @name" in the corner. A job started there fails, which is harmless but confusing.
 - done when:
   - the corner Download and Stories buttons stay hidden until the page shows the profile is real (for example its header with the username, found by structure as the profile routes already do), and come back when it is.
   - real profiles, including ones with dots and underscores, keep their buttons; post, reel and story pages are unchanged.
   - any new pure logic is unit-tested; the existing test suites pass.
+- live checks:
+  - Reload Framestash at chrome://extensions, then reload an instagram.com tab.
+  - Open a missing account such as instagram.com/under.w8x/: the 'page isn't available' screen shows no Download or Stories button, and the panel button is still there.
+  - Open a real profile with dots or underscores in its name: 'Download @name' and Stories appear within about half a second of the header rendering. This should also hold on its /tagged/ and /reels/ tabs.
+  - Go from a missing account to a real profile through Instagram's own links (client-side navigation, no reload): the buttons come back. Going from the real profile to a missing one hides them.
+  - Open a post, a reel, someone's stories and a highlight: the buttons and labels look the same as before.
+  - Narrow the window to the mobile layout and open a real profile: the buttons still show, so `main header` still matches there.
 
 ## T20 · Rename the remaining igd ids to Framestash
 - status: done

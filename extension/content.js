@@ -264,15 +264,16 @@ function placePanel() {
 // One 500 ms poll for URL changes, new tiles/posts and placement; simpler than
 // history hooks plus a MutationObserver. Ceiling: a selector pass per tick on very long feeds.
 // The panel stays on every page so jobs started from tiles can report; the main
-// button only shows on profile, post and story pages.
+// button shows on post and story pages, and on profile pages once the header is there.
 let shownPath = null;
 function updateForPage() {
+  const route = routeFromPath(location.pathname);
+  const real = !route || route.kind !== "profile" || profileShown(route.username, document.querySelector("main header")?.textContent);
+  goButton.hidden = !route || !real;
+  storiesButton.hidden = !route || route.kind !== "profile" || !real;
   if (shownPath === location.pathname) return;
   shownPath = location.pathname;
-  const route = routeFromPath(location.pathname);
   setStatus("");
-  goButton.hidden = !route;
-  storiesButton.hidden = !route || route.kind !== "profile";
   if (route) {
     goLabel.textContent = {
       profile: `Download @${route.username}`,

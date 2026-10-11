@@ -156,6 +156,11 @@ function routeFromPath(path) {
   return null;
 }
 
+// The profile header holds the username; missing-account pages have no header.
+function profileShown(username, headerText) {
+  return String(headerText || "").toLowerCase().includes(username);
+}
+
 // Queue entry for a job. Must keep the job's own fields: a highlight job's `id` is the highlight id.
 function queueEntry(job) {
   const label = {
@@ -263,7 +268,7 @@ function wait(ms, signal) {
 if (typeof module !== "undefined") {
   module.exports = {
     bestMedia, extensionOf, fileName, keyFromFileName, parseFileName, inferOwner, sniffMedia,
-    itemsFromNode, highlightFolder, shortcodeFromPath, actionBarSpot, routeFromPath, queueEntry, unfinished, clearQueue, visibleJobs, wait, USERNAME_RE,
+    itemsFromNode, highlightFolder, shortcodeFromPath, actionBarSpot, routeFromPath, profileShown, queueEntry, unfinished, clearQueue, visibleJobs, wait, USERNAME_RE,
     pinnedFlags, knownStreak, pageStreak, stopListing, resumeFrom, cursorOnFailure, cursorRecord, backfillUsername, startOverShown, KNOWN_STOP,
   };
 }

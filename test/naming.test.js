@@ -105,6 +105,12 @@ for (const [path, route] of [
   ["/", null], ["/explore/", null], ["/direct/inbox/", null], ["/reels/", null], ["/stories/", null], ["/stories/highlights/", null],
 ]) assert.deepEqual(n.routeFromPath(path), route, path);
 
+assert.equal(n.profileShown("sample.user_01", "sample.user_01Follow"), true);
+assert.equal(n.profileShown("demo_account", "Demo_AccountEdit profile"), true);
+assert.equal(n.profileShown("demo_account", ""), false);
+assert.equal(n.profileShown("demo_account", undefined), false);
+assert.equal(n.profileShown("demo_account", "other.userFollow"), false);
+
 // actionBarSpot: feed rows put the icon after the bookmark (rightmost), reel columns after
 // save (second-to-last by y, More is last). Input order is document order, not screen order.
 {
