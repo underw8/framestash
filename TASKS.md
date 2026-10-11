@@ -325,3 +325,12 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - [x] Reload Framestash at chrome://extensions and reload the Instagram tab. Open the panel: the collection folder, queue and pacing state are still there (no re-pick), and DevTools > Application > IndexedDB shows `framestash` and no `igd`. (Folder and first-run notice carried over; the IndexedDB list itself was not inspected.)
   - [x] Download a post from an account you already have: it lands in the same account folder, and existing files count as 'already had'.
   - [x] On a profile, the corner buttons, grid-tile icons and post action-row icon look and work as before.
+
+## T21 · Download icon in the story viewer's header
+- status: todo
+- why: on a story or highlight, the only way to save is the corner button, which saves the whole reel. The viewer's header (mute, pause, ⋯) should carry a download icon that saves just the item on screen, like the post action row does.
+- done when:
+  - on `/stories/<user>/<pk>/` and `/stories/highlights/<id>/`, a download icon sits between Instagram's pause and ⋯ buttons, found by structure (a row of 24 px icon buttons in the viewer's top bar), matching their size and colour; no Instagram class names or English labels.
+  - clicking it saves only the item on screen: the pk from the story URL, or for a highlight (whose URL has no item id) the item at the active progress-bar segment's index. The job is validated in `validJob` and the panel filters the listed reel to that one item before saving.
+  - no story "seen" mutation is sent; live checks use the author's own highlights only.
+  - the corner Download button keeps saving the whole reel; pure logic (segment index, item pick) is unit-tested.
