@@ -30,7 +30,7 @@ Framestash is not affiliated with, endorsed by or sponsored by Instagram or Meta
    - **Post or reel page** (`/p/…`, `/reel/…`, `/reels/…`): **Save post** saves every slide into `<root>/<owner>/`.
    - **Feed posts, post pages and reels:** a download icon right after the save (bookmark) icon, in the post's action row or the reel's side column, also saves the whole post.
    - **Story page** (`/stories/<user>/`) or **highlight page** (`/stories/highlights/<id>/`): saves those stories. Stories go to `<root>/<user>/stories/`; with **Highlights in their own folders** on, each highlight goes to `stories/<highlight title or id>/`. Downloading never marks a story as seen.
-   - **Grid tiles** (profiles, Explore, any page with post thumbnails): on hover, a bold white download icon appears in the centre on a soft dark glow, and saves the whole post without opening it.
+   - **Grid tiles** (profiles, Explore, any page with post thumbnails): on hover, a bold white download icon appears just below the centre on a soft dark glow, and saves the whole post without opening it.
    - **Panel icon** (corner): opens the side panel, or closes it if it is already open. The collection check is in the panel.
 
    Every button sends a job to the panel's queue, opening the panel first if it's closed, and the status card shows the job's progress.
