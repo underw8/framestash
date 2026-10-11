@@ -156,6 +156,37 @@ assert.equal(n.queueEntry({ kind: "stories", username: "a.b" }).label, "@a.b sto
 assert.equal(n.queueEntry({ kind: "profile", username: "x", full: true }).label, "@x posts (full)");
 assert.equal(n.queueEntry({ kind: "profile", username: "x" }).label, "@x posts");
 assert.equal(n.queueEntry({ kind: "post", shortcode: "CODE1" }).label, "post CODE1");
+assert.equal(n.queueEntry({ kind: "stories", username: "a.b", pk: "3900000000000000071" }).label, "@a.b story 3900000000000000071");
+assert.equal(n.queueEntry({ kind: "highlight", id: "17900000000000001", index: 1 }).label, "highlight 17900000000000001 item 2");
+assert.equal(n.queueEntry({ kind: "stories", username: "a.b", withHighlights: true }).label, "@a.b stories & highlights");
+
+// activeSegment: first unfinished fill; all full -> last; tolerance for a nearly full fill.
+assert.equal(n.activeSegment([1, 1, 0.4, 0]), 2);
+assert.equal(n.activeSegment([0]), 0);
+assert.equal(n.activeSegment([1, 1, 1]), 2);
+assert.equal(n.activeSegment([]), -1);
+assert.equal(n.activeSegment([0.995, 0.3]), 1);
+
+// storyItemJob: pk from a story URL, index for a highlight, null otherwise.
+assert.deepEqual(n.storyItemJob("/stories/made_up.user/3900000000000000071/"), { kind: "stories", username: "made_up.user", pk: "3900000000000000071" });
+assert.equal(n.storyItemJob("/stories/made_up.user/", 0), null);
+assert.deepEqual(n.storyItemJob("/stories/highlights/17900000000000001/", 1), { kind: "highlight", id: "17900000000000001", index: 1 });
+assert.equal(n.storyItemJob("/stories/highlights/17900000000000001/", -1), null);
+assert.equal(n.storyItemJob("/p/ABC12/", 0), null);
+
+// pickStoryItems: one item for pk or index jobs, every item otherwise.
+{
+  const story = (pk) => ({ pk, id: `${pk}_42`, taken_at: 1789389655, user: { username: "made_up.user" },
+    image_versions2: { candidates: [{ url: `https://scontent-a.cdninstagram.com/${pk}.jpg`, width: 1080, height: 1920 }] } });
+  const nodes = [story("3900000000000000071"), story("3900000000000000072"), story("3900000000000000073")];
+  const keys = (items) => items.map((i) => i.key);
+  assert.deepEqual(keys(n.pickStoryItems({ kind: "stories", username: "made_up.user", pk: "3900000000000000072" }, nodes)), ["3900000000000000072"]);
+  assert.deepEqual(keys(n.pickStoryItems({ kind: "highlight", id: "1", index: 2 }, nodes)), ["3900000000000000073"]);
+  assert.deepEqual(n.pickStoryItems({ kind: "highlight", id: "1", index: 3 }, nodes), []);
+  assert.deepEqual(n.pickStoryItems({ kind: "stories", username: "made_up.user", pk: "3900000000000000099" }, nodes), []);
+  assert.deepEqual(keys(n.pickStoryItems({ kind: "highlight", id: "1" }, nodes)), keys(nodes.flatMap(n.itemsFromNode)));
+  assert.equal(n.pickStoryItems({ kind: "stories", username: "made_up.user" }, nodes).length, 3);
+}
 
 // pinnedFlags: only nodes older than a later node on the page (pinned, listed first) are flagged.
 {

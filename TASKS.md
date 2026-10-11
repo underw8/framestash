@@ -334,7 +334,7 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - [x] On a profile, the corner buttons, grid-tile icons and post action-row icon look and work as before.
 
 ## T21 · Download icon in the story viewer's header
-- status: todo
+- status: needs-check
 - why: on a story or highlight, the only way to save is the corner button, which saves the whole reel. The viewer's header (mute, pause, ⋯) should carry a download icon that saves just the item on screen, like the post action row does.
 - done when:
   - on `/stories/<user>/<pk>/` and `/stories/highlights/<id>/`, a download icon sits between Instagram's pause and ⋯ buttons, found by structure (a row of 24 px icon buttons in the viewer's top bar), matching their size and colour; no Instagram class names or English labels.
@@ -347,3 +347,4 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - the progress bar sits 10 px above the row: one track per item (2 px high, white at 35 %), each with a white fill child. The test highlight has one item, so the multi-item index rule (count tracks before the one whose fill is not full) still needs a live check on a highlight with 2+ items.
   - media is a blob video or an img with no item id in its URL, so the segment index is the only structural way to identify the highlight item; React internals stay off-limits.
   - clicks must stay in the capture phase (as for .framestash-act) so Instagram doesn't advance to the next item.
+- live checks: Reload the extension and the Instagram tab. On one of your own active stories (`/stories/<you>/<pk>/`), the download icon sits between pause and ⋯, is the same height and white, and clicking it doesn't advance or close the viewer.; Click the icon on story 2 of 3 or more of your own active stories: the panel saves exactly that pk into `<root>/<you>/stories/` and the job label shows that pk.; On your own highlight with 2 or more items, move to item 2 (pause it, then click): only item 2 is saved. Repeat with item 1 and the last item. This confirms that `reels_media.items` order matches the segments; then add that line to docs/instagram-api.md.; The corner 'Save highlight' / 'Save @you's stories' button still saves the whole reel.; With DevTools Network open, confirm that the clicks send only `PolarisStoriesV3ReelPageStandaloneQuery` (plus topsearch for stories) and no 'seen' mutation.; In the console, running `document.querySelector('.framestash-story').click()` starts no job (isTrusted check).

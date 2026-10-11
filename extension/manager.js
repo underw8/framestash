@@ -228,9 +228,10 @@ function validJob(j) {
   const user = (u) => typeof u === "string" && USERNAME_RE.test(u);
   return (j.kind === "profile" && user(j.username) && (j.full === undefined || typeof j.full === "boolean")
       && (j.fresh === undefined || typeof j.fresh === "boolean"))
-    || (j.kind === "stories" && user(j.username))
+    || (j.kind === "stories" && user(j.username) && (j.pk === undefined || (typeof j.pk === "string" && /^\d{1,25}$/.test(j.pk))))
     || (j.kind === "post" && typeof j.shortcode === "string" && /^[A-Za-z0-9_-]{5,40}$/.test(j.shortcode))
-    || (j.kind === "highlight" && /^\d+$/.test(String(j.id)))
+    || (j.kind === "highlight" && /^\d+$/.test(String(j.id))
+      && (j.index === undefined || (Number.isInteger(j.index) && j.index >= 0 && j.index <= 999)))
     || j.kind === "check";
 }
 
@@ -567,12 +568,13 @@ async function run(job) {
     stories: ["stories", { username: job.username, withHighlights: !!job.withHighlights }, job.withHighlights ? "stories or highlights" : "active stories", "stories"],
     highlight: ["highlight", { id: job.id }, "this highlight", "stories"],
   }[job.kind];
-  const [op, args, what, sub] = request;
+  const [op, args, listed, sub] = request;
+  const what = job.pk || Number.isInteger(job.index) ? "this story item" : listed;
   update(job, `Loading ${what}…`);
   const r = await bridge(job, op, args);
   if (r.error) throw new Error(`Could not load ${what}: ${r.error}`);
   const nodes = Array.isArray(r.nodes) ? r.nodes : [];
-  const items = nodes.flatMap(itemsFromNode);
+  const items = pickStoryItems(job, nodes);
   if (!items.length) {
     job.detail = `Nothing to download: no ${what} found.`;
     return;

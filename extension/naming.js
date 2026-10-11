@@ -156,6 +156,33 @@ function routeFromPath(path) {
   return null;
 }
 
+// Story viewer progress bar: fill fractions per segment -> the item on screen. Segments before
+// it are full; after the last item ends, every segment is full and the last one is shown.
+function activeSegment(fractions) {
+  if (!fractions.length) return -1;
+  const i = fractions.findIndex((f) => f < 0.99);
+  return i < 0 ? fractions.length - 1 : i;
+}
+
+// One-item job for the story viewer's header icon. Highlight URLs carry no item id, so the
+// segment index stands in for it.
+function storyItemJob(path, index) {
+  const route = routeFromPath(path);
+  if (route && route.kind === "stories") {
+    const pk = String(path).match(/^\/stories\/[^/]+\/(\d+)\/?$/);
+    return pk ? { kind: "stories", username: route.username, pk: pk[1] } : null;
+  }
+  if (route && route.kind === "highlight" && Number.isInteger(index) && index >= 0) return { kind: "highlight", id: route.id, index };
+  return null;
+}
+
+// Listed reel nodes -> items to save: one item for a one-item job, every item otherwise.
+function pickStoryItems(job, nodes) {
+  if (Number.isInteger(job.index)) return itemsFromNode(nodes[job.index]);
+  if (job.pk) return nodes.flatMap(itemsFromNode).filter((i) => i.key === job.pk);
+  return nodes.flatMap(itemsFromNode);
+}
+
 // The profile header holds the username; missing-account pages have no header.
 function profileShown(username, headerText) {
   return String(headerText || "").toLowerCase().includes(username);
@@ -165,9 +192,9 @@ function profileShown(username, headerText) {
 function queueEntry(job) {
   const label = {
     profile: `@${job.username} posts${job.full ? " (full)" : ""}`,
-    stories: `@${job.username} ${job.withHighlights ? "stories & highlights" : "stories"}`,
+    stories: job.pk ? `@${job.username} story ${job.pk}` : `@${job.username} ${job.withHighlights ? "stories & highlights" : "stories"}`,
     post: `post ${job.shortcode}`,
-    highlight: `highlight ${job.id}`,
+    highlight: Number.isInteger(job.index) ? `highlight ${job.id} item ${job.index + 1}` : `highlight ${job.id}`,
     check: "collection check",
   }[job.kind];
   return { ...job, label, state: "queued", detail: "" };
@@ -268,7 +295,7 @@ function wait(ms, signal) {
 if (typeof module !== "undefined") {
   module.exports = {
     bestMedia, extensionOf, fileName, keyFromFileName, parseFileName, inferOwner, sniffMedia,
-    itemsFromNode, highlightFolder, shortcodeFromPath, actionBarSpot, routeFromPath, profileShown, queueEntry, unfinished, clearQueue, visibleJobs, wait, USERNAME_RE,
+    itemsFromNode, highlightFolder, shortcodeFromPath, actionBarSpot, routeFromPath, activeSegment, storyItemJob, pickStoryItems, profileShown, queueEntry, unfinished, clearQueue, visibleJobs, wait, USERNAME_RE,
     pinnedFlags, knownStreak, pageStreak, stopListing, resumeFrom, cursorOnFailure, cursorRecord, backfillUsername, startOverShown, KNOWN_STOP,
   };
 }

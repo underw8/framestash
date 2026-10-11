@@ -29,7 +29,7 @@ Framestash is not affiliated with, endorsed by or sponsored by Instagram or Meta
    - **Profile:** **Download @user** saves every post. **Stories** saves the active stories plus every highlight.
    - **Post or reel page** (`/p/…`, `/reel/…`, `/reels/…`): **Save post** saves every slide into `<root>/<owner>/`.
    - **Feed posts, post pages and reels:** a download icon right after the save (bookmark) icon, in the post's action row or the reel's side column, also saves the whole post.
-   - **Story page** (`/stories/<user>/`) or **highlight page** (`/stories/highlights/<id>/`): saves those stories. Stories go to `<root>/<user>/stories/`; with **Highlights in their own folders** on, each highlight goes to `stories/<highlight title or id>/`. Downloading never marks a story as seen.
+   - **Story page** (`/stories/<user>/`) or **highlight page** (`/stories/highlights/<id>/`): saves those stories. Stories go to `<root>/<user>/stories/`; with **Highlights in their own folders** on, each highlight goes to `stories/<highlight title or id>/`. The download icon in the story viewer's header, next to ⋯, saves only the item on screen. Downloading never marks a story as seen.
    - **Grid tiles** (profiles, Explore, any page with post thumbnails): on hover, a bold white download icon appears just below the centre on a soft dark glow, and saves the whole post without opening it.
    - **Panel icon** (corner): opens the side panel, or closes it if it is already open. The collection check is in the panel.
 

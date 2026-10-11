@@ -222,13 +222,70 @@ function scanNative() {
   if ((reelsFeed || (route && route.kind === "post")) && host && !host.querySelector("article")) scanActionBars(host, "");
 }
 
+// ---- story viewer: a download icon before the header's ⋯ button, saving only the item on screen ----
+
+const BUTTON = 'button, [role="button"]';
+const box = (e) => e.getBoundingClientRect();
+
+// ⋯ is a small 24 px icon button whose previous sibling is the mute/pause group (2 buttons);
+// Close has no such sibling.
+function scanStoryHeader() {
+  const route = routeFromPath(location.pathname);
+  if (!route || (route.kind !== "stories" && route.kind !== "highlight") || document.querySelector(".framestash-story")) return;
+  for (const b of iconButtons(document.body)) {
+    if (box(b).width > 48 || box(b).height > 48) continue;
+    let slot = b;
+    while (!slot.previousElementSibling && slot.parentElement && slot.parentElement.children.length === 1) slot = slot.parentElement;
+    const group = slot.previousElementSibling;
+    if (!group) continue;
+    const inner = [...group.querySelectorAll(BUTTON)].filter((x) => !group.contains(x.parentElement.closest(BUTTON)));
+    if (inner.length !== 2 || inner.some((x) => box(x).width > 40 || box(x).height > 40)) continue;
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "framestash-story";
+    button.title = "Save this story (Framestash)";
+    button.setAttribute("aria-label", button.title);
+    button.innerHTML = icon("download");
+    slot.insertAdjacentElement("beforebegin", button);
+    return;
+  }
+}
+
+// Progress tracks (2-3 px high, one fill child each) of the nearest viewer above the icon.
+function storySegment(button) {
+  for (let e = button.parentElement; e; e = e.parentElement) {
+    const tracks = [...e.querySelectorAll("*")].filter((t) => {
+      const r = box(t);
+      return !(t instanceof SVGElement) && t.children.length === 1 && r.height >= 2 && r.height <= 3 && r.width > 0;
+    });
+    if (!tracks.length) continue;
+    const groups = new Map();
+    for (const t of tracks) groups.set(t.parentElement, [...(groups.get(t.parentElement) || []), t]);
+    // ponytail: a single-item highlight has one track, so one track counts as a bar.
+    const bar = [...groups.values()].reduce((a, b) => (b.length > a.length ? b : a));
+    return activeSegment(bar.map((t) => box(t.firstElementChild).width / box(t).width));
+  }
+  return -1;
+}
+
+// Instagram's hold-to-pause and tap-to-advance listen for presses on the viewer.
+for (const type of ["pointerdown", "mousedown"]) {
+  document.addEventListener(type, (e) => {
+    if (e.target instanceof Element && e.target.closest(".framestash-story")) e.stopPropagation();
+  }, true);
+}
+
 // Capture phase, so the tile's link never navigates and Instagram's handlers never see the click.
 document.addEventListener("click", (e) => {
-  const button = e.target instanceof Element && e.target.closest(".framestash-item, .framestash-act");
+  const button = e.target instanceof Element && e.target.closest(".framestash-item, .framestash-act, .framestash-story");
   if (!button) return;
   e.preventDefault();
   e.stopPropagation();
   if (!e.isTrusted) return;
+  if (button.classList.contains("framestash-story")) {
+    const job = storyItemJob(location.pathname, storySegment(button));
+    return job ? send(job) : setStatus("Framestash couldn't tell which story this is. The Framestash corner button still saves the whole reel.", "warn");
+  }
   const route = routeFromPath(location.pathname);
   const shortcode = button.dataset.shortcode || (route && route.kind === "post" ? route.shortcode : "");
   if (!shortcode) {
@@ -287,7 +344,7 @@ function updateForPage() {
 // Each step is isolated: a failure in one (e.g. an unexpected page structure while
 // scanning) must not stop the page's buttons from updating.
 setInterval(() => {
-  for (const step of [() => { if (!panel.isConnected) document.body.append(panel); }, updateForPage, placePanel, scanItems, scanNative]) {
+  for (const step of [() => { if (!panel.isConnected) document.body.append(panel); }, updateForPage, placePanel, scanItems, scanNative, scanStoryHeader]) {
     try { step(); } catch (e) { console.warn("[framestash]", e); }
   }
 }, 500);
