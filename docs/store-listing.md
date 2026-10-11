@@ -15,6 +15,7 @@ At most 132 characters. Same as the manifest `description`:
 > What it does
 >
 > - Adds download buttons to instagram.com: on profiles, post and reel pages, story and highlight pages, in the action row of feed posts and reels, and on grid tiles.
+> - Saves just the story or highlight item you're watching, from a download icon in the story viewer's header.
 > - Runs every download through a queue in a Framestash side panel, which remembers the folder you picked.
 > - Skips media you already have, matched on Instagram's media ID, so re-running a profile only fetches what's new.
 > - Spaces its requests out, keeps to hourly and daily budgets, and pauses the queue when Instagram signals rate limiting or a login check.
