@@ -4,7 +4,7 @@
 chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(() => {});
 
 // Jobs that arrived while the panel was still loading; it collects them on start.
-// ponytail: kept in worker memory; the panel loads in about a second.
+// Kept in worker memory; the panel loads in about a second.
 const pending = [];
 
 // Windows with an open Framestash panel: each open panel holds a port named "panel:<windowId>",

@@ -255,7 +255,7 @@ function placePanel() {
   }
 }
 
-// ponytail: one 500 ms poll for URL changes, new tiles/posts and placement; simpler than
+// One 500 ms poll for URL changes, new tiles/posts and placement; simpler than
 // history hooks plus a MutationObserver. Ceiling: a selector pass per tick on very long feeds.
 // The panel stays on every page so jobs started from tiles can report; the main
 // button only shows on profile, post and story pages.

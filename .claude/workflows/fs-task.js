@@ -118,10 +118,7 @@ ${taskText}`,
 )
 if (!plan) return { picked: task.id, error: 'plan agent failed' }
 if (plan.blocked) {
-  await agent(`In ${REPO}, set task ${task.id}'s status in TASKS.md to "blocked" and add a bullet "- notes: ${plan.blocked.replace(/"/g, "'")}". Commit only TASKS.md with the subject "chore: ${task.id} blocked on a decision", ending the message with these two lines exactly:
-Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>
-Claude-Session: https://claude.ai/code/session_01PEGtRT8fAMDQtihDDzxb6t
-Do not push.`, { label: 'mark blocked', model: 'haiku', effort: 'low' })
+  await agent(`In ${REPO}, set task ${task.id}'s status in TASKS.md to "blocked" and add a bullet "- notes: ${plan.blocked.replace(/"/g, "'")}". Commit only TASKS.md with the subject "chore: ${task.id} blocked on a decision", ending the message with the commit attribution lines your session gives, if any. Do not push.`, { label: 'mark blocked', model: 'haiku', effort: 'low' })
   return { picked: task.id, status: 'blocked', question: plan.blocked }
 }
 const planText = `Summary: ${plan.summary}\nSteps:\n- ${plan.steps.join('\n- ')}\nFiles: ${plan.files.join(', ')}\nTests: ${plan.tests.join('; ')}\nRisks: ${(plan.risks || []).join('; ')}`
@@ -169,9 +166,7 @@ phase('Finish')
 const finish = await agent(
   `In ${REPO}, finish task ${task.id}:
 - Live checks: ${plan.liveChecks.join('; ') || 'none'}${blocking.length ? `\n- Also add a "- open review findings:" bullet to the task with: ${blocking.map((f) => f.issue).join('; ')}` : ''}
-- End the commit message with these two lines exactly:
-Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>
-Claude-Session: https://claude.ai/code/session_01PEGtRT8fAMDQtihDDzxb6t`,
+- End the commit message with the commit attribution lines your session gives, if any.`,
   { label: 'finish', schema: FINISH, agentType: 'fs-finisher' },
 )
 

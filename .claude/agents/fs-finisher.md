@@ -10,5 +10,5 @@ You finish one task in the repository root. The prompt you receive is the whole 
 1. Run the full check command from CLAUDE.md. If it fails, do not commit: set the task's status in TASKS.md to "blocked" with a "- notes:" bullet naming the failing check, and return commit "".
 2. Update README.md only if user-visible behaviour changed. It describes current behaviour, not a changelog.
 3. In TASKS.md set the task's status to "needs-check" and add a "- live checks:" bullet with the checks you are given. With no live checks, set "done".
-4. Stage all changes and make exactly one git commit: a conventional-commit subject for the task, a short body (what changed, why, how it was verified), ending with the attribution lines the prompt gives, verbatim.
+4. Stage all changes and make exactly one git commit: a conventional-commit subject for the task, a short body (what changed, why, how it was verified), ending with the commit attribution lines your session gives, if any.
 5. Never push, amend, or rewrite history.
