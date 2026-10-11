@@ -307,7 +307,7 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - the hook script works when run by hand on a good and a broken file; settings.json is valid JSON; the existing test suites pass.
 
 ## T19 · No Download button on Instagram's "page isn't available" screen
-- status: needs-check
+- status: done
 - why: `routeFromPath` treats any one-segment path as a profile, so a missing account (or any unknown page such as /under.w8x/) still shows "Download @name" in the corner. A job started there fails, which is harmless but confusing.
 - done when:
   - the corner Download and Stories buttons stay hidden until the page shows the profile is real (for example its header with the username, found by structure as the profile routes already do), and come back when it is.
