@@ -10,7 +10,7 @@ description: Capture the README / store cover for Framestash - five live screens
 ## Shots (in `design/hero/shots/`)
 | File | Content | How |
 |---|---|---|
-| `tile.png` | a grid tile on hover: counts plus the Framestash icon | `computer` hover on the tile, then `zoom` with `save_to_disk` on the tile's area |
+| `tile.png` | a grid tile on hover: the Framestash icon on its glow | `computer` hover on the tile, then `zoom` with `save_to_disk` on the tile's area |
 | `profile.png` | the corner buttons (Stories, panel, Download @user) | move the mouse to an empty spot first, then `zoom` on the corner |
 | `post.png` | a post's action row with the icon after the bookmark | open a post, `zoom` on the action row |
 | `reel.png` | a reel with the side column (tall) | **video renders grey in tab screenshots**: use macOS `screencapture -x -R x,y,w,h` in screen points |

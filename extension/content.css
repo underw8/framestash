@@ -66,15 +66,19 @@
   background: var(--framestash-dot); vertical-align: baseline;
 }
 
-/* Grid-tile buttons, centred just below the likes / comments counts Instagram shows on hover. */
+/* Grid-tile buttons, centred on the tile. Instagram's tiles have no hover layer of their own,
+   so a soft dark cloud behind the white icon keeps it readable on bright photos.
+   No filter or backdrop-filter: one per tile makes Chrome paint long grids black. */
 .framestash-host { position: relative; }
 .framestash-item {
-  position: absolute; top: calc(50% + 36px); left: calc(50% - 20px); z-index: 2;
+  position: absolute; top: calc(50% - 20px); left: calc(50% - 20px); z-index: 2;
   display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 0; cursor: pointer;
-  /* Bare white icon like Instagram's hover counts, over the dark layer Instagram adds on hover.
-     No filter or backdrop-filter: one per tile makes Chrome paint long grids black. */
   background: none; color: #fff;
   opacity: 0; transition: opacity .15s, transform .15s ease-out;
+}
+.framestash-item::before {
+  content: ""; position: absolute; inset: -34px -50px; z-index: -1; pointer-events: none;
+  background: radial-gradient(closest-side, rgba(0, 0, 0, .42), rgba(0, 0, 0, .24) 45%, rgba(0, 0, 0, 0));
 }
 .framestash-item svg { width: 28px; height: 28px; stroke-width: 3; }
 /* Instagram's own icon hover: scale 1.07 over 0.15 s, no fade. */
