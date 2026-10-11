@@ -227,8 +227,9 @@ function scanNative() {
 const BUTTON = 'button, [role="button"]';
 const box = (e) => e.getBoundingClientRect();
 
-// ⋯ is a small 24 px icon button whose previous sibling is the mute/pause group (2 buttons);
-// Close has no such sibling.
+// ⋯ is a small 24 px icon button whose previous sibling holds play/pause, plus mute on videos:
+// 1-2 buttons with icons of at most 20 px. Close has no such sibling, and the reply bar's
+// like/share buttons carry 24 px icons.
 function scanStoryHeader() {
   const route = routeFromPath(location.pathname);
   if (!route || (route.kind !== "stories" && route.kind !== "highlight") || document.querySelector(".framestash-story")) return;
@@ -239,7 +240,8 @@ function scanStoryHeader() {
     const group = slot.previousElementSibling;
     if (!group) continue;
     const inner = [...group.querySelectorAll(BUTTON)].filter((x) => !group.contains(x.parentElement.closest(BUTTON)));
-    if (inner.length !== 2 || inner.some((x) => box(x).width > 40 || box(x).height > 40)) continue;
+    const small = (x) => box(x).width <= 40 && box(x).height <= 40 && [...x.querySelectorAll("svg")].some((g) => box(g).width <= 20);
+    if (inner.length < 1 || inner.length > 2 || !inner.every(small)) continue;
     const button = document.createElement("button");
     button.type = "button";
     button.className = "framestash-story";
@@ -261,7 +263,7 @@ function storySegment(button) {
     if (!tracks.length) continue;
     const groups = new Map();
     for (const t of tracks) groups.set(t.parentElement, [...(groups.get(t.parentElement) || []), t]);
-    // ponytail: a single-item highlight has one track, so one track counts as a bar.
+    // A single-item highlight has one track, so one track counts as a bar.
     const bar = [...groups.values()].reduce((a, b) => (b.length > a.length ? b : a));
     return activeSegment(bar.map((t) => box(t.firstElementChild).width / box(t).width));
   }
