@@ -160,12 +160,11 @@ assert.equal(n.queueEntry({ kind: "stories", username: "a.b", pk: "3900000000000
 assert.equal(n.queueEntry({ kind: "highlight", id: "17900000000000001", index: 1 }).label, "highlight 17900000000000001 item 2");
 assert.equal(n.queueEntry({ kind: "stories", username: "a.b", withHighlights: true }).label, "@a.b stories & highlights");
 
-// activeSegment: first unfinished fill; all full -> last; tolerance for a nearly full fill.
-assert.equal(n.activeSegment([1, 1, 0.4, 0]), 2);
-assert.equal(n.activeSegment([0]), 0);
-assert.equal(n.activeSegment([1, 1, 1]), 2);
+// activeSegment: the one segment holding a fill element is the item on screen.
+assert.equal(n.activeSegment([false, false, false, true, false]), 3);
+assert.equal(n.activeSegment([true]), 0);
+assert.equal(n.activeSegment([false, false]), -1);
 assert.equal(n.activeSegment([]), -1);
-assert.equal(n.activeSegment([0.995, 0.3]), 1);
 
 // storyItemJob: pk from a story URL, index for a highlight, null otherwise.
 assert.deepEqual(n.storyItemJob("/stories/made_up.user/3900000000000000071/"), { kind: "stories", username: "made_up.user", pk: "3900000000000000071" });

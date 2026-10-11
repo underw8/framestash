@@ -253,19 +253,19 @@ function scanStoryHeader() {
   }
 }
 
-// Progress tracks (2-3 px high, one fill child each) of the nearest viewer above the icon.
+// The progress bar of the nearest viewer above the icon: the element with the most children that
+// are all 2-3 px high tracks holding at most one fill. Outer elements come first in document
+// order, so a one-item bar wins over its own track.
 function storySegment(button) {
+  const track = (t) => {
+    const r = box(t);
+    return !(t instanceof SVGElement) && t.children.length <= 1 && r.height >= 2 && r.height <= 3 && r.width > 0;
+  };
   for (let e = button.parentElement; e; e = e.parentElement) {
-    const tracks = [...e.querySelectorAll("*")].filter((t) => {
-      const r = box(t);
-      return !(t instanceof SVGElement) && t.children.length === 1 && r.height >= 2 && r.height <= 3 && r.width > 0;
-    });
-    if (!tracks.length) continue;
-    const groups = new Map();
-    for (const t of tracks) groups.set(t.parentElement, [...(groups.get(t.parentElement) || []), t]);
-    // A single-item highlight has one track, so one track counts as a bar.
-    const bar = [...groups.values()].reduce((a, b) => (b.length > a.length ? b : a));
-    return activeSegment(bar.map((t) => box(t.firstElementChild).width / box(t).width));
+    const bars = [...e.querySelectorAll("*")].filter((b) => b.children.length && [...b.children].every(track));
+    if (!bars.length) continue;
+    const bar = bars.reduce((a, b) => (b.children.length > a.children.length ? b : a));
+    return activeSegment([...bar.children].map((t) => t.children.length === 1));
   }
   return -1;
 }

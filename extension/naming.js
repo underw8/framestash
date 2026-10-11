@@ -156,12 +156,10 @@ function routeFromPath(path) {
   return null;
 }
 
-// Story viewer progress bar: fill fractions per segment -> the item on screen. Segments before
-// it are full; after the last item ends, every segment is full and the last one is shown.
-function activeSegment(fractions) {
-  if (!fractions.length) return -1;
-  const i = fractions.findIndex((f) => f < 0.99);
-  return i < 0 ? fractions.length - 1 : i;
+// Story viewer progress bar: per segment, whether it holds a fill element. Only the segment of the
+// item on screen has one (others are coloured backgrounds), so its position is the item index.
+function activeSegment(hasFill) {
+  return hasFill.indexOf(true);
 }
 
 // One-item job for the story viewer's header icon. Highlight URLs carry no item id, so the
