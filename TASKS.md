@@ -334,3 +334,9 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - clicking it saves only the item on screen: the pk from the story URL, or for a highlight (whose URL has no item id) the item at the active progress-bar segment's index. The job is validated in `validJob` and the panel filters the listed reel to that one item before saving.
   - no story "seen" mutation is sent; live checks use the author's own highlights only.
   - the corner Download button keeps saving the whole reel; pure logic (segment index, item pick) is unit-tested.
+- notes (measured live on the author's own highlight, October 2026, viewer 524 px wide):
+  - the header row is one flex container (524×40) with three children: the account block (avatar, title, age), a 64×32 group holding mute (32×32) and play/pause (a 34×34 role=button with a 17 px filled svg), then ⋯ (a 40×40 role=button with a 24 px svg). Close (40×40) sits outside the viewer, top-right of the page. Insert the icon as a sibling just before the ⋯ button.
+  - a 34×34 button with the 20 px stroke download icon in white matches the row (checked by injecting it); the viewer is always dark, so the icon is white rather than the action row's currentColor.
+  - the progress bar sits 10 px above the row: one track per item (2 px high, white at 35 %), each with a white fill child. The test highlight has one item, so the multi-item index rule (count tracks before the one whose fill is not full) still needs a live check on a highlight with 2+ items.
+  - media is a blob video or an img with no item id in its URL, so the segment index is the only structural way to identify the highlight item; React internals stay off-limits.
+  - clicks must stay in the capture phase (as for .framestash-act) so Instagram doesn't advance to the next item.
