@@ -315,13 +315,13 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - any new pure logic is unit-tested; the existing test suites pass.
 
 ## T20 · Rename the remaining igd ids to Framestash
-- status: needs-check
+- status: done
 - why: the extension still wrote `.igd.json` markers and used `igd` ids for its storage, classes and messages after the Framestash rename.
 - done when:
   - account markers are written as `.framestash.json`, and `.igd.json` is still read when a folder has no new marker (unit-tested).
   - the panel's IndexedDB is `"framestash"`; on first open it copies the old `"igd"` database once and deletes it.
   - CSS classes, the ping reply, the postMessage tag, the queue lock, the picker id, comments, docs and the `fs-task`/`fs-tasks` workflows use the new name.
 - live checks:
-  - [ ] Reload Framestash at chrome://extensions and reload the Instagram tab. Open the panel: the collection folder, queue and pacing state are still there (no re-pick), and DevTools > Application > IndexedDB shows `framestash` and no `igd`.
-  - [ ] Download a post from an account you already have: it lands in the same account folder, and existing files count as 'already had'.
-  - [ ] On a profile, the corner buttons, grid-tile icons and post action-row icon look and work as before.
+  - [x] Reload Framestash at chrome://extensions and reload the Instagram tab. Open the panel: the collection folder, queue and pacing state are still there (no re-pick), and DevTools > Application > IndexedDB shows `framestash` and no `igd`. (Folder and first-run notice carried over; the IndexedDB list itself was not inspected.)
+  - [x] Download a post from an account you already have: it lands in the same account folder, and existing files count as 'already had'.
+  - [x] On a profile, the corner buttons, grid-tile icons and post action-row icon look and work as before.
