@@ -1,13 +1,4 @@
 {
-  "permissions": {
-    "deny": [
-      "Edit(//Users/underw8/Downloads/IG/**)",
-      "Write(//Users/underw8/Downloads/IG/**)",
-      "Edit(~/Downloads/IG/**)",
-      "Write(~/Downloads/IG/**)",
-      "Bash(*Downloads/IG*)"
-    ]
-  },
   "hooks": {
     "PostToolUse": [
       {

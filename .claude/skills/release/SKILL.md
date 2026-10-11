@@ -13,9 +13,9 @@ description: Cut a Framestash release - bump the manifest version, run all check
    ```
 3. **Bump** `version` in `extension/manifest.json`, then build: `sh scripts/package.sh` (it re-runs the tests and writes `dist/framestash-<version>.zip`, which is git-ignored).
 4. **Commit and tag**: commit `chore: release vX.Y.Z` with the session's attribution lines, then create the tag `vX.Y.Z`.
-5. **Hand the upload to the user.** A guard hook blocks Claude from pushing, and the repo uses the `underw8` GitHub account. Give the user this command:
+5. **Hand the upload to the user.** Claude doesn't push; give the user this command:
    ```
-   ! gh auth switch --user underw8 && git push && git push origin vX.Y.Z; gh auth switch --user mvn-kiettran-dn
+   ! git push && git push origin vX.Y.Z
    ```
    The tag starts `.github/workflows/release.yml`, which creates the GitHub Release with the zip.
 6. **Store:** until `publish.yml`'s trigger is enabled (see `docs/releasing.md`), the user uploads the zip in the Chrome Web Store dashboard by hand.
