@@ -69,9 +69,13 @@ const panelHint = "Framestash couldn't open its panel. Click the Framestash icon
 // downloads, or any script on instagram.com could fill the collection.
 const onUserClick = (el, handler) => el.addEventListener("click", (e) => { if (e.isTrusted) handler(e); });
 
+// After Framestash is updated or reloaded, scripts already in this tab are cut off from it,
+// and chrome.runtime calls throw synchronously instead of rejecting.
+const cutOff = () => !chrome.runtime || !chrome.runtime.id;
+const reloadHint = () => setStatus("Framestash was updated: reload this page.", "warn");
+
 async function send(job) {
-  // After Framestash is updated, scripts already in this tab are cut off from it.
-  if (!chrome.runtime || !chrome.runtime.id) return setStatus("Framestash was updated: reload this page.", "warn");
+  if (cutOff()) return reloadHint();
   setStatus("Sending to Framestash…");
   try {
     const r = await chrome.runtime.sendMessage({ type: "enqueue", job });
@@ -97,7 +101,9 @@ onUserClick(storiesButton, () => {
 onUserClick(panel.querySelector(".framestash-close"), () => setStatus(""));
 
 onUserClick(panel.querySelector(".framestash-open"), async () => {
-  const r = await chrome.runtime.sendMessage({ type: "openPanel" }).catch(() => null);
+  if (cutOff()) return reloadHint();
+  let r = null;
+  try { r = await chrome.runtime.sendMessage({ type: "openPanel" }); } catch { /* reported below */ }
   if (!r || !r.ok) setStatus("Click the Framestash icon in the toolbar to open the panel.", "warn");
 });
 
