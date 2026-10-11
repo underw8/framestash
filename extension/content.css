@@ -26,8 +26,9 @@
 .framestash-row:not(:has(> button:not([hidden]))) { display: none; }
 .framestash-panel button {
   position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  height: 44px; padding: 0 20px; border: 1px solid var(--framestash-edge); border-radius: 999px; cursor: pointer; white-space: nowrap;
-  background: var(--framestash-bg); color: var(--framestash-text); font: inherit; font-weight: 600;
+  /* Text and icon sizes match Instagram's floating Messages button below them. */
+  height: 48px; padding: 0 20px 0 16px; border: 1px solid var(--framestash-edge); border-radius: 999px; cursor: pointer; white-space: nowrap;
+  background: var(--framestash-bg); color: var(--framestash-text); font: inherit; font-size: 16px; font-weight: 600;
   box-shadow: var(--framestash-shadow);
 }
 /* Hover like Instagram's own buttons: the background stays, and a full-size layer
@@ -38,9 +39,9 @@
 }
 .framestash-panel button:hover::after { opacity: 1; }
 .framestash-panel button.framestash-go { background: var(--framestash-primary); border-color: transparent; color: #fff; }
-.framestash-panel button.framestash-icon { width: 44px; padding: 0; }
+.framestash-panel button.framestash-icon { width: 48px; padding: 0; }
 .framestash-panel button[hidden] { display: none; }
-.framestash-panel svg { width: 20px; height: 20px; flex: none; }
+.framestash-panel svg { width: 24px; height: 24px; flex: none; }
 
 .framestash-card {
   position: relative; display: flex; align-items: center; gap: 10px; max-width: 420px; padding: 12px 16px;

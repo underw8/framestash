@@ -14,6 +14,7 @@
 }
 
 * { box-sizing: border-box; }
+/* Type scale: 16 px bold headings, 14 px for everything read or clicked, 12 px secondary. */
 body {
   margin: 0; padding: 20px 16px 28px; background: var(--bg); color: var(--text);
   font: 14px/18px -apple-system, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -59,21 +60,21 @@ button.wide { display: block; width: 100%; }
 }
 .folder-icon svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
 .folder-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.folder-name { font-size: 16px; line-height: 20px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.folder-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .folder-name.unset { color: var(--muted); font-weight: 400; }
 
 /* Text field like Instagram's Bio box. */
 textarea {
   display: block; width: 100%; padding: 10px 16px; resize: vertical;
   background: transparent; color: var(--text); border: .8px solid var(--field-line); border-radius: 12px;
-  font: 16px/20px -apple-system, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font: 14px/18px -apple-system, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 textarea::placeholder { color: var(--muted); }
 textarea:focus { border-color: var(--muted); outline: none; }
 .field-hint { margin: 8px 4px 6px; }
 
 /* Switch rows like "Show Threads badge". On: track in the text colour, knob in the background colour. */
-.switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 4px; cursor: pointer; font-size: 16px; line-height: 20px; }
+.switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 4px; cursor: pointer; }
 .switch-row input { position: absolute; opacity: 0; pointer-events: none; }
 .switch { position: relative; width: 40px; height: 24px; border-radius: 16px; background: var(--track-off); flex: none; transition: background-color .2s; }
 .switch::after {
@@ -121,7 +122,7 @@ li[data-state="stopped"] .job-icon, li[data-state="stopping"] .job-icon { color:
 /* Breaker or budget hold: the whole queue waits. */
 .hold { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
 .hold-text { flex: 1; min-width: 0; overflow-wrap: anywhere; }
-details summary { cursor: pointer; font-weight: 600; }
+details summary { cursor: pointer; font-size: 16px; line-height: 20px; font-weight: 700; }
 pre { margin: 10px 0 0; max-height: 50vh; overflow: auto; white-space: pre-wrap; font: 11px/16px ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--muted); }
 
 /* First run: only the notice is reachable until it is accepted. */
