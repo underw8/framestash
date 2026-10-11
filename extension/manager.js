@@ -1,4 +1,4 @@
-// The igd panel: owns the collection folder and runs every download.
+// The Framestash panel: owns the collection folder and runs every download.
 // The folder handle lives in the extension's own IndexedDB, which pages on
 // instagram.com cannot read. Instagram tabs only list records (docs/instagram-api.md); saving
 // happens here. Helpers come from naming.js and collection.js.
@@ -7,16 +7,34 @@ const $ = (id) => document.getElementById(id);
 
 // ---- folder ----
 
-function openDb() {
+function openDb(name = "framestash") {
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open("igd", 1);
+    const req = indexedDB.open(name, 1);
     req.onupgradeneeded = () => req.result.createObjectStore("kv");
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });
 }
 
+const done = (tx) => new Promise((resolve, reject) => { tx.oncomplete = resolve; tx.onerror = () => reject(tx.error); });
+
+// Before 1.0.1 the database was "igd": copy it once (folder handle, queue, cursors, pacing), then delete it.
+const migrated = (async () => {
+  if (!(await indexedDB.databases()).some((d) => d.name === "igd")) return;
+  const [from, to] = await Promise.all([openDb("igd"), openDb()]);
+  const read = from.transaction("kv");
+  const keys = read.objectStore("kv").getAllKeys(), values = read.objectStore("kv").getAll();
+  await done(read);
+  const write = to.transaction("kv", "readwrite");
+  keys.result.forEach((k, i) => write.objectStore("kv").put(values.result[i], k));
+  await done(write);
+  from.close();
+  to.close();
+  indexedDB.deleteDatabase("igd");
+})().catch(() => {});
+
 async function kv(key, value) {
+  await migrated;
   const db = await openDb();
   return new Promise((resolve, reject) => {
     const tx = db.transaction("kv", value === undefined ? "readonly" : "readwrite");
@@ -59,7 +77,7 @@ async function folderReady() {
 
 $("pick").addEventListener("click", async () => {
   try {
-    root = await showDirectoryPicker({ id: "igd-root", mode: "readwrite", startIn: "downloads" });
+    root = await showDirectoryPicker({ id: "framestash-root", mode: "readwrite", startIn: "downloads" });
     await kv("root", root);
     await kv("listed", {}); // "listed to the end" and saved cursors describe the old collection
     await kv("cursors", {});
@@ -96,12 +114,12 @@ let decide;
 const decided = new Promise((r) => { decide = r; });
 const owned = new Promise((resolve) => {
   const hold = () => { ownsQueue = true; decide(); resolve(); return new Promise(() => {}); };
-  navigator.locks.request("igd-queue", { ifAvailable: true }, (lock) => {
+  navigator.locks.request("framestash-queue", { ifAvailable: true }, (lock) => {
     if (lock) return hold();
     ownsQueue = false;
     decide();
     alertLine("Another Framestash panel is running the queue. This one takes over when that panel closes.");
-    return navigator.locks.request("igd-queue", hold);
+    return navigator.locks.request("framestash-queue", hold);
   });
 });
 
@@ -118,7 +136,7 @@ function alertLine(text) {
   renderJobs();
 }
 
-// Stroke icons drawn for igd, one per job state.
+// Stroke icons drawn for Framestash, one per job state.
 const STATE_ICONS = {
   queued: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
   running: '<path d="M12 3.5a8.5 8.5 0 1 1-8.5 8.5"/>',
@@ -265,15 +283,15 @@ async function pump() {
 
 // ---- talking to an Instagram tab ----
 
-// Tabs opened before igd was installed or reloaded have no igd script, so each
+// Tabs opened before Framestash was installed or reloaded have no Framestash script, so each
 // candidate is pinged; the job's own tab first, then the most recently used.
 async function instagramTab(preferred) {
   const tabs = await chrome.tabs.query({ url: "https://www.instagram.com/*" });
   const ordered = tabs.sort((a, b) => (b.id === preferred) - (a.id === preferred) || (b.lastAccessed || 0) - (a.lastAccessed || 0));
   for (const tab of ordered) {
     try {
-      if ((await chrome.tabs.sendMessage(tab.id, { type: "ping" })) === "igd") return tab.id;
-    } catch { /* no igd script in this tab */ }
+      if ((await chrome.tabs.sendMessage(tab.id, { type: "ping" })) === "framestash") return tab.id;
+    } catch { /* no Framestash script in this tab */ }
   }
   throw new Error(tabs.length
     ? "Reload your Instagram tab (Framestash was updated after it was opened), then retry."
@@ -575,7 +593,7 @@ async function run(job) {
 }
 
 function finish(job, c, where) {
-  if (c.failures.length) console.warn(`[igd] ${job.label} failed downloads:\n${c.failures.join("\n")}`);
+  if (c.failures.length) console.warn(`[framestash] ${job.label} failed downloads:\n${c.failures.join("\n")}`);
   job.detail = `Done: ${where} · ${summary(c)}`;
 }
 

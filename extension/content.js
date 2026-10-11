@@ -1,4 +1,4 @@
-// Content script on instagram.com: buttons, and a relay between the igd panel
+// Content script on instagram.com: buttons, and a relay between the Framestash panel
 // and the page-world script. Saving happens in the panel (manager.js), which
 // holds the folder where pages can't reach it. naming.js is in scope.
 
@@ -15,7 +15,7 @@ function pageCall(op, args, timeoutMs = 30000) {
       clearTimeout(timer);
       resolve(e.data && typeof e.data === "object" ? e.data : { error: "malformed reply" });
     };
-    window.postMessage({ igd: 1, op, ...args }, location.origin, [ch.port2]);
+    window.postMessage({ framestash: 1, op, ...args }, location.origin, [ch.port2]);
   });
 }
 
@@ -25,14 +25,14 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     pageCall(msg.op, msg.args || {}).then(sendResponse);
     return true;
   }
-  if (msg.type === "ping") { sendResponse("igd"); return false; }
+  if (msg.type === "ping") { sendResponse("framestash"); return false; }
   if (msg.type === "status") setStatus(msg.text, msg.kind);
   return false;
 });
 
 // ---- UI ----
 
-// Stroke icons drawn for igd (24-unit grid, 2-unit stroke, round caps).
+// Stroke icons drawn for Framestash (24-unit grid, 2-unit stroke, round caps).
 const ICONS = {
   download: '<path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/>',
   panel: '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M15 4v16"/>',
@@ -42,21 +42,21 @@ const icon = (name) =>
   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name]}</svg>`;
 
 const panel = document.createElement("div");
-panel.className = "igd-panel";
+panel.className = "framestash-panel";
 panel.innerHTML = `
-  <div class="igd-row">
-    <button class="igd-go" type="button">${icon("download")}<span></span></button>
+  <div class="framestash-row">
+    <button class="framestash-go" type="button">${icon("download")}<span></span></button>
   </div>
-  <div class="igd-row">
-    <button class="igd-stories" type="button" title="Active stories and all highlights" hidden>${icon("download")}Stories</button>
-    <button class="igd-open igd-icon" type="button" title="Open or close the Framestash panel" aria-label="Open or close the Framestash panel">${icon("panel")}</button>
+  <div class="framestash-row">
+    <button class="framestash-stories" type="button" title="Active stories and all highlights" hidden>${icon("download")}Stories</button>
+    <button class="framestash-open framestash-icon" type="button" title="Open or close the Framestash panel" aria-label="Open or close the Framestash panel">${icon("panel")}</button>
   </div>
-  <div class="igd-card"><span class="igd-wordmark">framestash<i></i></span><span class="igd-status" aria-live="polite"></span>
-    <button class="igd-close" type="button" title="Dismiss" aria-label="Dismiss">${icon("dismiss")}</button></div>`;
-const goButton = panel.querySelector(".igd-go");
+  <div class="framestash-card"><span class="framestash-wordmark">framestash<i></i></span><span class="framestash-status" aria-live="polite"></span>
+    <button class="framestash-close" type="button" title="Dismiss" aria-label="Dismiss">${icon("dismiss")}</button></div>`;
+const goButton = panel.querySelector(".framestash-go");
 const goLabel = goButton.querySelector("span");
-const storiesButton = panel.querySelector(".igd-stories");
-const statusLine = panel.querySelector(".igd-status");
+const storiesButton = panel.querySelector(".framestash-stories");
+const statusLine = panel.querySelector(".framestash-status");
 
 function setStatus(text, kind = "") {
   statusLine.textContent = text;
@@ -70,7 +70,7 @@ const panelHint = "Framestash couldn't open its panel. Click the Framestash icon
 const onUserClick = (el, handler) => el.addEventListener("click", (e) => { if (e.isTrusted) handler(e); });
 
 async function send(job) {
-  // After igd is updated, scripts already in this tab are cut off from it.
+  // After Framestash is updated, scripts already in this tab are cut off from it.
   if (!chrome.runtime || !chrome.runtime.id) return setStatus("Framestash was updated: reload this page.", "warn");
   setStatus("Sending to Framestash…");
   try {
@@ -94,9 +94,9 @@ onUserClick(storiesButton, () => {
   if (route && route.kind === "profile") send({ kind: "stories", username: route.username, withHighlights: true });
 });
 
-onUserClick(panel.querySelector(".igd-close"), () => setStatus(""));
+onUserClick(panel.querySelector(".framestash-close"), () => setStatus(""));
 
-onUserClick(panel.querySelector(".igd-open"), async () => {
+onUserClick(panel.querySelector(".framestash-open"), async () => {
   const r = await chrome.runtime.sendMessage({ type: "openPanel" }).catch(() => null);
   if (!r || !r.ok) setStatus("Click the Framestash icon in the toolbar to open the panel.", "warn");
 });
@@ -107,13 +107,13 @@ onUserClick(panel.querySelector(".igd-open"), async () => {
 
 const POST_LINK = 'a[href*="/p/"], a[href*="/reel/"]';
 
-const hasItemButton = (host) => host.querySelector(":scope > .igd-item");
+const hasItemButton = (host) => host.querySelector(":scope > .framestash-item");
 
 function addItemButton(host, shortcode) {
-  if (getComputedStyle(host).position === "static") host.classList.add("igd-host");
+  if (getComputedStyle(host).position === "static") host.classList.add("framestash-host");
   const button = document.createElement("button");
   button.type = "button";
-  button.className = "igd-item";
+  button.className = "framestash-item";
   button.title = "Save this post (Framestash)";
   button.setAttribute("aria-label", button.title);
   button.innerHTML = icon("download");
@@ -143,7 +143,7 @@ function iconButtons(root) {
     const r = svg.getBoundingClientRect();
     if (Math.abs(r.width - 24) > 4 || Math.abs(r.height - 24) > 4) continue;
     const b = svg.closest('button, [role="button"]');
-    if (!b || !root.contains(b) || b.classList.contains("igd-act")) continue;
+    if (!b || !root.contains(b) || b.classList.contains("framestash-act")) continue;
     // Action icons are small; a whole grid tile can also be a button holding a 24 px badge.
     const br = b.getBoundingClientRect();
     if (br.width <= 64 && br.height <= 64) found.add(b);
@@ -179,7 +179,7 @@ function scanActionBars(host, shortcode) {
   }
   // Inner bars first, so an outer group that holds the same row is then skipped.
   for (const [bar, own] of [...bars].sort((a, b) => a[1].length - b[1].length)) {
-    if (bar.querySelector(".igd-act")) continue;
+    if (bar.querySelector(".framestash-act")) continue;
     if (!thin(bar)) continue; // a grid row whose tiles carry badges is not an action strip
     const spot = actionBarSpot(own.map((b) => { const r = b.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height }; }));
     if (!spot) continue;
@@ -189,7 +189,7 @@ function scanActionBars(host, shortcode) {
     while (slot.parentElement !== bar && own.filter((x) => slot.parentElement.contains(x)).length === 1) slot = slot.parentElement;
     const button = document.createElement("button");
     button.type = "button";
-    button.className = "igd-act";
+    button.className = "framestash-act";
     button.title = "Save this post (Framestash)";
     button.setAttribute("aria-label", button.title);
     button.innerHTML = icon("download");
@@ -197,7 +197,7 @@ function scanActionBars(host, shortcode) {
     // A grid row (narrow post pages) would wrap a new item onto its own line, so the
     // icon joins the bookmark's cell instead, laid out as a row.
     if (getComputedStyle(bar).display.endsWith("grid")) {
-      slot.classList.add("igd-actcell");
+      slot.classList.add("framestash-actcell");
       slot.append(button);
     } else slot.insertAdjacentElement("afterend", button);
   }
@@ -206,7 +206,7 @@ function scanActionBars(host, shortcode) {
 function scanNative() {
   for (const article of document.querySelectorAll("article")) {
     const code = articleCode(article);
-    if (code && !article.querySelector(".igd-act")) scanActionBars(article, code);
+    if (code && !article.querySelector(".framestash-act")) scanActionBars(article, code);
   }
   // A post opened from a grid is a dialog over the page; only the dialog holds its action row.
   const route = routeFromPath(location.pathname);
@@ -218,7 +218,7 @@ function scanNative() {
 
 // Capture phase, so the tile's link never navigates and Instagram's handlers never see the click.
 document.addEventListener("click", (e) => {
-  const button = e.target instanceof Element && e.target.closest(".igd-item, .igd-act");
+  const button = e.target instanceof Element && e.target.closest(".framestash-item, .framestash-act");
   if (!button) return;
   e.preventDefault();
   e.stopPropagation();
@@ -281,6 +281,6 @@ function updateForPage() {
 // scanning) must not stop the page's buttons from updating.
 setInterval(() => {
   for (const step of [() => { if (!panel.isConnected) document.body.append(panel); }, updateForPage, placePanel, scanItems, scanNative]) {
-    try { step(); } catch (e) { console.warn("[igd]", e); }
+    try { step(); } catch (e) { console.warn("[framestash]", e); }
   }
 }, 500);

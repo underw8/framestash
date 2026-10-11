@@ -183,7 +183,7 @@ const index = new Map(), odd = [], zero = [], errors = [];
 for await (const [acct, dir] of root.entries()) {
   if (dir.kind !== "directory" || acct.startsWith(".")) continue;
   for await (const [name, entry] of dir.entries()) {
-    if (entry.kind !== "file" || name === ".igd.json") continue;
+    if (entry.kind !== "file" || name === ".framestash.json" || name === ".igd.json") continue;
     if (name.endsWith(".error.txt")) { errors.push(`${acct}/${name}`); continue; }
     const m = name.match(NAME);
     if (!m) { odd.push(`${acct}/${name}`); continue; }

@@ -1,73 +1,73 @@
 /* Framestash in-page UI. Colours come from Instagram's own theme variables ("r, g, b"
    triplets on <html>), so light and dark mode follow Instagram; fallbacks are its light theme. */
-.igd-panel, .igd-item {
-  --igd-bg: rgb(var(--ig-elevated-background, 255, 255, 255));
-  --igd-hover: var(--hover-overlay, rgba(0, 0, 0, .05));
+.framestash-panel, .framestash-item {
+  --framestash-bg: rgb(var(--ig-elevated-background, 255, 255, 255));
+  --framestash-hover: var(--hover-overlay, rgba(0, 0, 0, .05));
   /* Same faint edge and shadow as Instagram's floating Messages button. */
-  --igd-edge: rgba(var(--ig-primary-text, 0, 0, 0), .05);
-  --igd-shadow: 0 4px 12px rgba(0, 0, 0, .2);
-  --igd-text: rgb(var(--ig-primary-text, 0, 0, 0));
-  --igd-muted: rgb(var(--ig-secondary-text, 115, 115, 115));
-  --igd-primary: rgb(var(--ig-primary-button, 74, 93, 249));
-  --igd-error: rgb(var(--ig-error-or-destructive, 237, 73, 86));
-  --igd-warn: #f5a623;
-  --igd-dot: linear-gradient(45deg, #ff9a3c, #ff3d7f 50%, #7a5cff);
+  --framestash-edge: rgba(var(--ig-primary-text, 0, 0, 0), .05);
+  --framestash-shadow: 0 4px 12px rgba(0, 0, 0, .2);
+  --framestash-text: rgb(var(--ig-primary-text, 0, 0, 0));
+  --framestash-muted: rgb(var(--ig-secondary-text, 115, 115, 115));
+  --framestash-primary: rgb(var(--ig-primary-button, 74, 93, 249));
+  --framestash-error: rgb(var(--ig-error-or-destructive, 237, 73, 86));
+  --framestash-warn: #f5a623;
+  --framestash-dot: linear-gradient(45deg, #ff9a3c, #ff3d7f 50%, #7a5cff);
   font: 14px/18px -apple-system, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 /* Placed next to Instagram's Messages button or panel by content.js; these are the
    defaults when neither is on the page. No z-index, so Instagram's own overlays stay on top. */
-.igd-panel {
+.framestash-panel {
   position: fixed; right: 24px; bottom: 100px;
   display: flex; flex-direction: column-reverse; align-items: flex-end; gap: 8px;
 }
 /* column-reverse: the first row (download actions) sits lowest, next to Instagram's button. */
-.igd-row { display: flex; gap: 8px; }
-.igd-row:not(:has(> button:not([hidden]))) { display: none; }
-.igd-panel button {
+.framestash-row { display: flex; gap: 8px; }
+.framestash-row:not(:has(> button:not([hidden]))) { display: none; }
+.framestash-panel button {
   position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  height: 44px; padding: 0 20px; border: 1px solid var(--igd-edge); border-radius: 999px; cursor: pointer; white-space: nowrap;
-  background: var(--igd-bg); color: var(--igd-text); font: inherit; font-weight: 600;
-  box-shadow: var(--igd-shadow);
+  height: 44px; padding: 0 20px; border: 1px solid var(--framestash-edge); border-radius: 999px; cursor: pointer; white-space: nowrap;
+  background: var(--framestash-bg); color: var(--framestash-text); font: inherit; font-weight: 600;
+  box-shadow: var(--framestash-shadow);
 }
 /* Hover like Instagram's own buttons: the background stays, and a full-size layer
    of its --hover-overlay colour fades in over 0.1 s. */
-.igd-panel button::after {
+.framestash-panel button::after {
   content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
-  background: var(--igd-hover); opacity: 0; transition: opacity .1s linear;
+  background: var(--framestash-hover); opacity: 0; transition: opacity .1s linear;
 }
-.igd-panel button:hover::after { opacity: 1; }
-.igd-panel button.igd-go { background: var(--igd-primary); border-color: transparent; color: #fff; }
-.igd-panel button.igd-icon { width: 44px; padding: 0; }
-.igd-panel button[hidden] { display: none; }
-.igd-panel svg { width: 20px; height: 20px; flex: none; }
+.framestash-panel button:hover::after { opacity: 1; }
+.framestash-panel button.framestash-go { background: var(--framestash-primary); border-color: transparent; color: #fff; }
+.framestash-panel button.framestash-icon { width: 44px; padding: 0; }
+.framestash-panel button[hidden] { display: none; }
+.framestash-panel svg { width: 20px; height: 20px; flex: none; }
 
-.igd-card {
+.framestash-card {
   position: relative; display: flex; align-items: center; gap: 10px; max-width: 420px; padding: 12px 16px;
-  background: var(--igd-bg); color: var(--igd-text); border: 1px solid var(--igd-edge); border-radius: 16px;
-  box-shadow: var(--igd-shadow);
+  background: var(--framestash-bg); color: var(--framestash-text); border: 1px solid var(--framestash-edge); border-radius: 16px;
+  box-shadow: var(--framestash-shadow);
 }
-.igd-card:has(.igd-status:empty) { display: none; }
+.framestash-card:has(.framestash-status:empty) { display: none; }
 /* Always-visible dismiss badge on the card's top-right corner, in the wordmark dot's gradient. */
-.igd-panel .igd-card button.igd-close {
+.framestash-panel .framestash-card button.framestash-close {
   position: absolute; top: -8px; right: -8px; width: 22px; height: 22px; padding: 0;
-  background: var(--igd-dot); border-color: transparent; color: #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, .2);
+  background: var(--framestash-dot); border-color: transparent; color: #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, .2);
 }
-.igd-panel .igd-card button.igd-close svg { width: 14px; height: 14px; }
-.igd-status { font-size: 13px; line-height: 17px; }
-.igd-card:has(.igd-status[data-kind="warn"]) { border-color: var(--igd-warn); }
-.igd-card:has(.igd-status[data-kind="error"]) { border-color: var(--igd-error); }
+.framestash-panel .framestash-card button.framestash-close svg { width: 14px; height: 14px; }
+.framestash-status { font-size: 13px; line-height: 17px; }
+.framestash-card:has(.framestash-status[data-kind="warn"]) { border-color: var(--framestash-warn); }
+.framestash-card:has(.framestash-status[data-kind="error"]) { border-color: var(--framestash-error); }
 
 /* "framestash." wordmark: heavy sans-serif with a gradient dot on the baseline. */
-.igd-wordmark { font-weight: 800; letter-spacing: -.04em; white-space: nowrap; }
-.igd-wordmark i {
+.framestash-wordmark { font-weight: 800; letter-spacing: -.04em; white-space: nowrap; }
+.framestash-wordmark i {
   display: inline-block; width: .3em; height: .3em; margin-left: .06em; border-radius: 50%;
-  background: var(--igd-dot); vertical-align: baseline;
+  background: var(--framestash-dot); vertical-align: baseline;
 }
 
 /* Grid-tile buttons, centred just below the likes / comments counts Instagram shows on hover. */
-.igd-host { position: relative; }
-.igd-item {
+.framestash-host { position: relative; }
+.framestash-item {
   position: absolute; top: calc(50% + 36px); left: calc(50% - 20px); z-index: 2;
   display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 0; cursor: pointer;
   /* Bare white icon like Instagram's hover counts, over the dark layer Instagram adds on hover.
@@ -75,20 +75,20 @@
   background: none; color: #fff;
   opacity: 0; transition: opacity .15s, transform .15s ease-out;
 }
-.igd-item svg { width: 28px; height: 28px; stroke-width: 3; }
+.framestash-item svg { width: 28px; height: 28px; stroke-width: 3; }
 /* Instagram's own icon hover: scale 1.07 over 0.15 s, no fade. */
-.igd-item:hover, .igd-act:hover { transform: scale(1.07); }
-.igd-item:focus-visible { outline: 2px solid #fff; outline-offset: 2px; border-radius: 8px; }
-:hover > .igd-item, .igd-item:focus-visible { opacity: 1; }
+.framestash-item:hover, .framestash-act:hover { transform: scale(1.07); }
+.framestash-item:focus-visible { outline: 2px solid #fff; outline-offset: 2px; border-radius: 8px; }
+:hover > .framestash-item, .framestash-item:focus-visible { opacity: 1; }
 
 /* Native-style buttons placed among Instagram's own controls. The icon takes the row's
    text colour (Instagram's icons use currentColor), so it follows light and dark themes. */
-.igd-act {
+.framestash-act {
   display: flex; align-items: center; justify-content: center; padding: 8px;
   border: 0; background: none; color: inherit; cursor: pointer; transition: transform .15s ease-out;
 }
-.igd-act svg { width: 24px; height: 24px; stroke-width: 2.5; }
-.igd-actcell { display: flex !important; align-items: center; }
-.igd-act:focus-visible {
+.framestash-act svg { width: 24px; height: 24px; stroke-width: 2.5; }
+.framestash-actcell { display: flex !important; align-items: center; }
+.framestash-act:focus-visible {
   outline: 2px solid rgb(var(--ig-primary-button, 0, 149, 246)); outline-offset: 2px;
 }

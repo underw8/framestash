@@ -1,6 +1,6 @@
 # Tasks
 
-Work list for igd. The `igd-task` workflow (`.claude/workflows/igd-task.js`) takes one task per run: the one you name, or the first with `status: todo`.
+Work list for Framestash. The `fs-task` workflow (`.claude/workflows/fs-task.js`) takes one task per run: the one you name, or the first with `status: todo`.
 
 **Status values:**
 - `todo`: not started.
@@ -283,15 +283,15 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - Open /agents in Claude Code in this repo and confirm all six fs-* agents are listed with the expected tools and model.
   - Run /permissions (or try an Edit under ~/Downloads/IG) and confirm the deny rules are active and the routine node/git checks run without a prompt.
   - Make a deliberate syntax error in an extension/*.js file through Claude, and confirm the PostToolUse hook reports it back.
-  - Run the igd-task workflow on a small todo task and confirm each step shows its fs-* agent, reviewers make no edits, and the finisher makes exactly one commit.
+  - Run the fs-task workflow on a small todo task and confirm each step shows its fs-* agent, reviewers make no edits, and the finisher makes exactly one commit.
 - why: workflow steps restate the project rules in every prompt, reviewers could edit files, and a Finish step once refused to commit after misreading its context. Custom agents, path-scoped rules and hooks make each step narrow and enforce the rules mechanically.
 - done when:
   - **Agents** in `.claude/agents/` (frontmatter: name, description, tools, model, effort as fits; plain-English system prompt below it):
     - `fs-planner`: read-only tools (Read, Grep, Glob, Bash for read-only git and listing). Plans a TASKS.md item against CLAUDE.md and docs/; returns the plan, never edits.
     - `fs-builder`: Read, Edit, Write, Grep, Glob, Bash. Implements a plan, adds tests, runs the checks; never commits or pushes.
-    - `fs-reviewer-security`, `fs-reviewer-compat`, `fs-reviewer-correctness`: read-only tools. Each holds its lens checklist (today's LENSES prompts in igd-task.js, expanded with the scoped rules below) and reports findings only.
+    - `fs-reviewer-security`, `fs-reviewer-compat`, `fs-reviewer-correctness`: read-only tools. Each holds its lens checklist (today's LENSES prompts in fs-task.js, expanded with the scoped rules below) and reports findings only.
     - `fs-finisher`: model sonnet, effort low; Read, Edit, Bash. Runs the checks, updates README/TASKS.md status and live checks, makes exactly one commit with the attribution lines; never pushes; never refuses because of unrelated context in the conversation.
-  - `.claude/workflows/igd-task.js` uses these via `agentType`, so prompts carry only the task-specific text; per-call model/effort overrides move into the agent files. `igd-tasks.js` keeps working.
+  - `.claude/workflows/fs-task.js` uses these via `agentType`, so prompts carry only the task-specific text; per-call model/effort overrides move into the agent files. `fs-tasks.js` keeps working.
   - **Rules** in `.claude/rules/` with `paths` frontmatter:
     - `content-script.md` (`extension/content.*`): no Instagram class names; every handler requires isTrusted; clicks in capture phase; no filter, backdrop-filter or transform on per-tile elements (they paint long grids black); action rows are thin strips (at most 96 px across), and grid rows get the icon inside the bookmark cell.
     - `collection.md` (`extension/naming.js`, `extension/collection.js`, `test/**`): dedup by pk only, never overwrite, `.igd.json` and other legacy ids keep their names, test data uses made-up usernames and ids.
@@ -313,3 +313,15 @@ When you add a task, keep the same shape: a `## T<n> · title` heading, then the
   - the corner Download and Stories buttons stay hidden until the page shows the profile is real (for example its header with the username, found by structure as the profile routes already do), and come back when it is.
   - real profiles, including ones with dots and underscores, keep their buttons; post, reel and story pages are unchanged.
   - any new pure logic is unit-tested; the existing test suites pass.
+
+## T20 · Rename the remaining igd ids to Framestash
+- status: needs-check
+- why: the extension still wrote `.igd.json` markers and used `igd` ids for its storage, classes and messages after the Framestash rename.
+- done when:
+  - account markers are written as `.framestash.json`, and `.igd.json` is still read when a folder has no new marker (unit-tested).
+  - the panel's IndexedDB is `"framestash"`; on first open it copies the old `"igd"` database once and deletes it.
+  - CSS classes, the ping reply, the postMessage tag, the queue lock, the picker id, comments, docs and the `fs-task`/`fs-tasks` workflows use the new name.
+- live checks:
+  - [ ] Reload Framestash at chrome://extensions and reload the Instagram tab. Open the panel: the collection folder, queue and pacing state are still there (no re-pick), and DevTools > Application > IndexedDB shows `framestash` and no `igd`.
+  - [ ] Download a post from an account you already have: it lands in the same account folder, and existing files count as 'already had'.
+  - [ ] On a profile, the corner buttons, grid-tile icons and post action-row icon look and work as before.

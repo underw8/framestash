@@ -48,7 +48,7 @@ Framestash is not affiliated with, endorsed by or sponsored by Instagram or Meta
 - **Data:** lists posts and stories with Instagram's own GraphQL queries, from the page world. Query IDs, tokens and query flags are read at runtime, never hardcoded ([instagram-api.md](docs/instagram-api.md)).
 - **Naming:** `<root>/<username>/<username>_<taken_at>_<id>.<ext>`, the format existing collections already use ([collection-format.md](docs/collection-format.md)).
 - **Duplicates:** media already present is skipped, matched on the media **pk** alone. A pk is unique across Instagram, so this survives renames and every name variant.
-- **Account folders** are tied to their owner's **user ID** through a hidden `.igd.json`, written the first time Framestash saves there.
+- **Account folders** are tied to their owner's **user ID** through a hidden `.framestash.json`, written the first time Framestash saves there.
   - A renamed account keeps its old folder. Folders are never renamed, and new usernames are recorded as aliases.
   - Old folders without the file are recognised from the `_<ownerId>` in their file names.
   - A folder is never shared by two accounts. If a username now belongs to someone else, that account gets `<username>_<userId>/`.
@@ -69,7 +69,7 @@ Framestash is not affiliated with, endorsed by or sponsored by Instagram or Meta
 
 ## Working on tasks
 
-Open work lives in `TASKS.md`. The saved workflow `igd-task` (`.claude/workflows/igd-task.js`) takes **one task per run**:
+Open work lives in `TASKS.md`. The saved workflow `fs-task` (`.claude/workflows/fs-task.js`) takes **one task per run**:
 
 1. **Pick:** it needs a clean working tree. It takes the task you name (e.g. `T2`), or the first one with status `todo`.
 2. **Plan:** a short design against `CLAUDE.md` and `docs/`.
@@ -77,7 +77,7 @@ Open work lives in `TASKS.md`. The saved workflow `igd-task` (`.claude/workflows
 4. **Review:** security, collection-compatibility and correctness reviews, with up to two reviewed fix rounds.
 5. **Finish:** one commit. The task is set to `needs-check`, with the live checks only you can do (reloads, real clicks, folder picks).
 
-Start it in Claude Code by asking it to run the `igd-task` workflow, optionally naming the task. To run several tasks back to back, use `igd-tasks` (`.claude/workflows/igd-tasks.js`) with a list of task ids; it stops at the first task that doesn't end in a commit, and the live checks collect in `TASKS.md` for later.
+Start it in Claude Code by asking it to run the `fs-task` workflow, optionally naming the task. To run several tasks back to back, use `fs-tasks` (`.claude/workflows/fs-tasks.js`) with a list of task ids; it stops at the first task that doesn't end in a commit, and the live checks collect in `TASKS.md` for later.
 
 Plan, Build and Review run on the session's model, because they carry the security and compatibility rules. Pick and Finish are mechanical and run on smaller models.
 
@@ -105,15 +105,15 @@ node test/pacer.test.js        # pacing, budgets, block-signal classification an
 ## Layout
 
 ```text
-igd/
+framestash/
 ├── extension/      the MV3 extension (load unpacked)
 ├── design/         logo sources + render-icons.sh; hero/ holds the README cover
 ├── test/           node checks (naming, collection, pacer)
 ├── scripts/        package.sh: runs the checks, then zips extension/ into dist/; check-manifest.js validates the manifest
 ├── docs/           collection format, Instagram API, probes, design notes, privacy policy
 ├── .github/        CI, release, CodeQL, Dependabot, store publish (docs/releasing.md)
-├── TASKS.md        open work, consumed by the igd-task workflow
-├── .claude/workflows/   igd-task.js (one task), igd-tasks.js (several in order)
+├── TASKS.md        open work, consumed by the fs-task workflow
+├── .claude/workflows/   fs-task.js (one task), fs-tasks.js (several in order)
 ├── README.md       this file
 ├── LICENSE         MIT licence
 ├── SECURITY.md     how to report a vulnerability

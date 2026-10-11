@@ -1,4 +1,4 @@
-// Routes jobs from Instagram tabs to the igd panel, opening the panel first.
+// Routes jobs from Instagram tabs to the Framestash panel, opening the panel first.
 // sidePanel.open needs the user's click, so it is called before anything is awaited.
 
 chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(() => {});
@@ -7,7 +7,7 @@ chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(() => 
 // ponytail: kept in worker memory; the panel loads in about a second.
 const pending = [];
 
-// Windows with an open igd panel: each open panel holds a port named "panel:<windowId>",
+// Windows with an open Framestash panel: each open panel holds a port named "panel:<windowId>",
 // so the in-page panel button can close it again without awaiting anything first.
 const openPanels = new Set();
 chrome.runtime.onConnect.addListener((port) => {

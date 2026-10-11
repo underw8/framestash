@@ -9,6 +9,6 @@ paths:
 
 - Dedup by `pk` only. Never key on the full name, the username, or a prefix that includes `taken_at`.
 - Never overwrite: open with `create: false` first, because creating and then writing truncates the file.
-- `.igd.json`, `.igd-trash`, `igd-*`, the IndexedDB "igd" and other legacy ids keep their names.
+- Account markers are written as `.framestash.json`; `.igd.json` is still read as a fallback, so never drop that.
 - Test data uses made-up usernames and ids, never real accounts.
 - Run `node test/naming.test.js && node test/collection.test.js` after any change. Full rules: docs/collection-format.md.

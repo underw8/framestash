@@ -1,16 +1,21 @@
 // Account folders and their identity. A folder is tied to an Instagram user id
-// through a small ".igd.json" file, because usernames change and get reused.
+// through a small ".framestash.json" file, because usernames change and get reused.
 // Helpers from naming.js are in scope (listed first in the manifest).
 
-const MARKER = ".igd.json";
+const MARKER = ".framestash.json";
+// Pre-1.0.1 name, still read when a folder has no MARKER; writes always use MARKER.
+const LEGACY_MARKER = ".igd.json";
 
 async function readMarker(dir) {
-  try {
-    const data = JSON.parse(await (await (await dir.getFileHandle(MARKER)).getFile()).text());
-    return data && /^\d+$/.test(String(data.userId)) ? data : null;
-  } catch {
-    return null; // missing or unreadable: treated as unmarked
+  for (const name of [MARKER, LEGACY_MARKER]) {
+    try {
+      const data = JSON.parse(await (await (await dir.getFileHandle(name)).getFile()).text());
+      return data && /^\d+$/.test(String(data.userId)) ? data : null;
+    } catch (e) {
+      if (e.name !== "NotFoundError") return null; // unreadable: treated as unmarked
+    }
   }
+  return null;
 }
 
 async function writeMarker(dir, userId, username, previous) {
@@ -37,7 +42,7 @@ async function accountFolders(root) {
 // Picks the folder for an account, in order:
 // 1. the folder whose marker has this user id (follows renames);
 // 2. the folder named after the username, if it isn't someone else's;
-// 3. an unmarked folder whose file names say it belongs to this user id (renamed before igd);
+// 3. an unmarked folder whose file names say it belongs to this user id (renamed before Framestash);
 // 4. a new folder; "<username>_<userId>" when the plain name belongs to another account.
 // Existing folders are never renamed.
 async function resolveAccountDir(root, username, userId) {
@@ -159,7 +164,7 @@ async function checkFolder(dir, onFile) {
   const byPk = new Map();
   const out = { files: 0, media: 0, empty: [], errorTxt: 0, unparsed: [], notMedia: [], duplicates: [] };
   for await (const [name, handle] of dir.entries()) {
-    if (handle.kind !== "file" || name === MARKER || name === ".DS_Store") continue;
+    if (handle.kind !== "file" || name === MARKER || name === LEGACY_MARKER || name === ".DS_Store") continue;
     out.files++;
     onFile();
     if (name.endsWith(".error.txt")) { out.errorTxt++; continue; }

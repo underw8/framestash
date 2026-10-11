@@ -1,6 +1,6 @@
 export const meta = {
-  name: 'igd-task',
-  description: 'Take one task from igd/TASKS.md: plan, build, review, commit, and list the live checks left for the user',
+  name: 'fs-task',
+  description: 'Take one task from TASKS.md: plan, build, review, commit, and list the live checks left for the user',
   whenToUse: 'Run with no args for the first "todo" task, or args "T3" (or a title fragment) for a specific one. One task per run.',
   phases: [
     { title: 'Pick', detail: 'clean tree check, choose the task, mark in-progress', model: 'haiku' },
@@ -11,7 +11,7 @@ export const meta = {
   ],
 }
 
-// Paths are relative to the igd repo root (the folder holding TASKS.md and CLAUDE.md).
+// Paths are relative to the repo root (the folder holding TASKS.md and CLAUDE.md).
 const REPO = 'the repository root (the folder that contains TASKS.md, CLAUDE.md and extension/)'
 
 const TASK = {

@@ -129,7 +129,7 @@ for (const [path, route] of [
 // Folder owner by majority of "_<ownerId>" suffixes; names without a suffix don't vote.
 assert.deepEqual(n.inferOwner([
   "u_1789389655_100000000000000001_42.jpg", "u_1789389655_100000000000000002_42.jpg",
-  "u_1789389655_100000000000000003_99.jpg", "u_1789389655_100000000000000004.jpg", ".igd.json",
+  "u_1789389655_100000000000000003_99.jpg", "u_1789389655_100000000000000004.jpg", ".framestash.json",
 ]), { ownerId: "42", share: 2 / 3, owners: 2 });
 assert.deepEqual(n.inferOwner([]), { ownerId: null, share: 0, owners: 0 });
 

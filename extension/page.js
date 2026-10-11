@@ -155,7 +155,7 @@
 
   window.addEventListener("message", async (e) => {
     const port = e.ports && e.ports[0];
-    if (e.origin !== location.origin || !port || !e.data || e.data.igd !== 1) return;
+    if (e.origin !== location.origin || !port || !e.data || e.data.framestash !== 1) return;
     requests = 0;
     try {
       if (!OPS[e.data.op]) throw new Error(`unknown op ${e.data.op}`);

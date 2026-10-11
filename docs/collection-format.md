@@ -8,7 +8,7 @@ Framestash reads and writes one on-disk format. Files already in a collection, i
 <root>/<username>/<username>_<taken_at>_<id>.<ext>
 <root>/<username>/stories/<username>_<taken_at>_<id>.<ext>
 <root>/<username>/stories/<highlight folder>/…      (only with "Highlights in their own folders")
-<root>/<username>/.igd.json
+<root>/<username>/.framestash.json
 ```
 
 The user picks `<root>`, the folder that contains the account folders, never an account folder.
@@ -47,9 +47,9 @@ The key is the media **pk** alone. A pk is unique across Instagram and never reu
 
 A file counts as present only if it is non-empty. 0-byte files are treated as missing and downloaded again.
 
-## Account folders and `.igd.json`
+## Account folders and `.framestash.json`
 
-An account folder is tied to a user ID by a hidden marker `.igd.json`: `{ version: 1, userId, usernames: [...] }`. Framestash writes it the first time it saves into the folder and appends new usernames as aliases. Folders are never renamed. The marker keeps its `.igd.json` name (and the trash folder its `.igd-trash` name) from before the rename, so existing collections keep working.
+An account folder is tied to a user ID by a hidden marker `.framestash.json`: `{ version: 1, userId, usernames: [...] }`. Framestash writes it the first time it saves into the folder and appends new usernames as aliases. Folders are never renamed. Collections from before 1.0.1 have `.igd.json` instead; it is still read when a folder has no `.framestash.json`, and new markers are always written as `.framestash.json`.
 
 `resolveAccountDir(root, username, userId)` picks the folder in this order:
 
@@ -79,5 +79,5 @@ The check (**Check collection** in the panel) is read-only. Per account it repor
 ## Migration rules
 
 - Report first. The collection check never changes anything.
-- Never delete. Anything removed goes to `<root>/.igd-trash/<date>/`.
+- Never delete. Anything removed goes to `<root>/.framestash-trash/<date>/`.
 - Any step that moves files needs the user's confirmation.

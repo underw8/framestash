@@ -34,7 +34,7 @@ class FakeDir {
   file(n, bytes = [0xff, 0xd8, 0xff, 0xe0]) { const h = new FakeFileHandle(); h.bytes = bytes; this.children.set(n, h); return this; }
 }
 const media = (user, pk, owner) => `${user}_1789389655_${pk}${owner ? `_${owner}` : ""}.jpg`;
-const marker = async (dir) => JSON.parse(await (await (await dir.getFileHandle(".igd.json")).getFile()).text());
+const marker = async (dir) => JSON.parse(await (await (await dir.getFileHandle(".framestash.json")).getFile()).text());
 
 (async () => {
   const root = new FakeDir("IG");
@@ -58,7 +58,7 @@ const marker = async (dir) => JSON.parse(await (await (await dir.getFileHandle("
   r = await ctx.resolveAccountDir(root, "taken", "88");
   assert.equal(r.name, "taken_88");
   assert.equal((await marker(r.dir)).userId, "88");
-  assert.equal(await (async () => { try { await (await root.getDirectoryHandle("taken")).getFileHandle(".igd.json"); return "marked"; } catch { return "untouched"; } })(), "untouched");
+  assert.equal(await (async () => { try { await (await root.getDirectoryHandle("taken")).getFileHandle(".framestash.json"); return "marked"; } catch { return "untouched"; } })(), "untouched");
 
   // 4. The original owner of "taken" (77) still lands in its own folder and gets a marker.
   r = await ctx.resolveAccountDir(root, "taken", "77");
@@ -73,9 +73,15 @@ const marker = async (dir) => JSON.parse(await (await (await dir.getFileHandle("
   // 5b. "<username>_<userId>" already owned by yet another account: refuse rather than share it.
   (await root.getDirectoryHandle("dup", { create: true })).file(media("dup", "100000000000000030", "61"));
   const squatter = await root.getDirectoryHandle("dup_62", { create: true });
-  await (await squatter.getFileHandle(".igd.json", { create: true })).createWritable().then(async (w) => { await w.write(JSON.stringify({ version: 1, userId: "63", usernames: ["x"] })); await w.close(); });
+  await (await squatter.getFileHandle(".framestash.json", { create: true })).createWritable().then(async (w) => { await w.write(JSON.stringify({ version: 1, userId: "63", usernames: ["x"] })); await w.close(); });
   await assert.rejects(ctx.resolveAccountDir(root, "dup", "62"), /belongs to another account/);
   assert.equal((await marker(squatter)).userId, "63");
+
+  // 5c. A pre-1.0.1 ".igd.json" marker still ties its folder to the user id, even under another name.
+  const old = await root.getDirectoryHandle("oldname", { create: true });
+  await (await old.getFileHandle(".igd.json", { create: true })).createWritable().then(async (w) => { await w.write(JSON.stringify({ version: 1, userId: "64", usernames: ["oldname"] })); await w.close(); });
+  r = await ctx.resolveAccountDir(root, "newname", "64");
+  assert.equal(r.name, "oldname");
 
   // 6. No user id available: legacy behaviour, by name, no marker.
   r = await ctx.resolveAccountDir(root, "noid", null);

@@ -16,8 +16,8 @@ Check:
 - The folder handle lives only in the panel's extension-origin IndexedDB, never in instagram.com storage or messages to the page.
 - Page-bridge replies are untrusted and pass through `itemsFromNode` validation.
 - The panel accepts jobs only from the background, with the tab URL Chrome reports, checked by `validJob`.
-- Every igd button handler in the page requires `event.isTrusted`.
-- postMessage listeners check origin/source and the `{igd: 1}` tag.
+- Every Framestash button handler in the page requires `event.isTrusted`.
+- postMessage listeners check origin/source and the `{framestash: 1}` tag.
 - No new web-accessible resources, permissions, host permissions or telemetry without a stated reason.
 - No story "seen" mutation is called.
 
