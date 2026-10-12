@@ -37,5 +37,15 @@
 
 ### Enabling it
 
-1. Run the workflow by hand once on an existing release tag and check that the item shows the new upload as pending review.
-2. Uncomment the `workflow_run:` block in `.github/workflows/publish.yml`. Each successful Release run then submits its zip to the store.
+1. Check the credentials without uploading anything. The store rejects an upload whose version isn't higher than the published one, so a test run on an existing release would fail. This asks for the item's status instead:
+
+   ```bash
+   tok=$(curl -sS -X POST https://oauth2.googleapis.com/token \
+     -d client_id=CLIENT_ID -d client_secret=CLIENT_SECRET \
+     -d refresh_token=REFRESH_TOKEN -d grant_type=refresh_token | jq -r .access_token)
+   curl -sS -H "Authorization: Bearer $tok" \
+     https://chromewebstore.googleapis.com/v2/publishers/PUBLISHER_ID/items/EXTENSION_ID:fetchStatus
+   ```
+
+   A JSON reply with the item's status means the token and IDs are right.
+2. Uncomment the `workflow_run:` block in `.github/workflows/publish.yml`. Each successful Release run then submits its zip to the store; the next release is the first real test.
