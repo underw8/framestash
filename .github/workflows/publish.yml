@@ -1,14 +1,12 @@
 name: Publish to Chrome Web Store
 
-# The automatic trigger stays off until the first store submission has been
-# made by hand (see docs/releasing.md). To enable it, uncomment the
-# workflow_run block below. Until then the workflow only runs when started by
-# hand. It follows the Release workflow rather than `release: published`,
-# because releases created with GITHUB_TOKEN trigger no workflows.
+# Runs after each successful Release, or by hand for a given tag. It follows the
+# Release workflow rather than `release: published`, because releases created
+# with GITHUB_TOKEN trigger no workflows. Setup: docs/releasing.md.
 on:
-#  workflow_run:
-#    workflows: [Release]
-#    types: [completed]
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
   workflow_dispatch:
     inputs:
       tag:

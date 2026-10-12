@@ -10,7 +10,7 @@
 
 ## Store publishing (publish.yml)
 
-`publish.yml` downloads a release's zip, uploads it to the Chrome Web Store API v2 and submits it for review. Its automatic trigger (`workflow_run` after a successful Release run) is commented out until the setup below is done; until then it runs only when started by hand (Actions → Publish to Chrome Web Store → Run workflow, with a tag).
+`publish.yml` downloads a release's zip, uploads it to the Chrome Web Store API v2 and submits it for review. It runs after each successful Release run (`workflow_run`), or by hand from Actions → Publish to Chrome Web Store → Run workflow, with a tag. The setup below is done for underw8/framestash; a fork needs its own.
 
 ### One-time setup
 
