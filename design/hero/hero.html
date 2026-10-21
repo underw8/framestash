@@ -7,7 +7,7 @@
   .vignette { position: absolute; inset: 0; background: radial-gradient(ellipse at center, transparent 30%, rgba(0, 0, 0, .75) 100%); }
   .grid { position: absolute; left: 80px; top: 48px; display: grid; grid-template-columns: 300px 300px 434px; grid-template-rows: 300px 300px; gap: 56px; }
   .grid { isolation: isolate; }
-  .tile { position: relative; background-color: #000; background-repeat: no-repeat; background-size: cover; background-position: center; }
+  .tile { position: relative; border-radius: 18px; background-color: #000; background-repeat: no-repeat; background-size: cover; background-position: center; }
   /* Glow: a blurred, saturated copy of the tile's own image behind it. */
   .tile::before { content: ""; position: absolute; inset: -24px; z-index: -1; background: inherit; filter: blur(44px) saturate(1.8) brightness(.85); opacity: .6; }
   .tall { grid-row: span 2; }
