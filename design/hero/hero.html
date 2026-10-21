@@ -2,18 +2,15 @@
 <!-- Framestash hero cover, 1280×800. Shots go in shots/; render with render.sh. -->
 <meta charset="utf-8">
 <style>
-  html, body { margin: 0; width: 1280px; height: 800px; overflow: hidden; background: #000; }
-  .bg { position: absolute; inset: -80px; background: url(shots/tile.png) center / cover; filter: blur(70px) brightness(.22) saturate(1.4); }
-  .vignette { position: absolute; inset: 0; background: radial-gradient(ellipse at center, transparent 30%, rgba(0, 0, 0, .75) 100%); }
+  html, body { margin: 0; width: 1280px; height: 800px; overflow: hidden; background: #0c1014; }
+  /* Same background and shadow as promo.html. Anchored to the bottom so the story's black caption stays off the canvas. */
+  .bg { position: absolute; inset: -80px; background: url(shots/tile2.png) center bottom / cover; filter: blur(40px) brightness(.35) saturate(1.5); }
   .grid { position: absolute; left: 80px; top: 48px; display: grid; grid-template-columns: 300px 300px 434px; grid-template-rows: 300px 300px; gap: 56px; }
-  .grid { isolation: isolate; }
-  .tile { position: relative; background-color: #000; background-repeat: no-repeat; background-size: cover; background-position: center; }
-  /* Glow: a blurred, saturated copy of the tile's own image behind it. */
-  .tile::before { content: ""; position: absolute; inset: -24px; z-index: -1; background: inherit; filter: blur(44px) saturate(1.8) brightness(.85); opacity: .6; }
+  .tile { border-radius: 18px; box-shadow: 0 28px 70px rgba(0, 0, 0, .55); background-color: #000; background-repeat: no-repeat; background-size: cover; background-position: center; }
   .tall { grid-row: span 2; }
   .wordmark { position: absolute; left: 80px; bottom: 30px; height: 34px; }
 </style>
-<div class="bg"></div><div class="vignette"></div>
+<div class="bg"></div>
 <div class="grid">
   <div class="tile" style="background-image: url(shots/tile.png)"></div>
   <div class="tile" style="background-image: url(shots/profile.png); background-position: right bottom"></div>
